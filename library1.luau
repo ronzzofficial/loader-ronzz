@@ -12375,6 +12375,8 @@ function Library:CreateWindow(WindowInfo)
             })
             New("UIPadding", {
                 PaddingBottom = UDim.new(0, 4),
+                PaddingLeft = UDim.new(0, 4),
+                PaddingRight = UDim.new(0, 8),
                 PaddingTop = UDim.new(0, 4),
                 Parent = BoxHolder,
             })
@@ -12529,8 +12531,8 @@ function Library:CreateWindow(WindowInfo)
                 -- frame guarantees equal spacing on both left and right sides.
                 GroupboxContent = New("Frame", {
                     BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(7, 6),
-                    Size = UDim2.new(1, -18, 0, 0),
+                    Position = UDim2.fromOffset(5, 5),
+                    Size = UDim2.new(1, -10, 0, 0),
                     Parent = GroupboxContainer,
                 })
 
@@ -12573,7 +12575,7 @@ function Library:CreateWindow(WindowInfo)
 
                 local TargetSize = UDim2.new(1, 0, 0, if Groupbox.Collapsed then TopSize else (TopSize + 1 + ContainerSize))
 
-                GroupboxContent.Size = UDim2.new(1, -18, 0, ContentSize)
+                GroupboxContent.Size = UDim2.new(1, -10, 0, ContentSize)
                 GroupboxContainer.Size = UDim2.new(1, 0, 0, ContainerSize)
                 GroupboxLine.Visible = not Groupbox.Collapsed
                 if Library.Animations and Library.Animations.Groupbox then
