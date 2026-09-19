@@ -5812,6 +5812,7 @@ do
 
         if Toggle.Risky then
             Label.TextColor3 = Library.Scheme.RedColor
+            Library.Registry[Label] = Library.Registry[Label] or {}
             Library.Registry[Label].TextColor3 = "RedColor"
         end
 
@@ -5930,7 +5931,11 @@ do
             Position = UDim2.fromOffset(10, 0),
             Size = UDim2.new(1, -60, 1, 0),
             Text = Toggle.Text,
-            TextColor3 = LayeredStyle.MainText,
+            -- Use a function so New() registers this property. Some toggle
+            -- states later update Library.Registry[Label].TextColor3.
+            TextColor3 = function()
+                return LayeredStyle.MainText
+            end,
             TextSize = 14,
             TextTransparency = 0.4,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -5946,7 +5951,11 @@ do
 
         local Switch = New("Frame", {
             AnchorPoint = Vector2.new(1, 0.5),
-            BackgroundColor3 = LayeredStyle.InputBox,
+            -- Must be registered because Toggle:Display() changes the registry
+            -- entry between AccentColor and the layered inactive color.
+            BackgroundColor3 = function()
+                return LayeredStyle.InputBox
+            end,
             Position = UDim2.new(1, -10, 0.5, 0),
             Size = UDim2.fromOffset(32, 18),
             Parent = Button,
@@ -5963,7 +5972,10 @@ do
             Parent = Switch,
         })
         local SwitchStroke = New("UIStroke", {
-            Color = LayeredStyle.Border,
+            -- Same reason as Switch: Toggle:Display() updates this registry row.
+            Color = function()
+                return LayeredStyle.Border
+            end,
             Parent = Switch,
         })
 
@@ -5995,6 +6007,9 @@ do
             Switch.BackgroundColor3 = Toggle.Value and Library.Scheme.AccentColor or LayeredStyle.InputBox
             SwitchStroke.Color = Toggle.Value and Library.Scheme.AccentColor or LayeredStyle.Border
 
+            -- Defensive fallback for executors/forks that may skip registry setup.
+            Library.Registry[Switch] = Library.Registry[Switch] or {}
+            Library.Registry[SwitchStroke] = Library.Registry[SwitchStroke] or {}
             Library.Registry[Switch].BackgroundColor3 = Toggle.Value and "AccentColor" or function() return LayeredStyle.InputBox end
             Library.Registry[SwitchStroke].Color = Toggle.Value and "AccentColor" or function() return LayeredStyle.Border end
 
