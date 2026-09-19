@@ -1,5 +1,5 @@
 --[[
-    ZANJI UI LIBRARY V2
+    ZANJI UI LIBRARY V3 - SHELL MATCH
     Fresh standalone UI shell inspired by the current ZANJI layout.
 
     Core UI:
@@ -27,7 +27,7 @@
       ronzzofficial/ronzz-loader/source.lua
 
     Basic usage:
-        local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ronzzofficial/loader-ronzz/refs/heads/main/library2.lua"))()
+        local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ronzzofficial/loader-ronzz/refs/heads/main/library3.lua"))()
 
         local Window = Library:CreateWindow({
             Title = "ZANJIHUB",
@@ -860,11 +860,15 @@ local function attachControls(api, holder, elementRegistry)
     end
 
     local function controlFrame(height, text)
+        local isFlat = api._flatControls == true
         local frame = new("Frame", {
-            BackgroundColor3 = Theme.Main,
+            BackgroundColor3 = api._controlColor or Theme.Main,
+            BackgroundTransparency = isFlat and 1 or 0,
             Size = UDim2.new(1, 0, 0, height),
         })
-        corner(frame, 5)
+        if not isFlat then
+            corner(frame, 5)
+        end
         register(frame, text)
         frame.Parent = holder
         return frame
@@ -954,7 +958,9 @@ local function attachControls(api, holder, elementRegistry)
         config = config or {}
 
         local frame = controlFrame(config.Height or 34, config.Text)
-        onHover(frame, Theme.Main, Theme.MainHover)
+        if api._flatControls ~= true then
+            onHover(frame, api._controlColor or Theme.Main, Theme.MainHover)
+        end
 
         local iconHolder = new("Frame", {
             BackgroundTransparency = 1,
@@ -1484,6 +1490,8 @@ local function attachControls(api, holder, elementRegistry)
             Frame = card,
             Layout = layout,
             _order = 0,
+            _flatControls = false,
+            _controlColor = Theme.Background,
         }
 
         attachControls(child, card, api._elements)
@@ -1508,7 +1516,7 @@ function Library:CreateWindow(config)
         BackgroundColor3 = Theme.Background,
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = config.Position or UDim2.fromScale(0.5, 0.5),
-        Size = config.Size or UDim2.fromOffset(820, 560),
+        Size = config.Size or UDim2.fromOffset(720, 600),
         ClipsDescendants = true,
     })
     corner(main, config.CornerRadius or 4)
@@ -1516,7 +1524,7 @@ function Library:CreateWindow(config)
     main.Parent = gui
     Window.Frame = main
 
-    local minSize = config.MinSize or Vector2.new(520, 360)
+    local minSize = config.MinSize or Vector2.new(480, 360)
     local sizeConstraint = new("UISizeConstraint", {
         MinSize = minSize,
     })
@@ -1528,9 +1536,9 @@ function Library:CreateWindow(config)
     scale.Parent = main
     Window.Scale = scale
 
-    local headerHeight = 46
-    local footerHeight = 24
-    local sidebarWidth = config.SidebarWidth or 146
+    local headerHeight = 44
+    local footerHeight = 20
+    local sidebarWidth = config.SidebarWidth or 128
 
     -- header
     local header = new("Frame", {
@@ -1575,18 +1583,36 @@ function Library:CreateWindow(config)
         })
         logo.Parent = brand
     else
-        local brandText = new("TextLabel", {
+        local z = new("TextLabel", {
             BackgroundTransparency = 1,
             Position = UDim2.fromOffset(12, 0),
-            Size = UDim2.new(1, -20, 1, 0),
-            RichText = true,
-            Text = string.format(
-                '<font color="%s"><b>Z</b></font><font color="#D8D8DE">ANJIHUB</font>',
-                rgbHex(Theme.Accent)
-            ),
-            TextColor3 = Theme.Font,
+            Size = UDim2.fromOffset(22, headerHeight),
+            Text = "Z",
+            TextColor3 = Color3.new(1, 1, 1),
+            Font = Enum.Font.GothamBold,
+            TextSize = 19,
+            TextXAlignment = Enum.TextXAlignment.Center,
+        })
+        z.Parent = brand
+
+        local gradient = new("UIGradient", {
+            Rotation = 0,
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(114, 72, 255)),
+                ColorSequenceKeypoint.new(0.45, Color3.fromRGB(226, 74, 221)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 197, 67)),
+            })
+        })
+        gradient.Parent = z
+
+        local brandText = new("TextLabel", {
+            BackgroundTransparency = 1,
+            Position = UDim2.fromOffset(31, 0),
+            Size = UDim2.new(1, -38, 1, 0),
+            Text = "ZANJIHUB",
+            TextColor3 = Color3.fromRGB(214, 205, 229),
             Font = Enum.Font.Code,
-            TextSize = 16,
+            TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
         })
         brandText.Parent = brand
@@ -1645,7 +1671,7 @@ function Library:CreateWindow(config)
         BackgroundColor3 = Theme.Background,
         AnchorPoint = Vector2.new(1, 0.5),
         Position = UDim2.new(1, -48, 0.5, 0),
-        Size = UDim2.fromOffset(config.SearchWidth or 282, 34),
+        Size = UDim2.fromOffset(config.SearchWidth or 280, 34),
     })
     corner(searchHolder, 4)
     stroke(searchHolder, Theme.Accent, 1, 0)
@@ -2037,7 +2063,7 @@ function Library:CreateWindow(config)
 
             local headerFrame = new("Frame", {
                 BackgroundColor3 = Theme.Background,
-                Size = UDim2.new(1, 0, 0, 32),
+                Size = UDim2.new(1, 0, 0, 30),
             })
             corner(headerFrame, 5)
             headerFrame.Parent = frame
@@ -2045,7 +2071,7 @@ function Library:CreateWindow(config)
             local groupIconHolder = new("Frame", {
                 BackgroundTransparency = 1,
                 Position = UDim2.fromOffset(5, 0),
-                Size = UDim2.fromOffset(24, 32),
+                Size = UDim2.fromOffset(24, 30),
             })
             groupIconHolder.Parent = headerFrame
 
@@ -2078,7 +2104,7 @@ function Library:CreateWindow(config)
                 BackgroundTransparency = 1,
                 AnchorPoint = Vector2.new(1, 0),
                 Position = UDim2.new(1, -3, 0, 0),
-                Size = UDim2.fromOffset(30, 32),
+                Size = UDim2.fromOffset(30, 30),
                 Text = "",
             })
             collapse.Parent = headerFrame
@@ -2097,7 +2123,7 @@ function Library:CreateWindow(config)
 
             local body = new("Frame", {
                 BackgroundTransparency = 1,
-                Position = UDim2.fromOffset(5, 36),
+                Position = UDim2.fromOffset(5, 34),
                 Size = UDim2.new(1, -10, 0, 0),
                 AutomaticSize = Enum.AutomaticSize.Y,
             })
@@ -2111,6 +2137,7 @@ function Library:CreateWindow(config)
                 Body = body,
                 Elements = Group.Elements,
                 _order = 0,
+                _flatControls = true,
             }
             attachControls(controls, body, Group.Elements)
 
@@ -2160,5 +2187,10 @@ function Library:CreateWindow(config)
 
     return Window
 end
+
+
+--// compatibility aliases
+-- These keep the new implementation fresh while making source migration easier.
+Library.Create = Library.CreateWindow
 
 return Library
