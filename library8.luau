@@ -6225,11 +6225,11 @@ do
 
         local Box = New("TextBox", {
             AnchorPoint = Vector2.zero,
-            BackgroundColor3 = "CardColor",
+            BackgroundColor3 = "MainColor",
             ClearTextOnFocus = not Input.Disabled and Input.ClearTextOnFocus,
             PlaceholderText = Input.Placeholder,
-            Position = UDim2.fromOffset(4, 21),
-            Size = UDim2.new(1, -8, 0, 25),
+            Position = UDim2.fromOffset(5, 21),
+            Size = UDim2.new(1, -10, 0, 25),
             Text = Input.Value,
             TextEditable = not Input.Disabled,
             TextScaled = true,
@@ -8234,11 +8234,11 @@ do
         local Display = New("TextButton", {
             Active = not Dropdown.Disabled,
             AnchorPoint = Vector2.zero,
-            BackgroundColor3 = "CardColor",
+            BackgroundColor3 = "MainColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 0,
-            Position = Boxed and UDim2.fromOffset(4, 21) or UDim2.fromOffset(0, 4),
-            Size = Boxed and UDim2.new(1, -8, 0, 25) or UDim2.new(1, 0, 0, 21),
+            Position = Boxed and UDim2.fromOffset(5, 21) or UDim2.fromOffset(0, 4),
+            Size = Boxed and UDim2.new(1, -10, 0, 25) or UDim2.new(1, 0, 0, 21),
             Text = "---",
             RichText = true,
             TextSize = 12,
@@ -9116,8 +9116,8 @@ do
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
 
-            Display.Position = Boxed and UDim2.fromOffset(4, 21) or UDim2.fromOffset(0, 4)
-            Display.Size = Boxed and UDim2.new(1, -8, 0, 25) or UDim2.new(1, 0, 0, 21)
+            Display.Position = Boxed and UDim2.fromOffset(5, 21) or UDim2.fromOffset(0, 4)
+            Display.Size = Boxed and UDim2.new(1, -10, 0, 25) or UDim2.new(1, 0, 0, 21)
 
             Title.Text = Text or "Select"
         end
@@ -12524,14 +12524,14 @@ function Library:CreateWindow(WindowInfo)
                 })
 
                 GroupboxList = New("UIListLayout", {
-                    Padding = UDim.new(0, 2),
+                    Padding = UDim.new(0, 3),
                     Parent = GroupboxContainer,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, 5),
-                    PaddingLeft = UDim.new(0, 5),
-                    PaddingRight = UDim.new(0, 5),
-                    PaddingTop = UDim.new(0, 5),
+                    PaddingBottom = UDim.new(0, 6),
+                    PaddingLeft = UDim.new(0, 7),
+                    PaddingRight = UDim.new(0, 7),
+                    PaddingTop = UDim.new(0, 6),
                     Parent = GroupboxContainer,
                 })
             end
@@ -12564,7 +12564,7 @@ function Library:CreateWindow(WindowInfo)
                 end
 
                 local TopSize = (GroupboxTop.AbsoluteSize.Y / Library.DPIScale)
-                local ContainerSize = (GroupboxList.AbsoluteContentSize.Y / Library.DPIScale) + 10
+                local ContainerSize = (GroupboxList.AbsoluteContentSize.Y / Library.DPIScale) + 12
 
                 local TargetSize = UDim2.new(1, 0, 0, if Groupbox.Collapsed then TopSize else (TopSize + 1 + ContainerSize))
 
