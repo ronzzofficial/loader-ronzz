@@ -5289,7 +5289,7 @@ do
 
         local Holder = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 21),
+            Size = UDim2.new(1, 0, 0, 30),
             Parent = Container,
         })
 
@@ -5303,25 +5303,25 @@ do
         local function CreateButton(Button)
             local Base = New("TextButton", {
                 Active = not Button.Disabled,
-                BackgroundColor3 = Button.Disabled and "BackgroundColor" or "MainColor",
+                BackgroundColor3 = Button.Disabled and "MainColor" or "CardColor",
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
-                TextSize = 14,
-                TextTransparency = 0.4,
+                TextSize = 12,
+                TextTransparency = 0.12,
                 Visible = Button.Visible,
                 Parent = Holder,
             })
 
             local Stroke = New("UIStroke", {
                 Color = "OutlineColor",
-                Transparency = Button.Disabled and 0.5 or 0,
+                Transparency = Button.Disabled and 0.7 or 0.52,
                 Parent = Base,
             })
 
             table.insert(
                 Library.Corners,
                 New("UICorner", {
-                    CornerRadius = UDim.new(0, Library.CornerRadius / 2),
+                    CornerRadius = UDim.new(0, Library.CornerRadius + 2),
                     Parent = Base,
                 })
             )
@@ -5346,7 +5346,7 @@ do
                 end
 
                 Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
-                    TextTransparency = 0.4,
+                    TextTransparency = 0.12,
                 })
                 Button.Tween:Play()
             end)
@@ -5894,18 +5894,32 @@ do
 
         local Button = New("TextButton", {
             Active = not Toggle.Disabled,
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 18),
+            BackgroundColor3 = "CardColor",
+            BackgroundTransparency = 0,
+            Size = UDim2.new(1, 0, 0, 30),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
         })
 
+        New("UICorner", {
+            CornerRadius = UDim.new(0, Library.CornerRadius + 2),
+            Parent = Button,
+        })
+
+        New("UIStroke", {
+            Color = "OutlineColor",
+            Thickness = 1,
+            Transparency = 0.52,
+            Parent = Button,
+        })
+
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, -40, 1, 0),
+            Position = UDim2.fromOffset(9, 0),
+            Size = UDim2.new(1, -52, 1, 0),
             Text = Toggle.Text,
-            TextSize = 14,
+            TextSize = 12,
             TextTransparency = 0.4,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Button,
@@ -5919,10 +5933,10 @@ do
         })
 
         local Switch = New("Frame", {
-            AnchorPoint = Vector2.new(1, 0),
+            AnchorPoint = Vector2.new(1, 0.5),
             BackgroundColor3 = "MainColor",
-            Position = UDim2.fromScale(1, 0),
-            Size = UDim2.fromOffset(32, 18),
+            Position = UDim2.new(1, -8, 0.5, 0),
+            Size = UDim2.fromOffset(29, 16),
             Parent = Button,
         })
         New("UICorner", {
@@ -6169,28 +6183,43 @@ do
         }
 
         local Holder = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 39),
+            BackgroundColor3 = "CardColor",
+            BackgroundTransparency = 0,
+            Size = UDim2.new(1, 0, 0, 52),
             Visible = Input.Visible,
             Parent = Container,
         })
 
+        New("UICorner", {
+            CornerRadius = UDim.new(0, Library.CornerRadius + 2),
+            Parent = Holder,
+        })
+
+        New("UIStroke", {
+            Color = "OutlineColor",
+            Thickness = 1,
+            Transparency = 0.52,
+            Parent = Holder,
+        })
+
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 14),
+            Position = UDim2.fromOffset(8, 4),
+            Size = UDim2.new(1, -16, 0, 15),
             Text = Input.Text,
-            TextSize = 14,
+            TextSize = 12,
+            TextTransparency = 0.12,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Holder,
         })
 
         local Box = New("TextBox", {
-            AnchorPoint = Vector2.new(0, 1),
+            AnchorPoint = Vector2.zero,
             BackgroundColor3 = "MainColor",
             ClearTextOnFocus = not Input.Disabled and Input.ClearTextOnFocus,
             PlaceholderText = Input.Placeholder,
-            Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(1, 0, 0, 21),
+            Position = UDim2.fromOffset(6, 22),
+            Size = UDim2.new(1, -12, 0, 24),
             Text = Input.Value,
             TextEditable = not Input.Disabled,
             TextScaled = true,
@@ -6199,22 +6228,21 @@ do
         })
 
         New("UIPadding", {
-            PaddingBottom = UDim.new(0, 3),
             PaddingLeft = UDim.new(0, 8),
             PaddingRight = UDim.new(0, 8),
-            PaddingTop = UDim.new(0, 4),
             Parent = Box,
         })
 
         local BoxStroke = New("UIStroke", {
             Color = "OutlineColor",
+            Transparency = 0.30,
             Parent = Box,
         })
 
         table.insert(
             Library.Corners,
             New("UICorner", {
-                CornerRadius = UDim.new(0, Library.CornerRadius / 2),
+                CornerRadius = UDim.new(0, Library.CornerRadius + 1),
                 Parent = Box,
             })
         )
@@ -8176,7 +8204,7 @@ do
             New("UIStroke", {
                 Color = "OutlineColor",
                 Thickness = 1,
-                Transparency = 0.22,
+                Transparency = 0.52,
                 Parent = Holder,
             })
         end
@@ -9976,15 +10004,22 @@ do
         local Container = Groupbox.Container
 
         local CardHolder = New("Frame", {
-            BackgroundColor3 = "CardColor",
+            BackgroundColor3 = "MainColor",
             BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Size = UDim2.new(1, 0, 0, 0),
             Parent = Container,
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 3),
+            Parent = CardHolder,
+        })
+
+        New("UIStroke", {
+            Color = "OutlineColor",
+            Thickness = 1,
+            Transparency = 0.48,
             Parent = CardHolder,
         })
 
@@ -9995,15 +10030,15 @@ do
         })
 
         local CardList = New("UIListLayout", {
-            Padding = UDim.new(0, 6),
+            Padding = UDim.new(0, 4),
             Parent = CardContainer,
         })
 
         New("UIPadding", {
-            PaddingBottom = UDim.new(0, 8),
-            PaddingLeft = UDim.new(0, 8),
-            PaddingRight = UDim.new(0, 8),
-            PaddingTop = UDim.new(0, 8),
+            PaddingBottom = UDim.new(0, 6),
+            PaddingLeft = UDim.new(0, 6),
+            PaddingRight = UDim.new(0, 6),
+            PaddingTop = UDim.new(0, 6),
             Parent = CardContainer,
         })
 
@@ -12466,7 +12501,7 @@ function Library:CreateWindow(WindowInfo)
                 })
 
                 GroupboxList = New("UIListLayout", {
-                    Padding = UDim.new(0, 8),
+                    Padding = UDim.new(0, 5),
                     Parent = GroupboxContainer,
                 })
                 New("UIPadding", {
