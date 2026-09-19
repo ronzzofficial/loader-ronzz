@@ -257,15 +257,15 @@ local Library = {
     OriginalMinSize = Vector2.new(480, 360),
     MinSize = Vector2.new(480, 360),
     DPIScale = 1,
-    CornerRadius = 8,
+    CornerRadius = 4,
 
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(10, 10, 12),
-        MainColor = Color3.fromRGB(19, 19, 23),
-        AccentColor = Color3.fromRGB(127, 90, 255),
-        OutlineColor = Color3.fromRGB(46, 46, 52),
+        BackgroundColor = Color3.fromRGB(11, 11, 14),
+        MainColor = Color3.fromRGB(20, 20, 24),
+        AccentColor = Color3.fromRGB(128, 92, 255),
+        OutlineColor = Color3.fromRGB(44, 44, 52),
         FontColor = Color3.fromRGB(242, 242, 246),
         Font = Font.fromEnum(Enum.Font.Code),
 
@@ -369,7 +369,7 @@ local Templates = {
         SearchbarSize = UDim2.fromScale(1, 1),
         GlobalSearch = false,
 
-        CornerRadius = 8,
+        CornerRadius = 4,
         NotifySide = "Right",
         ShowCustomCursor = true,
 
@@ -7059,7 +7059,7 @@ do
             Parent = CloseButton,
         })
 
-        local SelectionActions = New("Frame", {
+        local ActionRow = New("Frame", {
             BackgroundTransparency = 1,
             Visible = Info.Multi == true,
             ZIndex = 123,
@@ -7074,11 +7074,10 @@ do
             Text = "All",
             TextSize = 13,
             ZIndex = 123,
-            Parent = SelectionActions,
+            Parent = ActionRow,
         })
-
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
             Parent = SelectAllButton,
         })
 
@@ -7090,11 +7089,10 @@ do
             Text = "None",
             TextSize = 13,
             ZIndex = 123,
-            Parent = SelectionActions,
+            Parent = ActionRow,
         })
-
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
             Parent = ClearButton,
         })
 
@@ -7128,7 +7126,7 @@ do
             BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             CanvasSize = UDim2.fromOffset(0, 0),
             ScrollBarImageColor3 = "OutlineColor",
-            ScrollBarThickness = 3,
+            ScrollBarThickness = 4,
             TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             ZIndex = 123,
             Parent = PopupBody,
@@ -7302,7 +7300,7 @@ do
             -- ~10% smaller rows/buttons than previous
             local optionText = math.clamp(math.floor(height * 0.027), 12, 17)
             local rowH = math.clamp(height * 0.078, 30, 52)
-            local actionsH = math.clamp(height * 0.058, 24, 32)
+            local actionH = math.clamp(height * 0.05, 24, 28)
 
             return {
                 width = width,
@@ -7316,7 +7314,7 @@ do
                 inputText = inputText,
                 optionText = optionText,
                 rowH = rowH,
-                actionsH = actionsH,
+                actionH = actionH,
             }
         end
 
@@ -7352,36 +7350,31 @@ do
             innerPadX = math.max(10, math.floor(M.padX * 0.7))
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
 
-            local actionsGap = math.max(6, math.floor(M.gap * 0.75))
-            local actionsTop = innerPadY
-
+            local rowTop = innerPadY
             if SearchInput.Visible then
                 SearchInput.Position = UDim2.fromOffset(innerPadX, innerPadY)
                 SearchInput.Size = UDim2.new(1, -(innerPadX * 2), 0, M.searchH)
                 SearchInput.TextSize = M.inputText
-                actionsTop = innerPadY + M.searchH + M.gap
+                rowTop = innerPadY + M.searchH + M.gap
             end
 
             if Info.Multi then
-                SelectionActions.Visible = true
-                SelectionActions.Position = UDim2.fromOffset(innerPadX, actionsTop)
-                SelectionActions.Size = UDim2.new(1, -(innerPadX * 2), 0, M.actionsH)
-
-                local miniGap = 8
                 local buttonW = 58
-                ClearButton.Size = UDim2.fromOffset(buttonW, M.actionsH)
+                local buttonGap = 8
+                ActionRow.Visible = true
+                ActionRow.Position = UDim2.fromOffset(innerPadX, rowTop)
+                ActionRow.Size = UDim2.new(1, -(innerPadX * 2), 0, M.actionH)
+                ClearButton.Size = UDim2.fromOffset(buttonW, M.actionH)
                 ClearButton.Position = UDim2.new(1, -buttonW, 0, 0)
-                SelectAllButton.Size = UDim2.fromOffset(buttonW, M.actionsH)
-                SelectAllButton.Position = UDim2.new(1, -(buttonW * 2 + miniGap), 0, 0)
-
-                listTop = actionsTop + M.actionsH + actionsGap
+                SelectAllButton.Size = UDim2.fromOffset(buttonW, M.actionH)
+                SelectAllButton.Position = UDim2.new(1, -(buttonW * 2 + buttonGap), 0, 0)
+                rowTop = rowTop + M.actionH + math.max(6, math.floor(M.gap * 0.7))
             else
-                SelectionActions.Visible = false
-                listTop = SearchInput.Visible and (innerPadY + M.searchH + M.gap) or innerPadY
+                ActionRow.Visible = false
             end
 
-            List.Position = UDim2.fromOffset(innerPadX, listTop)
-            List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
+            List.Position = UDim2.fromOffset(innerPadX, rowTop)
+            List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(rowTop + innerPadY))
 
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
@@ -7402,7 +7395,7 @@ do
 
             Entry.Button.BackgroundColor3 = selected
                 and Library.Scheme.AccentColor:Lerp(Library.Scheme.MainColor, 0.35)
-                or Library.Scheme.BackgroundColor:Lerp(Library.Scheme.WhiteColor, 0.05)
+                or Library.Scheme.MainColor
             Entry.Button.BackgroundTransparency = selected and 0.08 or 0.18
             Entry.Button.TextTransparency = Entry.Disabled and 0.8 or (selected and 0.02 or 0.18)
             Entry.Button.Text = tostring(GetOptionText(Entry.Value))
@@ -7495,18 +7488,16 @@ do
             end
         end
 
-        local function ApplyBulkSelection(selectAll)
+        local function ApplyBulkSelection(enableAll)
             if not Info.Multi then
                 return
             end
-
             local nextValues = {}
-            if selectAll then
+            if enableAll then
                 for _, value in pairs(Dropdown.Values or {}) do
                     nextValues[value] = true
                 end
             end
-
             Dropdown.Value = nextValues
             Dropdown:Display()
             RefreshButtons()
@@ -7516,17 +7507,15 @@ do
         end
 
         SelectAllButton.MouseButton1Click:Connect(function()
-            if Dropdown.Disabled then
-                return
+            if not Dropdown.Disabled then
+                ApplyBulkSelection(true)
             end
-            ApplyBulkSelection(true)
         end)
 
         ClearButton.MouseButton1Click:Connect(function()
-            if Dropdown.Disabled then
-                return
+            if not Dropdown.Disabled then
+                ApplyBulkSelection(false)
             end
-            ApplyBulkSelection(false)
         end)
 
         local function CreateDropdownButton(LayoutOrder)
@@ -11270,17 +11259,15 @@ function Library:CreateWindow(WindowInfo)
         do
             TabButton = New("TextButton", {
                 AutoButtonColor = false,
-                BackgroundColor3 = function()
-                    return Library.Scheme.BackgroundColor:Lerp(Library.Scheme.WhiteColor, 0.05)
-                end,
-                BackgroundTransparency = 0.76,
+                BackgroundColor3 = "MainColor",
+                BackgroundTransparency = 0.78,
                 Size = UDim2.new(1, 0, 0, 40),
                 Text = "",
                 LayoutOrder = Order,
                 Parent = Tabs,
             })
             New("UICorner", {
-                CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+                CornerRadius = UDim.new(0, Library.CornerRadius + 1),
                 Parent = TabButton,
             })
             local TabButtonStroke = New("UIStroke", {
@@ -11328,8 +11315,6 @@ function Library:CreateWindow(WindowInfo)
                 Label = TabLabel,
                 Padding = ButtonPadding,
                 Icon = TabIcon,
-                Stroke = TabButtonStroke,
-                Button = TabButton,
             })
 
             -- Resize the whole left sidebar according to the longest tab
@@ -12369,18 +12354,17 @@ function Library:CreateWindow(WindowInfo)
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = Hovering and 0.62 or 0.76,
+                BackgroundTransparency = Hovering and 0.64 or 0.78,
             }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = Hovering and 0.18 or 0.45,
+                TextTransparency = Hovering and 0.25 or 0.5,
             }):Play()
             TweenService:Create(TabButtonStroke, Library.TweenInfo, {
-                Transparency = Hovering and 0.55 or 0.72,
-                Color = Hovering and Library.Scheme.OutlineColor:Lerp(Library.Scheme.WhiteColor, 0.05) or Library.Scheme.OutlineColor,
+                Transparency = Hovering and 0.58 or 0.72,
             }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = Hovering and 0.18 or 0.45,
+                    ImageTransparency = Hovering and 0.25 or 0.5,
                 }):Play()
             end
         end
@@ -12395,14 +12379,14 @@ function Library:CreateWindow(WindowInfo)
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = 0.14,
+                BackgroundTransparency = 0.18,
             }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0,
             }):Play()
             TweenService:Create(TabButtonStroke, Library.TweenInfo, {
                 Transparency = 0.18,
-                Color = Library.Scheme.AccentColor:Lerp(Library.Scheme.WhiteColor, 0.08),
+                Color = Library.Scheme.AccentColor,
             }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
@@ -12426,7 +12410,7 @@ function Library:CreateWindow(WindowInfo)
 
         function Tab:Hide()
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = 0.76,
+                BackgroundTransparency = 0.78,
             }):Play()
             TweenService:Create(TabButtonStroke, Library.TweenInfo, {
                 Transparency = 0.72,
@@ -12434,12 +12418,12 @@ function Library:CreateWindow(WindowInfo)
             }):Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = 0.45,
+                TextTransparency = 0.5,
             }):Play()
 
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = 0.45,
+                    ImageTransparency = 0.5,
                 }):Play()
             end
 
