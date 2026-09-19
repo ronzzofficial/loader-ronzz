@@ -1,5 +1,3 @@
--- ZANJI PREMIUM UI RESTYLE 2026-09-19
--- Clover-inspired dark card layout; API-compatible with the existing library.
 local cloneref = (cloneref or clonereference or function(instance: any)
     return instance
 end)
@@ -259,21 +257,20 @@ local Library = {
     OriginalMinSize = Vector2.new(480, 360),
     MinSize = Vector2.new(480, 360),
     DPIScale = 1,
-    CornerRadius = 10,
+    CornerRadius = 4,
 
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        -- ZANJI Premium Dark: graphite surfaces + violet accent.
-        BackgroundColor = Color3.fromRGB(10, 10, 13),
-        MainColor = Color3.fromRGB(18, 18, 23),
-        AccentColor = Color3.fromRGB(132, 86, 255),
-        OutlineColor = Color3.fromRGB(39, 39, 47),
-        FontColor = Color3.fromRGB(242, 242, 246),
+        BackgroundColor = Color3.fromRGB(11, 11, 13),
+        MainColor = Color3.fromRGB(20, 20, 23),
+        AccentColor = Color3.fromRGB(122, 82, 255),
+        OutlineColor = Color3.fromRGB(43, 43, 50),
+        FontColor = Color3.fromRGB(242, 242, 245),
         Font = Font.fromEnum(Enum.Font.Code),
 
-        RedColor = Color3.fromRGB(255, 82, 96),
-        DestructiveColor = Color3.fromRGB(235, 65, 78),
+        RedColor = Color3.fromRGB(239, 68, 86),
+        DestructiveColor = Color3.fromRGB(220, 55, 70),
         DarkColor = Color3.new(0, 0, 0),
         WhiteColor = Color3.new(1, 1, 1),
 
@@ -361,7 +358,7 @@ local Templates = {
         Footer = "No Footer",
 
         Position = UDim2.fromOffset(6, 6),
-        Size = UDim2.fromOffset(700, 540),
+        Size = UDim2.fromOffset(720, 600),
         IconSize = UDim2.fromOffset(30, 30),
 
         AutoShow = true,
@@ -372,7 +369,7 @@ local Templates = {
         SearchbarSize = UDim2.fromScale(1, 1),
         GlobalSearch = false,
 
-        CornerRadius = 10,
+        CornerRadius = 4,
         NotifySide = "Right",
         ShowCustomCursor = true,
 
@@ -403,14 +400,14 @@ local Templates = {
 
         --// Animations \\--
         Animations = {
-            ToggleWindow = true,
-            TabSwitch = true,
-            Groupbox = true,
-            Dropdown = true,
-            KeyPicker = true
+            ToggleWindow = false,
+            TabSwitch = false,
+            Groupbox = false,
+            Dropdown = false,
+            KeyPicker = false
         },
 
-        TabTransitionTime = 0.18,
+        TabTransitionTime = 0.22,
         TabSwipeOffset = 26,
         TabSwipeFrom = "bottom"
     },
@@ -5609,7 +5606,7 @@ do
         local Button = New("TextButton", {
             Active = not Toggle.Disabled,
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 20),
+            Size = UDim2.new(1, 0, 0, 18),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
@@ -5873,7 +5870,7 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, -44, 1, 0),
+            Size = UDim2.new(1, -40, 1, 0),
             Text = Toggle.Text,
             TextSize = 14,
             TextTransparency = 0.4,
@@ -5892,7 +5889,7 @@ do
             AnchorPoint = Vector2.new(1, 0),
             BackgroundColor3 = "MainColor",
             Position = UDim2.fromScale(1, 0),
-            Size = UDim2.fromOffset(36, 20),
+            Size = UDim2.fromOffset(32, 18),
             Parent = Button,
         })
         New("UICorner", {
@@ -6958,7 +6955,7 @@ do
             Active = true,
             AutoButtonColor = false,
             BackgroundColor3 = "DarkColor",
-            BackgroundTransparency = 0.42, -- softer premium modal dim
+            BackgroundTransparency = 0.5, -- 50% dim
             BorderSizePixel = 0,
             Modal = true,
             Size = UDim2.fromScale(1, 1),
@@ -6975,7 +6972,7 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromScale(0.54, 0.74),
+            Size = UDim2.fromScale(0.56, 0.76),
             Visible = false,
             ZIndex = 120,
             Parent = Library.ScreenGui,
@@ -10592,7 +10589,7 @@ function Library:CreateWindow(WindowInfo)
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Size = UDim2.new(0, X, 1, 0),
             Text = WindowInfo.Title,
-            TextSize = 18,
+            TextSize = 20,
             TextXAlignment = Enum.TextXAlignment.Center,
             Parent = TitleHolder,
         })
@@ -10667,9 +10664,7 @@ function Library:CreateWindow(WindowInfo)
             BackgroundColor3 = "MainColor",
             PlaceholderText = "Search",
             Size = WindowInfo.SearchbarSize,
-            TextScaled = false,
-            TextSize = 14,
-            TextXAlignment = Enum.TextXAlignment.Center,
+            TextScaled = true,
             Visible = not (WindowInfo.DisableSearch or false),
             Parent = RightWrapper,
         })
@@ -11179,18 +11174,12 @@ function Library:CreateWindow(WindowInfo)
         Icon = Library:GetCustomIcon(Icon)
         do
             TabButton = New("TextButton", {
-                BackgroundColor3 = function()
-                    return Library.Scheme.MainColor:Lerp(Library.Scheme.AccentColor, 0.08)
-                end,
+                BackgroundColor3 = "MainColor",
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 38),
+                Size = UDim2.new(1, 0, 0, 40),
                 Text = "",
                 LayoutOrder = Order,
                 Parent = Tabs,
-            })
-            New("UICorner", {
-                CornerRadius = UDim.new(0, math.max(6, WindowInfo.CornerRadius - 2)),
-                Parent = TabButton,
             })
             local ButtonPadding = New("UIPadding", {
                 PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
@@ -11205,8 +11194,8 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromOffset(30, 0),
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
-                TextSize = 14,
-                TextTransparency = 0.52,
+                TextSize = 16,
+                TextTransparency = 0.5,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Visible = not IsCompact,
                 Parent = TabButton,
@@ -11915,9 +11904,7 @@ function Library:CreateWindow(WindowInfo)
 
             do
                 GroupboxHolder = New("Frame", {
-                    BackgroundColor3 = function()
-                        return Library.Scheme.BackgroundColor:Lerp(Library.Scheme.MainColor, 0.22)
-                    end,
+                    BackgroundColor3 = "BackgroundColor",
                     Size = UDim2.fromScale(1, 0),
                     Parent = BoxHolder,
                 })
@@ -11940,10 +11927,10 @@ function Library:CreateWindow(WindowInfo)
                     Parent = GroupboxHolder,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, 7),
-                    PaddingLeft = UDim.new(0, 8),
-                    PaddingRight = UDim.new(0, 8),
-                    PaddingTop = UDim.new(0, 7),
+                    PaddingBottom = UDim.new(0, 6),
+                    PaddingLeft = UDim.new(0, 6),
+                    PaddingRight = UDim.new(0, 6),
+                    PaddingTop = UDim.new(0, 6),
                     Parent = GroupboxTop,
                 })
 
@@ -11984,7 +11971,7 @@ function Library:CreateWindow(WindowInfo)
                     BackgroundTransparency = 1,
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Name,
-                    TextSize = 14,
+                    TextSize = 15,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Parent = TextsFrame,
@@ -12290,7 +12277,7 @@ function Library:CreateWindow(WindowInfo)
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = 0.48,
+                BackgroundTransparency = 0,
             }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0,
@@ -12443,17 +12430,11 @@ function Library:CreateWindow(WindowInfo)
         Icon = if Icon == "key" then KeyIcon else Library:GetCustomIcon(Icon)
         do
             TabButton = New("TextButton", {
-                BackgroundColor3 = function()
-                    return Library.Scheme.MainColor:Lerp(Library.Scheme.AccentColor, 0.08)
-                end,
+                BackgroundColor3 = "MainColor",
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 38),
+                Size = UDim2.new(1, 0, 0, 40),
                 Text = "",
                 Parent = Tabs,
-            })
-            New("UICorner", {
-                CornerRadius = UDim.new(0, math.max(6, WindowInfo.CornerRadius - 2)),
-                Parent = TabButton,
             })
             local ButtonPadding = New("UIPadding", {
                 PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
@@ -12468,8 +12449,8 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromOffset(30, 0),
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
-                TextSize = 14,
-                TextTransparency = 0.52,
+                TextSize = 16,
+                TextTransparency = 0.5,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Visible = not IsCompact,
                 Parent = TabButton,
@@ -12657,7 +12638,7 @@ function Library:CreateWindow(WindowInfo)
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = 0.48,
+                BackgroundTransparency = 0,
             }):Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
