@@ -257,7 +257,7 @@ local Library = {
     OriginalMinSize = Vector2.new(480, 360),
     MinSize = Vector2.new(480, 360),
     DPIScale = 1,
-    CornerRadius = 4,
+    CornerRadius = 2,
 
     --// Scheme \\--
     IsLightTheme = false,
@@ -384,7 +384,7 @@ local Templates = {
         SearchbarSize = UDim2.fromScale(1, 1),
         GlobalSearch = false,
 
-        CornerRadius = 4,
+        CornerRadius = 2,
         NotifySide = "Right",
         ShowCustomCursor = true,
 
@@ -5081,7 +5081,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 5),
+            CornerRadius = UDim.new(0, 3),
             Parent = TextLabel,
         })
         New("UIStroke", {
@@ -5647,7 +5647,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 5),
+            CornerRadius = UDim.new(0, 3),
             Parent = Button,
         })
         New("UIStroke", {
@@ -5915,7 +5915,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 5),
+            CornerRadius = UDim.new(0, 3),
             Parent = Button,
         })
         New("UIStroke", {
@@ -5952,7 +5952,7 @@ do
             Parent = Button,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(1, 0),
+            CornerRadius = UDim.new(0, 6),
             Parent = Switch,
         })
         New("UIPadding", {
@@ -5974,7 +5974,7 @@ do
             Parent = Switch,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(1, 0),
+            CornerRadius = UDim.new(0, 6),
             Parent = Ball,
         })
 
@@ -6203,7 +6203,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 5),
+            CornerRadius = UDim.new(0, 3),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -6461,7 +6461,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 5),
+            CornerRadius = UDim.new(0, 3),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -6985,7 +6985,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 5),
+            CornerRadius = UDim.new(0, 3),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -7078,7 +7078,7 @@ do
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 4),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 2),
             Parent = Popup,
         })
 
@@ -7098,7 +7098,7 @@ do
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 4),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
             Parent = PopupHeaderBg,
         })
 
@@ -7118,7 +7118,7 @@ do
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 2),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
             Parent = PopupBody,
         })
 
@@ -8137,7 +8137,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 5),
+            CornerRadius = UDim.new(0, 3),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -8230,7 +8230,7 @@ do
         })
     
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 4),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 2),
             Parent = Popup,
         })
     
@@ -8250,7 +8250,7 @@ do
         })
     
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 4),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
             Parent = PopupHeaderBg,
         })
     
@@ -8270,7 +8270,7 @@ do
         })
     
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 2),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
             Parent = PopupBody,
         })
     
@@ -12185,7 +12185,7 @@ function Library:CreateWindow(WindowInfo)
                     Parent = GroupboxContentShell,
                 })
                 New("UICorner", {
-                    CornerRadius = UDim.new(0, math.max(4, WindowInfo.CornerRadius - 1)),
+                    CornerRadius = UDim.new(0, math.max(2, WindowInfo.CornerRadius)),
                     Parent = GroupboxContainer,
                 })
                 New("UIStroke", {
@@ -12236,7 +12236,8 @@ function Library:CreateWindow(WindowInfo)
                 end
 
                 local TopSize = (GroupboxTop.AbsoluteSize.Y / Library.DPIScale)
-                local ContainerSize = (GroupboxList.AbsoluteContentSize.Y / Library.DPIScale) + 16
+                local MeasuredContentHeight = math.max(0, GroupboxList.AbsoluteContentSize.Y / Library.DPIScale)
+                local ContainerSize = MeasuredContentHeight + 16
                 local ContentShellSize = ContainerSize + 20
 
                 local TargetSize = UDim2.new(1, 0, 0, if Groupbox.Collapsed then TopSize else (TopSize + 1 + ContentShellSize))
@@ -12265,6 +12266,32 @@ function Library:CreateWindow(WindowInfo)
                     GroupboxHolder.Size = TargetSize
                 end
             end
+
+            -- Keep the layered inner container synced with its controls.
+            -- UIListLayout.AbsoluteContentSize can update one frame after an element
+            -- is inserted; without this signal the outer groupbox may keep its old
+            -- height and controls appear to spill outside / overlap the next box.
+            local GroupboxContentSizeConnection =
+                GroupboxList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                    if Groupbox.Destroyed then
+                        return
+                    end
+
+                    task.defer(function()
+                        if not Groupbox.Destroyed then
+                            Groupbox:Resize()
+                        end
+                    end)
+                end)
+            table.insert(Groupbox.Connections, GroupboxContentSizeConnection)
+
+            -- One deferred pass handles controls that already mounted before the
+            -- first AbsoluteContentSize notification is delivered by Roblox.
+            task.defer(function()
+                if not Groupbox.Destroyed then
+                    Groupbox:Resize()
+                end
+            end)
 
             function Groupbox:SetDescription(Description: string | nil)
                 GroupboxDescription.Text = Description or ""
