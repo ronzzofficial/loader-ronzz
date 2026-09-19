@@ -262,11 +262,11 @@ local Library = {
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(15, 15, 15),
-        MainColor = Color3.fromRGB(25, 25, 25),
+        BackgroundColor = Color3.fromRGB(11, 11, 11),
+        MainColor = Color3.fromRGB(24, 24, 24),
         AccentColor = Color3.fromRGB(125, 85, 255),
-        OutlineColor = Color3.fromRGB(40, 40, 40),
-        FontColor = Color3.new(1, 1, 1),
+        OutlineColor = Color3.fromRGB(41, 41, 41),
+        FontColor = Color3.fromRGB(238, 238, 238),
         Font = Font.fromEnum(Enum.Font.Code),
 
         RedColor = Color3.fromRGB(255, 50, 50),
@@ -288,6 +288,21 @@ local Library = {
 
     Notify = nil, Toggle = nil -- we love luau lsp
 }
+
+--// ZANJI layered dark style \\--
+-- Global neutral hierarchy used by every standard groupbox/control.
+local LayeredStyle = {
+    MainBackground = Color3.fromRGB(11, 11, 11),   -- #0b0b0b
+    OuterBox = Color3.fromRGB(17, 17, 17),         -- #111111
+    InnerBox = Color3.fromRGB(27, 27, 27),         -- #1b1b1b
+    ControlRow = Color3.fromRGB(32, 32, 32),       -- #202020
+    InputBox = Color3.fromRGB(24, 24, 24),         -- #181818
+    Border = Color3.fromRGB(41, 41, 41),           -- #292929
+    Separator = Color3.fromRGB(37, 37, 37),        -- #252525
+    MainText = Color3.fromRGB(238, 238, 238),       -- #eeeeee
+    SecondaryText = Color3.fromRGB(168, 168, 168), -- #a8a8a8
+}
+Library.LayeredStyle = LayeredStyle
 
 if RunService:IsStudio() then
     if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
@@ -5053,14 +5068,32 @@ do
         }
 
         local TextLabel = New("TextLabel", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 18),
+            BackgroundColor3 = LayeredStyle.ControlRow,
+            BackgroundTransparency = 0,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, 28),
             Text = Label.Text,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = Data.Size,
             TextWrapped = Label.DoesWrap,
             TextXAlignment = Groupbox.IsKeyTab and Enum.TextXAlignment.Center or Enum.TextXAlignment.Left,
             TextYAlignment = Label.DoesWrap and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
             Parent = Container,
+        })
+        New("UICorner", {
+            CornerRadius = UDim.new(0, 5),
+            Parent = TextLabel,
+        })
+        New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Parent = TextLabel,
+        })
+        New("UIPadding", {
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
+            Parent = TextLabel,
         })
 
         function Label:Display()
@@ -5073,12 +5106,12 @@ do
                 -- The groupbox can report a tiny transient width while its tab
                 -- is mounting. Measuring long stock/farm text at that width
                 -- creates a huge label with the text far below the title.
-                TextLabel.Size = UDim2.new(1, 0, 0, 18)
+                TextLabel.Size = UDim2.new(1, 0, 0, 28)
                 return
             end
 
             local _, Y = Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, Width)
-            TextLabel.Size = UDim2.new(1, 0, 0, Y + 4)
+            TextLabel.Size = UDim2.new(1, 0, 0, math.max(28, Y + 12))
         end
 
         function Label:SetVisible(Visible: boolean)
@@ -5256,7 +5289,7 @@ do
 
         local Holder = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 21),
+            Size = UDim2.new(1, 0, 0, 30),
             Parent = Container,
         })
 
@@ -5270,7 +5303,7 @@ do
         local function CreateButton(Button)
             local Base = New("TextButton", {
                 Active = not Button.Disabled,
-                BackgroundColor3 = Button.Disabled and "BackgroundColor" or "MainColor",
+                BackgroundColor3 = LayeredStyle.ControlRow,
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
                 TextSize = 14,
@@ -5280,7 +5313,7 @@ do
             })
 
             local Stroke = New("UIStroke", {
-                Color = "OutlineColor",
+                Color = LayeredStyle.Border,
                 Transparency = Button.Disabled and 0.5 or 0,
                 Parent = Base,
             })
@@ -5605,17 +5638,29 @@ do
 
         local Button = New("TextButton", {
             Active = not Toggle.Disabled,
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 18),
+            BackgroundColor3 = LayeredStyle.ControlRow,
+            BackgroundTransparency = 0,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, 30),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
         })
+        New("UICorner", {
+            CornerRadius = UDim.new(0, 5),
+            Parent = Button,
+        })
+        New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Parent = Button,
+        })
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(26, 0),
-            Size = UDim2.new(1, -26, 1, 0),
+            Position = UDim2.fromOffset(36, 0),
+            Size = UDim2.new(1, -46, 1, 0),
             Text = Toggle.Text,
             TextSize = 14,
             TextTransparency = 0.4,
@@ -5861,17 +5906,31 @@ do
 
         local Button = New("TextButton", {
             Active = not Toggle.Disabled,
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 18),
+            BackgroundColor3 = LayeredStyle.ControlRow,
+            BackgroundTransparency = 0,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, 30),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
         })
+        New("UICorner", {
+            CornerRadius = UDim.new(0, 5),
+            Parent = Button,
+        })
+        New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Parent = Button,
+        })
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, -40, 1, 0),
+            Position = UDim2.fromOffset(10, 0),
+            Size = UDim2.new(1, -60, 1, 0),
             Text = Toggle.Text,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
             TextTransparency = 0.4,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -5886,9 +5945,9 @@ do
         })
 
         local Switch = New("Frame", {
-            AnchorPoint = Vector2.new(1, 0),
-            BackgroundColor3 = "MainColor",
-            Position = UDim2.fromScale(1, 0),
+            AnchorPoint = Vector2.new(1, 0.5),
+            BackgroundColor3 = LayeredStyle.InputBox,
+            Position = UDim2.new(1, -10, 0.5, 0),
             Size = UDim2.fromOffset(32, 18),
             Parent = Button,
         })
@@ -5904,7 +5963,7 @@ do
             Parent = Switch,
         })
         local SwitchStroke = New("UIStroke", {
-            Color = "OutlineColor",
+            Color = LayeredStyle.Border,
             Parent = Switch,
         })
 
@@ -5933,11 +5992,11 @@ do
             Switch.BackgroundTransparency = Toggle.Disabled and 0.75 or 0
             SwitchStroke.Transparency = Toggle.Disabled and 0.75 or 0
 
-            Switch.BackgroundColor3 = Toggle.Value and Library.Scheme.AccentColor or Library.Scheme.MainColor
-            SwitchStroke.Color = Toggle.Value and Library.Scheme.AccentColor or Library.Scheme.OutlineColor
+            Switch.BackgroundColor3 = Toggle.Value and Library.Scheme.AccentColor or LayeredStyle.InputBox
+            SwitchStroke.Color = Toggle.Value and Library.Scheme.AccentColor or LayeredStyle.Border
 
-            Library.Registry[Switch].BackgroundColor3 = Toggle.Value and "AccentColor" or "MainColor"
-            Library.Registry[SwitchStroke].Color = Toggle.Value and "AccentColor" or "OutlineColor"
+            Library.Registry[Switch].BackgroundColor3 = Toggle.Value and "AccentColor" or function() return LayeredStyle.InputBox end
+            Library.Registry[SwitchStroke].Color = Toggle.Value and "AccentColor" or function() return LayeredStyle.Border end
 
             if Toggle.Disabled then
                 Label.TextTransparency = 0.8
@@ -6136,16 +6195,30 @@ do
         }
 
         local Holder = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 39),
+            BackgroundColor3 = LayeredStyle.ControlRow,
+            BackgroundTransparency = 0,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, 56),
             Visible = Input.Visible,
             Parent = Container,
+        })
+        New("UICorner", {
+            CornerRadius = UDim.new(0, 5),
+            Parent = Holder,
+        })
+        New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Parent = Holder,
         })
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 14),
+            Position = UDim2.fromOffset(10, 6),
+            Size = UDim2.new(1, -20, 0, 14),
             Text = Input.Text,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Holder,
@@ -6153,11 +6226,11 @@ do
 
         local Box = New("TextBox", {
             AnchorPoint = Vector2.new(0, 1),
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
             ClearTextOnFocus = not Input.Disabled and Input.ClearTextOnFocus,
             PlaceholderText = Input.Placeholder,
-            Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(1, 0, 0, 21),
+            Position = UDim2.new(0, 10, 1, -8),
+            Size = UDim2.new(1, -20, 0, 26),
             Text = Input.Value,
             TextEditable = not Input.Disabled,
             TextScaled = true,
@@ -6174,7 +6247,7 @@ do
         })
 
         local BoxStroke = New("UIStroke", {
-            Color = "OutlineColor",
+            Color = LayeredStyle.Border,
             Parent = Box,
         })
 
@@ -6380,18 +6453,32 @@ do
         }
 
         local Holder = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, Info.Compact and 15 or 33),
+            BackgroundColor3 = LayeredStyle.ControlRow,
+            BackgroundTransparency = 0,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, Info.Compact and 36 or 56),
             Visible = Slider.Visible,
             Parent = Container,
+        })
+        New("UICorner", {
+            CornerRadius = UDim.new(0, 5),
+            Parent = Holder,
+        })
+        New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Parent = Holder,
         })
 
         local SliderLabel
         if not Info.Compact then
             SliderLabel = New("TextLabel", {
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 14),
+                Position = UDim2.fromOffset(10, 6),
+                Size = UDim2.new(1, -20, 0, 14),
                 Text = Slider.Text,
+                TextColor3 = LayeredStyle.MainText,
                 TextSize = 14,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Parent = Holder,
@@ -6401,15 +6488,15 @@ do
         local Bar = New("TextButton", {
             Active = not Slider.Disabled,
             AnchorPoint = Vector2.new(0, 1),
-            BackgroundColor3 = "MainColor",
-            Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(1, 0, 0, 15),
+            BackgroundColor3 = LayeredStyle.InputBox,
+            Position = UDim2.new(0, 10, 1, -8),
+            Size = UDim2.new(1, -20, 0, 18),
             Text = "",
             Parent = Holder,
         })
 
         New("UIStroke", {
-            Color = "OutlineColor",
+            Color = LayeredStyle.Border,
             Parent = Bar,
         })
 
@@ -6890,16 +6977,30 @@ do
         }
 
         local Holder = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, Dropdown.Text and 39 or 21),
+            BackgroundColor3 = LayeredStyle.ControlRow,
+            BackgroundTransparency = 0,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, Dropdown.Text and 56 or 40),
             Visible = Dropdown.Visible,
             Parent = Container,
+        })
+        New("UICorner", {
+            CornerRadius = UDim.new(0, 5),
+            Parent = Holder,
+        })
+        New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Parent = Holder,
         })
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 14),
+            Position = UDim2.fromOffset(10, 6),
+            Size = UDim2.new(1, -20, 0, 14),
             Text = Dropdown.Text,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
             Visible = not not Info.Text,
@@ -6909,11 +7010,10 @@ do
         local Display = New("TextButton", {
             Active = not Dropdown.Disabled,
             AnchorPoint = Vector2.new(0, 1),
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(1, 0, 0, 21),
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderSizePixel = 0,
+            Position = UDim2.new(0, 10, 1, -8),
+            Size = UDim2.new(1, -20, 0, 26),
             Text = "---",
             RichText = true,
             TextSize = 14,
@@ -6934,7 +7034,7 @@ do
         })
 
         New("UIStroke", {
-            Color = "OutlineColor",
+            Color = LayeredStyle.Border,
             Thickness = 1,
             Parent = Display,
         })
@@ -6942,7 +7042,7 @@ do
         local ArrowImage = New("ImageLabel", {
             AnchorPoint = Vector2.new(1, 0.5),
             Image = ArrowIcon and ArrowIcon.Url or "",
-                ImageColor3 = "AccentColor",
+                ImageColor3 = LayeredStyle.SecondaryText,
             ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
             ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
             ImageTransparency = 0.5,
@@ -6968,9 +7068,8 @@ do
         local Popup = New("Frame", {
             Active = true,
             AnchorPoint = Vector2.new(0.5, 0.5),
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
+            BackgroundColor3 = LayeredStyle.OuterBox,
+            BorderSizePixel = 0,
             Position = UDim2.fromScale(0.5, 0.5),
             Size = UDim2.fromScale(0.56, 0.76),
             Visible = false,
@@ -6987,12 +7086,12 @@ do
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
             Thickness = 1.2,
             Transparency = 0.15,
-            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.28),
+            Color = LayeredStyle.Border,
             Parent = Popup,
         })
 
         local PopupHeaderBg = New("Frame", {
-            BackgroundColor3 = "BackgroundColor",
+            BackgroundColor3 = LayeredStyle.OuterBox,
             BorderSizePixel = 0,
             ZIndex = 120,
             Parent = Popup,
@@ -7004,15 +7103,15 @@ do
         })
 
         local PopupHeaderDivider = New("Frame", {
-            BackgroundColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.Separator,
             BorderSizePixel = 0,
             ZIndex = 121,
             Parent = Popup,
         })
 
         local PopupBody = New("Frame", {
-            BackgroundColor3 = "BackgroundColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InnerBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             ZIndex = 121,
             Parent = Popup,
@@ -7033,14 +7132,15 @@ do
         local Title = New("TextLabel", {
             BackgroundTransparency = 1,
             Text = Dropdown.Text or "Select",
+            TextColor3 = LayeredStyle.MainText,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex = 123,
             Parent = Header,
         })
 
         local CloseButton = New("TextButton", {
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             Text = Info.Multi and "Done" or "Close",
             ZIndex = 123,
@@ -7060,8 +7160,8 @@ do
         })
 
         local SearchInput = New("TextBox", {
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             PlaceholderText = "Search items...",
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -7083,12 +7183,12 @@ do
 
         local List = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             CanvasSize = UDim2.fromOffset(0, 0),
-            ScrollBarImageColor3 = "OutlineColor",
+            ScrollBarImageColor3 = LayeredStyle.SecondaryText,
             ScrollBarThickness = 4,
             TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             ZIndex = 123,
@@ -7107,8 +7207,8 @@ do
         local ResizeHandle = New("TextButton", {
             AnchorPoint = Vector2.new(1, 1),
             AutoButtonColor = false,
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             Position = UDim2.fromScale(1, 1),
             Size = UDim2.fromOffset(18, 18),
@@ -8029,16 +8129,30 @@ do
         end
     
         local Holder = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, Dropdown.Text and 39 or 21),
+            BackgroundColor3 = LayeredStyle.ControlRow,
+            BackgroundTransparency = 0,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, Dropdown.Text and 56 or 40),
             Visible = Dropdown.Visible,
             Parent = Container,
+        })
+        New("UICorner", {
+            CornerRadius = UDim.new(0, 5),
+            Parent = Holder,
+        })
+        New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Parent = Holder,
         })
     
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 14),
+            Position = UDim2.fromOffset(10, 6),
+            Size = UDim2.new(1, -20, 0, 14),
             Text = Dropdown.Text,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
             Visible = not not Info.Text,
@@ -8048,11 +8162,10 @@ do
         local Display = New("TextButton", {
             Active = not Dropdown.Disabled,
             AnchorPoint = Vector2.new(0, 1),
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(1, 0, 0, 21),
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderSizePixel = 0,
+            Position = UDim2.new(0, 10, 1, -8),
+            Size = UDim2.new(1, -20, 0, 26),
             Text = "---",
             RichText = true,
             TextSize = 14,
@@ -8073,7 +8186,7 @@ do
         })
 
         New("UIStroke", {
-            Color = "OutlineColor",
+            Color = LayeredStyle.Border,
             Thickness = 1,
             Parent = Display,
         })
@@ -8081,7 +8194,7 @@ do
         local ArrowImage = New("ImageLabel", {
             AnchorPoint = Vector2.new(1, 0.5),
             Image = ArrowIcon and ArrowIcon.Url or "",
-                ImageColor3 = "AccentColor",
+                ImageColor3 = LayeredStyle.SecondaryText,
             ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
             ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
             ImageTransparency = 0.5,
@@ -8107,9 +8220,8 @@ do
         local Popup = New("Frame", {
             Active = true,
             AnchorPoint = Vector2.new(0.5, 0.5),
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
+            BackgroundColor3 = LayeredStyle.OuterBox,
+            BorderSizePixel = 0,
             Position = UDim2.fromScale(0.5, 0.5),
             Size = UDim2.fromScale(0.56, 0.76),
             Visible = false,
@@ -8126,12 +8238,12 @@ do
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
             Thickness = 1.2,
             Transparency = 0.15,
-            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.28),
+            Color = LayeredStyle.Border,
             Parent = Popup,
         })
     
         local PopupHeaderBg = New("Frame", {
-            BackgroundColor3 = "BackgroundColor",
+            BackgroundColor3 = LayeredStyle.OuterBox,
             BorderSizePixel = 0,
             ZIndex = 120,
             Parent = Popup,
@@ -8143,15 +8255,15 @@ do
         })
     
         local PopupHeaderDivider = New("Frame", {
-            BackgroundColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.Separator,
             BorderSizePixel = 0,
             ZIndex = 121,
             Parent = Popup,
         })
     
         local PopupBody = New("Frame", {
-            BackgroundColor3 = "BackgroundColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InnerBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             ZIndex = 121,
             Parent = Popup,
@@ -8172,14 +8284,15 @@ do
         local Title = New("TextLabel", {
             BackgroundTransparency = 1,
             Text = Dropdown.Text or "Select",
+            TextColor3 = LayeredStyle.MainText,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex = 123,
             Parent = Header,
         })
     
         local CloseButton = New("TextButton", {
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             Text = Info.Multi and "Done" or "Close",
             ZIndex = 123,
@@ -8199,8 +8312,8 @@ do
         })
     
         local SearchInput = New("TextBox", {
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             PlaceholderText = "Search items...",
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -8222,12 +8335,12 @@ do
     
         local List = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             CanvasSize = UDim2.fromOffset(0, 0),
-            ScrollBarImageColor3 = "OutlineColor",
+            ScrollBarImageColor3 = LayeredStyle.SecondaryText,
             ScrollBarThickness = 4,
             TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             ZIndex = 123,
@@ -8246,8 +8359,8 @@ do
         local ResizeHandle = New("TextButton", {
             AnchorPoint = Vector2.new(1, 1),
             AutoButtonColor = false,
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             Position = UDim2.fromScale(1, 1),
             Size = UDim2.fromOffset(18, 18),
@@ -10491,9 +10604,7 @@ function Library:CreateWindow(WindowInfo)
         Library.KeybindFrame.Visible = false
 
         MainFrame = New("TextButton", {
-            BackgroundColor3 = function()
-                return Library:GetBetterColor(Library.Scheme.BackgroundColor, -1)
-            end,
+            BackgroundColor3 = LayeredStyle.MainBackground,
             Name = "Main",
             Text = "",
             Position = WindowInfo.Position,
@@ -10521,7 +10632,7 @@ function Library:CreateWindow(WindowInfo)
         })
 
         DividerLine = New("Frame", {
-            BackgroundColor3 = "OutlineColor",
+            BackgroundColor3 = LayeredStyle.Separator,
             Position = UDim2.fromOffset(InitialLeftWidth, 0),
             Size = UDim2.new(0, 1, 1, -21),
             Parent = MainFrame,
@@ -10683,7 +10794,7 @@ function Library:CreateWindow(WindowInfo)
         })
 
         SearchBox = New("TextBox", {
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = LayeredStyle.InputBox,
             PlaceholderText = "Search",
             Size = WindowInfo.SearchbarSize,
             TextScaled = true,
@@ -10709,7 +10820,7 @@ function Library:CreateWindow(WindowInfo)
             Parent = SearchBox,
         })
         New("UIStroke", {
-            Color = "OutlineColor",
+            Color = LayeredStyle.Border,
             Parent = SearchBox,
         })
 
@@ -10744,9 +10855,7 @@ function Library:CreateWindow(WindowInfo)
         --// Bottom Bar \\--
         BottomBackground = New("Frame", {
             AnchorPoint = Vector2.new(0, 1),
-            BackgroundColor3 = function()
-                return Library:GetBetterColor(Library.Scheme.BackgroundColor, 4)
-            end,
+            BackgroundColor3 = LayeredStyle.OuterBox,
             Position = UDim2.fromScale(0, 1),
             Size = UDim2.new(1, 0, 0, 20 + WindowInfo.CornerRadius),
             Parent = MainFrame
@@ -10815,7 +10924,7 @@ function Library:CreateWindow(WindowInfo)
         --// Tabs \\--
         Tabs = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            BackgroundColor3 = "BackgroundColor",
+            BackgroundColor3 = LayeredStyle.MainBackground,
             CanvasSize = UDim2.fromScale(0, 0),
             Position = UDim2.fromOffset(0, 49),
             ScrollBarThickness = 0,
@@ -10829,9 +10938,7 @@ function Library:CreateWindow(WindowInfo)
         --// Container \\--
         Container = New("Frame", {
             AnchorPoint = Vector2.new(1, 0),
-            BackgroundColor3 = function()
-                return Library:GetBetterColor(Library.Scheme.BackgroundColor, 1)
-            end,
+            BackgroundColor3 = LayeredStyle.MainBackground,
             ClipsDescendants = true,
             Name = "Container",
             Position = UDim2.new(1, 0, 0, 49),
@@ -11588,7 +11695,7 @@ function Library:CreateWindow(WindowInfo)
 
             do
                 TabboxHolder = New("Frame", {
-                    BackgroundColor3 = "BackgroundColor",
+                    BackgroundColor3 = LayeredStyle.OuterBox,
                     Size = UDim2.fromScale(1, 0),
                     Parent = BoxHolder,
                 })
@@ -11599,7 +11706,12 @@ function Library:CreateWindow(WindowInfo)
                         Parent = TabboxHolder,
                     })
                 )
-                Library:AddOutline(TabboxHolder)
+                New("UIStroke", {
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                    Color = LayeredStyle.Border,
+                    Thickness = 1,
+                    Parent = TabboxHolder,
+                })
 
                 TabboxButtons = New("Frame", {
                     BackgroundTransparency = 1,
@@ -11647,7 +11759,7 @@ function Library:CreateWindow(WindowInfo)
                 local TabStoringIndex = IsNameEmpty and tostring(TabIndex) or Name
 
                 local Button = New("TextButton", {
-                    BackgroundColor3 = "MainColor",
+                    BackgroundColor3 = LayeredStyle.ControlRow,
                     BackgroundTransparency = 0,
                     Size = UDim2.fromOffset(0, 34),
                     Text = "",
@@ -11683,7 +11795,7 @@ function Library:CreateWindow(WindowInfo)
                 if BoxIcon then
                     ButtonIcon = New("ImageLabel", {
                         Image = BoxIcon.Url,
-                        ImageColor3 = BoxIcon.Custom and "WhiteColor" or "AccentColor",
+                        ImageColor3 = LayeredStyle.MainText,
                         ImageRectOffset = BoxIcon.ImageRectOffset,
                         ImageRectSize = BoxIcon.ImageRectSize,
                         ImageTransparency = 0.5,
@@ -11699,6 +11811,7 @@ function Library:CreateWindow(WindowInfo)
                         BackgroundTransparency = 1,
                         Size = UDim2.fromOffset(0, 16),
                         Text = Name,
+                        TextColor3 = LayeredStyle.MainText,
                         TextSize = 15,
                         TextTransparency = 0.5,
                         Parent = ButtonContent,
@@ -11710,13 +11823,23 @@ function Library:CreateWindow(WindowInfo)
                     Position = UDim2.new(0, 0, 1, 1),
                     Size = UDim2.new(1, 0, 0, 1),
                 })
+                Line.BackgroundColor3 = LayeredStyle.Separator
+                Library.Registry[Line] = nil
 
                 local Container = New("Frame", {
-                    BackgroundTransparency = 1,
+                    BackgroundColor3 = LayeredStyle.InnerBox,
+                    BackgroundTransparency = 0,
+                    BorderSizePixel = 0,
                     Position = UDim2.fromOffset(0, 35),
                     Size = UDim2.new(1, 0, 1, -35),
                     Visible = false,
                     Parent = TabboxHolder,
+                })
+                New("UIStroke", {
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                    Color = LayeredStyle.Border,
+                    Thickness = 1,
+                    Parent = Container,
                 })
                 local List = New("UIListLayout", {
                     Padding = UDim.new(0, 8),
@@ -11918,6 +12041,7 @@ function Library:CreateWindow(WindowInfo)
             local GroupboxLabel
             local GroupboxDescription
 
+            local GroupboxContentShell
             local GroupboxContainer
             local GroupboxList
 
@@ -11926,7 +12050,7 @@ function Library:CreateWindow(WindowInfo)
 
             do
                 GroupboxHolder = New("Frame", {
-                    BackgroundColor3 = "BackgroundColor",
+                    BackgroundColor3 = LayeredStyle.OuterBox,
                     Size = UDim2.fromScale(1, 0),
                     Parent = BoxHolder,
                 })
@@ -11940,7 +12064,12 @@ function Library:CreateWindow(WindowInfo)
                 New("UIListLayout", {
                     Parent = GroupboxHolder,
                 })
-                Library:AddOutline(GroupboxHolder)
+                New("UIStroke", {
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                    Color = LayeredStyle.Border,
+                    Thickness = 1,
+                    Parent = GroupboxHolder,
+                })
 
                 GroupboxTop = New("Frame", {
                     AutomaticSize = Enum.AutomaticSize.Y,
@@ -11961,7 +12090,7 @@ function Library:CreateWindow(WindowInfo)
                     New("ImageLabel", {
                         AnchorPoint = Vector2.new(0, 0.5),
                         Image = BoxIcon.Url,
-                        ImageColor3 = BoxIcon.Custom and "WhiteColor" or "AccentColor",
+                        ImageColor3 = LayeredStyle.MainText,
                         ImageRectOffset = BoxIcon.ImageRectOffset,
                         ImageRectSize = BoxIcon.ImageRectSize,
                         Position = UDim2.fromScale(0, 0.5),
@@ -11993,6 +12122,7 @@ function Library:CreateWindow(WindowInfo)
                     BackgroundTransparency = 1,
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Name,
+                    TextColor3 = LayeredStyle.MainText,
                     TextSize = 15,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -12008,6 +12138,7 @@ function Library:CreateWindow(WindowInfo)
                     BackgroundTransparency = 1,
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Description or "",
+                    TextColor3 = LayeredStyle.SecondaryText,
                     TextSize = 14,
                     TextTransparency = 0.5,
                     TextWrapped = true,
@@ -12021,7 +12152,7 @@ function Library:CreateWindow(WindowInfo)
                         AnchorPoint = Vector2.new(1, 0.5),
                         BackgroundTransparency = 1,
                         Image = ArrowIcon and ArrowIcon.Url or "",
-                        ImageColor3 = "WhiteColor",
+                        ImageColor3 = LayeredStyle.MainText,
                         ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
                         ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
                         Rotation = 180,
@@ -12035,12 +12166,33 @@ function Library:CreateWindow(WindowInfo)
                     LayoutOrder = 1,
                     Size = UDim2.new(1, 0, 0, 1),
                 })
+                GroupboxLine.BackgroundColor3 = LayeredStyle.Separator
+                Library.Registry[GroupboxLine] = nil
 
-                GroupboxContainer = New("Frame", {
+                -- Main inner box with a single outer inset.
+                GroupboxContentShell = New("Frame", {
                     BackgroundTransparency = 1,
                     LayoutOrder = 2,
                     Size = UDim2.fromScale(1, 0),
                     Parent = GroupboxHolder,
+                })
+
+                GroupboxContainer = New("Frame", {
+                    BackgroundColor3 = LayeredStyle.InnerBox,
+                    BorderSizePixel = 0,
+                    Position = UDim2.fromOffset(10, 10),
+                    Size = UDim2.new(1, -20, 0, 0),
+                    Parent = GroupboxContentShell,
+                })
+                New("UICorner", {
+                    CornerRadius = UDim.new(0, math.max(4, WindowInfo.CornerRadius - 1)),
+                    Parent = GroupboxContainer,
+                })
+                New("UIStroke", {
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                    Color = LayeredStyle.Border,
+                    Thickness = 1,
+                    Parent = GroupboxContainer,
                 })
 
                 GroupboxList = New("UIListLayout", {
@@ -12048,10 +12200,10 @@ function Library:CreateWindow(WindowInfo)
                     Parent = GroupboxContainer,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, 7),
-                    PaddingLeft = UDim.new(0, 7),
-                    PaddingRight = UDim.new(0, 7),
-                    PaddingTop = UDim.new(0, 7),
+                    PaddingBottom = UDim.new(0, 8),
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8),
+                    PaddingTop = UDim.new(0, 8),
                     Parent = GroupboxContainer,
                 })
             end
@@ -12084,11 +12236,13 @@ function Library:CreateWindow(WindowInfo)
                 end
 
                 local TopSize = (GroupboxTop.AbsoluteSize.Y / Library.DPIScale)
-                local ContainerSize = (GroupboxList.AbsoluteContentSize.Y / Library.DPIScale) + 14
+                local ContainerSize = (GroupboxList.AbsoluteContentSize.Y / Library.DPIScale) + 16
+                local ContentShellSize = ContainerSize + 20
 
-                local TargetSize = UDim2.new(1, 0, 0, if Groupbox.Collapsed then TopSize else (TopSize + 1 + ContainerSize))
+                local TargetSize = UDim2.new(1, 0, 0, if Groupbox.Collapsed then TopSize else (TopSize + 1 + ContentShellSize))
 
-                GroupboxContainer.Size = UDim2.new(1, 0, 0, ContainerSize)
+                GroupboxContentShell.Size = UDim2.new(1, 0, 0, ContentShellSize)
+                GroupboxContainer.Size = UDim2.new(1, -20, 0, ContainerSize)
                 GroupboxLine.Visible = not Groupbox.Collapsed
                 if Library.Animations and Library.Animations.Groupbox then
                     local TweenInfo = Library.GroupboxTweenInfo or TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -12130,7 +12284,7 @@ function Library:CreateWindow(WindowInfo)
 
                 local TargetRotation = if Collapsed then 0 else 180
 
-                GroupboxContainer.Visible = not Collapsed
+                GroupboxContentShell.Visible = not Collapsed
                 if Library.Animations and Library.Animations.Groupbox then
                     local TweenInfo = Library.GroupboxTweenInfo or TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
                     local Tween = TweenService:Create(GroupboxCollapseArrow, TweenInfo, { Rotation = TargetRotation })
