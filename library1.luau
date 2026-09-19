@@ -496,11 +496,6 @@ local Templates = {
         DragSelect = false,
         MaxVisibleDropdownItems = 8,
 
-        -- Compact popup defaults
-        PopupWidth = 560,
-        PopupHeight = 460,
-        ShowBulkActions = true,
-
         Callback = function() end,
         Changed = function() end,
 
@@ -6977,7 +6972,7 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 460),
+            Size = UDim2.fromScale(0.56, 0.76),
             Visible = false,
             ZIndex = 120,
             Parent = Library.ScreenGui,
@@ -7086,44 +7081,6 @@ do
             Parent = SearchInput,
         })
 
-
-        local BulkActions = New("Frame", {
-            BackgroundTransparency = 1,
-            Visible = Info.Multi == true and Info.ShowBulkActions ~= false,
-            ZIndex = 123,
-            Parent = PopupBody,
-        })
-
-        local SelectAllButton = New("TextButton", {
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Text = "All",
-            TextSize = 12,
-            ZIndex = 124,
-            Parent = BulkActions,
-        })
-
-        New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius),
-            Parent = SelectAllButton,
-        })
-
-        local ClearButton = New("TextButton", {
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Text = "Clear",
-            TextSize = 12,
-            ZIndex = 124,
-            Parent = BulkActions,
-        })
-
-        New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius),
-            Parent = ClearButton,
-        })
-
         local List = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             BackgroundColor3 = "MainColor",
@@ -7156,7 +7113,6 @@ do
             Position = UDim2.fromScale(1, 1),
             Size = UDim2.fromOffset(18, 18),
             Text = "",
-            Visible = false,
             ZIndex = 124,
             Parent = Popup,
         })
@@ -7168,8 +7124,7 @@ do
 
         local Buttons = {}
         local MenuState = { Active = false, Menu = Popup }
-        local PopupFixedWidth = tonumber(Info.PopupWidth) or 560
-        local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
+        local PopupScale = { W = 0.56, H = 0.76 }
         local CurrentRowHeight = 40
         local CurrentOptionTextSize = 14
         local RenderVirtualRows
@@ -7283,24 +7238,31 @@ do
 
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
+            local isPortrait = viewport.Y > viewport.X
 
-            -- Fixed desktop size, only clamped when the screen is smaller.
-            local maxWidth = math.max(320, viewport.X - 24)
-            local maxHeight = math.max(300, viewport.Y - 24)
-            local width = math.min(PopupFixedWidth, maxWidth)
-            local height = math.min(PopupFixedHeight, maxHeight)
+            local minWScale = isPortrait and 0.78 or 0.42
+            local maxWScale = isPortrait and 0.96 or 0.82
+            local minHScale = isPortrait and 0.48 or 0.52
+            local maxHScale = 0.90
 
-            local padX = math.max(12, math.floor(width * 0.028))
-            local padY = math.max(10, math.floor(height * 0.024))
-            local headerH = 42
-            local searchH = 40
-            local actionH = 26
-            local gap = 8
+            PopupScale.W = math.clamp(PopupScale.W, minWScale, maxWScale)
+            PopupScale.H = math.clamp(PopupScale.H, minHScale, maxHScale)
 
-            local titleText = 18
-            local inputText = 14
-            local optionText = 14
-            local rowH = 40
+            local width = viewport.X * PopupScale.W
+            local height = viewport.Y * PopupScale.H
+
+            local padX = width * 0.036
+            local padY = height * 0.03
+            local headerH = height * 0.08
+            local searchH = height * 0.085
+            local gap = height * 0.018
+
+            local titleText = math.clamp(math.floor(height * 0.038), 13, 22)
+            local inputText = math.clamp(math.floor(height * 0.031), 12, 18)
+
+            -- ~10% smaller rows/buttons than previous
+            local optionText = math.clamp(math.floor(height * 0.027), 12, 17)
+            local rowH = math.clamp(height * 0.078, 30, 52)
 
             return {
                 width = width,
@@ -7309,7 +7271,6 @@ do
                 padY = padY,
                 headerH = headerH,
                 searchH = searchH,
-                actionH = actionH,
                 gap = gap,
                 titleText = titleText,
                 inputText = inputText,
@@ -7324,7 +7285,7 @@ do
             local closeW = math.max(78, math.floor(closeH * 2.05))
             local bodyTop, innerPadX, innerPadY, listTop
 
-            Popup.Size = UDim2.fromOffset(M.width, M.height)
+            Popup.Size = UDim2.fromScale(PopupScale.W, PopupScale.H)
 
             Header.Position = UDim2.fromOffset(M.padX, M.padY)
             Header.Size = UDim2.new(1, -M.padX * 2, 0, M.headerH)
@@ -7350,35 +7311,18 @@ do
             innerPadX = math.max(10, math.floor(M.padX * 0.7))
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
 
-            listTop = innerPadY
-
             if SearchInput.Visible then
-                SearchInput.Position = UDim2.fromOffset(innerPadX, listTop)
+                SearchInput.Position = UDim2.fromOffset(innerPadX, innerPadY)
                 SearchInput.Size = UDim2.new(1, -(innerPadX * 2), 0, M.searchH)
                 SearchInput.TextSize = M.inputText
-                listTop += M.searchH + M.gap
+
+                listTop = innerPadY + M.searchH + M.gap
+                List.Position = UDim2.fromOffset(innerPadX, listTop)
+                List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
+            else
+                List.Position = UDim2.fromOffset(innerPadX, innerPadY)
+                List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(innerPadY * 2))
             end
-
-            if BulkActions.Visible then
-                local actionWidth = 58
-                local actionGap = 6
-
-                BulkActions.Position = UDim2.fromOffset(innerPadX, listTop)
-                BulkActions.Size = UDim2.new(1, -(innerPadX * 2), 0, M.actionH)
-
-                ClearButton.Size = UDim2.fromOffset(actionWidth, M.actionH)
-                ClearButton.Position = UDim2.new(1, -actionWidth, 0, 0)
-                ClearButton.TextSize = 12
-
-                SelectAllButton.Size = UDim2.fromOffset(actionWidth, M.actionH)
-                SelectAllButton.Position = UDim2.new(1, -(actionWidth * 2 + actionGap), 0, 0)
-                SelectAllButton.TextSize = 12
-
-                listTop += M.actionH + M.gap
-            end
-
-            List.Position = UDim2.fromOffset(innerPadX, listTop)
-            List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
 
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
@@ -7667,18 +7611,26 @@ do
             local Str = ""
 
             if Info.Multi then
-                -- Always show the actual selected values instead of summaries such
-                -- as "8 selected" or "+6 more". The TextButton already uses
-                -- TextTruncate.AtEnd, so long selections stay clean in the UI.
-                local Parts = {}
+                local SelectedCount = 0
+                local TotalCount = 0
+                local SingleSelectedValue = nil
 
                 for _, Value in pairs(Dropdown.Values) do
+                    TotalCount += 1
+
                     if Dropdown.Value[Value] then
-                        table.insert(Parts, tostring(GetDisplayText(Value)))
+                        SelectedCount += 1
+                        SingleSelectedValue = Value
                     end
                 end
 
-                Str = table.concat(Parts, ", ")
+                if SelectedCount == 1 then
+                    Str = tostring(GetDisplayText(SingleSelectedValue))
+                elseif SelectedCount > 1 and TotalCount > 0 and SelectedCount >= TotalCount then
+                    Str = "All"
+                elseif SelectedCount > 1 then
+                    Str = tostring(SelectedCount) .. " selected"
+                end
             else
                 if UseValueOptions then
                     Str = Dropdown.Value ~= nil and tostring(GetDisplayText(Dropdown.Value)) or ""
@@ -7919,35 +7871,6 @@ do
 
         CloseButton.MouseButton1Click:Connect(ClosePopup)
 
-        SelectAllButton.MouseButton1Click:Connect(function()
-            if not Info.Multi or Dropdown.Disabled then
-                return
-            end
-
-            local Selected = {}
-            local DisabledLookup = {}
-
-            for _, DisabledValue in pairs(Dropdown.DisabledValues or {}) do
-                DisabledLookup[ResolveOptionValue(DisabledValue)] = true
-            end
-
-            for _, Value in pairs(Dropdown.Values or {}) do
-                if not DisabledLookup[Value] then
-                    Selected[Value] = true
-                end
-            end
-
-            Dropdown:SetValue(Selected)
-        end)
-
-        ClearButton.MouseButton1Click:Connect(function()
-            if not Info.Multi or Dropdown.Disabled then
-                return
-            end
-
-            Dropdown:SetValue({})
-        end)
-
         Library:GiveSignal(List:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
             if VirtualState.Active and RenderVirtualRows then
                 RenderVirtualRows(false)
@@ -7969,6 +7892,18 @@ do
         pcall(function()
             Library:MakeDraggable(Popup, Header, false, true)
         end)
+
+        pcall(function()
+            Library:MakeResizable(Popup, ResizeHandle, function()
+                local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
+                if viewport.X > 0 and viewport.Y > 0 then
+                    PopupScale.W = Popup.AbsoluteSize.X / viewport.X
+                    PopupScale.H = Popup.AbsoluteSize.Y / viewport.Y
+                end
+                ApplyPopupLayout()
+            end)
+        end)
+
         local Defaults = {}
         local function AddDefaultValue(Value)
             local Index = table.find(Dropdown.Values, Value)
@@ -8176,7 +8111,7 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 460),
+            Size = UDim2.fromScale(0.56, 0.76),
             Visible = false,
             ZIndex = 120,
             Parent = Library.ScreenGui,
@@ -8285,44 +8220,6 @@ do
             Parent = SearchInput,
         })
     
-
-        local BulkActions = New("Frame", {
-            BackgroundTransparency = 1,
-            Visible = Info.Multi == true and Info.ShowBulkActions ~= false,
-            ZIndex = 123,
-            Parent = PopupBody,
-        })
-
-        local SelectAllButton = New("TextButton", {
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Text = "All",
-            TextSize = 12,
-            ZIndex = 124,
-            Parent = BulkActions,
-        })
-
-        New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius),
-            Parent = SelectAllButton,
-        })
-
-        local ClearButton = New("TextButton", {
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Text = "Clear",
-            TextSize = 12,
-            ZIndex = 124,
-            Parent = BulkActions,
-        })
-
-        New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius),
-            Parent = ClearButton,
-        })
-
         local List = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             BackgroundColor3 = "MainColor",
@@ -8355,7 +8252,6 @@ do
             Position = UDim2.fromScale(1, 1),
             Size = UDim2.fromOffset(18, 18),
             Text = "",
-            Visible = false,
             ZIndex = 124,
             Parent = Popup,
         })
@@ -8367,8 +8263,7 @@ do
     
         local Buttons = {}
         local MenuState = { Active = false, Menu = Popup }
-        local PopupFixedWidth = tonumber(Info.PopupWidth) or 560
-        local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
+        local PopupScale = { W = 0.56, H = 0.76 }
         local CurrentRowHeight = 40
         local CurrentOptionTextSize = 14
         local RenderVirtualRows
@@ -8428,25 +8323,32 @@ do
     
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
-
-            -- Fixed desktop size, only clamped when the screen is smaller.
-            local maxWidth = math.max(320, viewport.X - 24)
-            local maxHeight = math.max(300, viewport.Y - 24)
-            local width = math.min(PopupFixedWidth, maxWidth)
-            local height = math.min(PopupFixedHeight, maxHeight)
-
-            local padX = math.max(12, math.floor(width * 0.028))
-            local padY = math.max(10, math.floor(height * 0.024))
-            local headerH = 42
-            local searchH = 40
-            local actionH = 26
-            local gap = 8
-
-            local titleText = 18
-            local inputText = 14
-            local optionText = 14
-            local rowH = 40
-
+            local isPortrait = viewport.Y > viewport.X
+    
+            local minWScale = isPortrait and 0.78 or 0.42
+            local maxWScale = isPortrait and 0.96 or 0.82
+            local minHScale = isPortrait and 0.48 or 0.52
+            local maxHScale = 0.90
+    
+            PopupScale.W = math.clamp(PopupScale.W, minWScale, maxWScale)
+            PopupScale.H = math.clamp(PopupScale.H, minHScale, maxHScale)
+    
+            local width = viewport.X * PopupScale.W
+            local height = viewport.Y * PopupScale.H
+    
+            local padX = width * 0.036
+            local padY = height * 0.03
+            local headerH = height * 0.08
+            local searchH = height * 0.085
+            local gap = height * 0.018
+    
+            local titleText = math.clamp(math.floor(height * 0.038), 13, 22)
+            local inputText = math.clamp(math.floor(height * 0.031), 12, 18)
+    
+            -- ~10% smaller rows/buttons than previous
+            local optionText = math.clamp(math.floor(height * 0.027), 12, 17)
+            local rowH = math.clamp(height * 0.078, 30, 52)
+    
             return {
                 width = width,
                 height = height,
@@ -8454,7 +8356,6 @@ do
                 padY = padY,
                 headerH = headerH,
                 searchH = searchH,
-                actionH = actionH,
                 gap = gap,
                 titleText = titleText,
                 inputText = inputText,
@@ -8462,14 +8363,14 @@ do
                 rowH = rowH,
             }
         end
-
+    
         local function ApplyPopupLayout()
             local M = GetPopupMetrics()
             local closeH = math.floor(M.headerH * 0.72)
             local closeW = math.max(78, math.floor(closeH * 2.05))
             local bodyTop, innerPadX, innerPadY, listTop
     
-            Popup.Size = UDim2.fromOffset(M.width, M.height)
+            Popup.Size = UDim2.fromScale(PopupScale.W, PopupScale.H)
     
             Header.Position = UDim2.fromOffset(M.padX, M.padY)
             Header.Size = UDim2.new(1, -M.padX * 2, 0, M.headerH)
@@ -8495,35 +8396,18 @@ do
             innerPadX = math.max(10, math.floor(M.padX * 0.7))
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
     
-            listTop = innerPadY
-
             if SearchInput.Visible then
-                SearchInput.Position = UDim2.fromOffset(innerPadX, listTop)
+                SearchInput.Position = UDim2.fromOffset(innerPadX, innerPadY)
                 SearchInput.Size = UDim2.new(1, -(innerPadX * 2), 0, M.searchH)
                 SearchInput.TextSize = M.inputText
-                listTop += M.searchH + M.gap
+    
+                listTop = innerPadY + M.searchH + M.gap
+                List.Position = UDim2.fromOffset(innerPadX, listTop)
+                List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
+            else
+                List.Position = UDim2.fromOffset(innerPadX, innerPadY)
+                List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(innerPadY * 2))
             end
-
-            if BulkActions.Visible then
-                local actionWidth = 58
-                local actionGap = 6
-
-                BulkActions.Position = UDim2.fromOffset(innerPadX, listTop)
-                BulkActions.Size = UDim2.new(1, -(innerPadX * 2), 0, M.actionH)
-
-                ClearButton.Size = UDim2.fromOffset(actionWidth, M.actionH)
-                ClearButton.Position = UDim2.new(1, -actionWidth, 0, 0)
-                ClearButton.TextSize = 12
-
-                SelectAllButton.Size = UDim2.fromOffset(actionWidth, M.actionH)
-                SelectAllButton.Position = UDim2.new(1, -(actionWidth * 2 + actionGap), 0, 0)
-                SelectAllButton.TextSize = 12
-
-                listTop += M.actionH + M.gap
-            end
-
-            List.Position = UDim2.fromOffset(innerPadX, listTop)
-            List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
     
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
@@ -8804,12 +8688,26 @@ do
             local Str = ""
     
             if Info.Multi then
+                local SelectedCount = 0
+                local TotalCount = 0
+                local SingleSelectedValue = nil
+
                 for _, Value in pairs(Dropdown.Values) do
+                    TotalCount += 1
+
                     if Dropdown.Value[Value] then
-                        Str = Str .. FormatZanjiDropdownValue(Value) .. ", "
+                        SelectedCount += 1
+                        SingleSelectedValue = Value
                     end
                 end
-                Str = Str:sub(1, #Str - 2)
+
+                if SelectedCount == 1 then
+                    Str = FormatZanjiDropdownValue(SingleSelectedValue)
+                elseif SelectedCount > 1 and TotalCount > 0 and SelectedCount >= TotalCount then
+                    Str = "All"
+                elseif SelectedCount > 1 then
+                    Str = tostring(SelectedCount) .. " selected"
+                end
             else
                 Str = Dropdown.Value and FormatZanjiDropdownValue(Dropdown.Value) or ""
             end
@@ -8990,35 +8888,6 @@ do
         end)
     
         CloseButton.MouseButton1Click:Connect(ClosePopup)
-
-        SelectAllButton.MouseButton1Click:Connect(function()
-            if not Info.Multi or Dropdown.Disabled then
-                return
-            end
-
-            local Selected = {}
-            local DisabledLookup = {}
-
-            for _, DisabledValue in pairs(Dropdown.DisabledValues or {}) do
-                DisabledLookup[DisabledValue] = true
-            end
-
-            for _, Value in pairs(Dropdown.Values or {}) do
-                if not DisabledLookup[Value] then
-                    Selected[Value] = true
-                end
-            end
-
-            Dropdown:SetValue(Selected)
-        end)
-
-        ClearButton.MouseButton1Click:Connect(function()
-            if not Info.Multi or Dropdown.Disabled then
-                return
-            end
-
-            Dropdown:SetValue({})
-        end)
     
         Library:GiveSignal(List:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
             if VirtualState.Active and RenderVirtualRows then
@@ -9041,6 +8910,18 @@ do
         pcall(function()
             Library:MakeDraggable(Popup, Header, false, true)
         end)
+    
+        pcall(function()
+            Library:MakeResizable(Popup, ResizeHandle, function()
+                local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
+                if viewport.X > 0 and viewport.Y > 0 then
+                    PopupScale.W = Popup.AbsoluteSize.X / viewport.X
+                    PopupScale.H = Popup.AbsoluteSize.Y / viewport.Y
+                end
+                ApplyPopupLayout()
+            end)
+        end)
+    
         local Defaults = {}
         if typeof(Info.Default) == "string" then
             local Index = table.find(Dropdown.Values, Info.Default)
