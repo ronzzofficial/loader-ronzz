@@ -11249,6 +11249,7 @@ function Library:CreateWindow(WindowInfo)
         local TabButton: TextButton
         local TabLabel
         local TabIcon
+        local TabButtonStroke
 
         local TabContainer
         local TabCanvas
@@ -11270,7 +11271,7 @@ function Library:CreateWindow(WindowInfo)
                 CornerRadius = UDim.new(0, Library.CornerRadius + 1),
                 Parent = TabButton,
             })
-            local TabButtonStroke = New("UIStroke", {
+            TabButtonStroke = New("UIStroke", {
                 ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
                 Thickness = 1,
                 Transparency = 0.72,
