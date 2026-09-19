@@ -8156,41 +8156,61 @@ do
             return ZanjiColorDropdownValue(Value)
         end
     
+        local Boxed = Dropdown.Text ~= nil and Info.Boxed ~= false
+
         local Holder = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, Dropdown.Text and 39 or 21),
+            BackgroundColor3 = Boxed and "CardColor" or "BackgroundColor",
+            BackgroundTransparency = Boxed and 0 or 1,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, Boxed and 54 or 25),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
-    
+
+        if Boxed then
+            New("UICorner", {
+                CornerRadius = UDim.new(0, Library.CornerRadius + 2),
+                Parent = Holder,
+            })
+
+            New("UIStroke", {
+                Color = "OutlineColor",
+                Thickness = 1,
+                Transparency = 0.22,
+                Parent = Holder,
+            })
+        end
+
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 14),
+            Position = Boxed and UDim2.fromOffset(9, 5) or UDim2.fromOffset(0, 0),
+            Size = Boxed and UDim2.new(1, -18, 0, 15) or UDim2.new(1, 0, 0, 14),
             Text = Dropdown.Text,
-            TextSize = 14,
+            TextSize = 12,
+            TextTransparency = 0.18,
             TextXAlignment = Enum.TextXAlignment.Left,
             Visible = not not Info.Text,
             Parent = Holder,
         })
-    
+
         local Display = New("TextButton", {
             Active = not Dropdown.Disabled,
-            AnchorPoint = Vector2.new(0, 1),
-            BackgroundColor3 = "MainColor",
+            AnchorPoint = Vector2.zero,
+            BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(1, 0, 0, 21),
+            BorderSizePixel = 0,
+            Position = Boxed and UDim2.fromOffset(7, 23) or UDim2.fromOffset(0, 4),
+            Size = Boxed and UDim2.new(1, -14, 0, 24) or UDim2.new(1, 0, 0, 21),
             Text = "---",
             RichText = true,
-            TextSize = 14,
+            TextSize = 12,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Holder,
         })
-    
+
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius / 2),
+            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
             Parent = Display,
         })
     
@@ -8203,6 +8223,7 @@ do
         New("UIStroke", {
             Color = "OutlineColor",
             Thickness = 1,
+            Transparency = 0.14,
             Parent = Display,
         })
     
@@ -8278,15 +8299,22 @@ do
         })
     
         local PopupBody = New("Frame", {
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = "CardColor",
             BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             ZIndex = 121,
             Parent = Popup,
         })
     
         New("UICorner", {
             CornerRadius = UDim.new(0, Library.CornerRadius + 2),
+            Parent = PopupBody,
+        })
+
+        New("UIStroke", {
+            Color = "OutlineColor",
+            Thickness = 1,
+            Transparency = 0.30,
             Parent = PopupBody,
         })
     
@@ -8330,7 +8358,7 @@ do
         local SearchInput = New("TextBox", {
             BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             PlaceholderText = "Search items...",
             TextXAlignment = Enum.TextXAlignment.Left,
             Visible = (Info.Multi == true) or (Info.Searchable == true),
@@ -8340,6 +8368,13 @@ do
     
         New("UICorner", {
             CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            Parent = SearchInput,
+        })
+
+        New("UIStroke", {
+            Color = "OutlineColor",
+            Thickness = 1,
+            Transparency = 0.24,
             Parent = SearchInput,
         })
     
@@ -8353,7 +8388,7 @@ do
             AutoButtonColor = false,
             BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = "All",
             TextSize = 12,
             TextTransparency = 0.12,
@@ -8367,11 +8402,18 @@ do
             Parent = AllButton,
         })
 
+        New("UIStroke", {
+            Color = "OutlineColor",
+            Thickness = 1,
+            Transparency = 0.30,
+            Parent = AllButton,
+        })
+
         local NoneButton = New("TextButton", {
             AutoButtonColor = false,
             BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = "None",
             TextSize = 12,
             TextTransparency = 0.12,
@@ -8385,11 +8427,18 @@ do
             Parent = NoneButton,
         })
 
+        New("UIStroke", {
+            Color = "OutlineColor",
+            Thickness = 1,
+            Transparency = 0.30,
+            Parent = NoneButton,
+        })
+
         local List = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             CanvasSize = UDim2.fromOffset(0, 0),
             ScrollBarImageColor3 = "OutlineColor",
@@ -8401,6 +8450,13 @@ do
     
         New("UICorner", {
             CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            Parent = List,
+        })
+
+        New("UIStroke", {
+            Color = "OutlineColor",
+            Thickness = 1,
+            Transparency = 0.48,
             Parent = List,
         })
     
@@ -8428,7 +8484,7 @@ do
     
         local Buttons = {}
         local MenuState = { Active = false, Menu = Popup }
-        local PopupScale = { W = 0.30, H = 0.48 }
+        local PopupScale = { W = 0.285, H = 0.425 }
         local CurrentRowHeight = 40
         local CurrentOptionTextSize = 14
         local RenderVirtualRows
@@ -8475,8 +8531,8 @@ do
         local function UpdateCloseButtonStyle()
             if Info.Multi then
                 CloseButton.Text = "Done"
-                CloseButton.BackgroundColor3 = Library.Scheme.AccentColor:Lerp(Library.Scheme.MainColor, 0.2)
-                CloseButtonStroke.Color = Library.Scheme.AccentColor:Lerp(Library.Scheme.WhiteColor, 0.2)
+                CloseButton.BackgroundColor3 = Library.Scheme.AccentColor:Lerp(Library.Scheme.MainColor, 0.28)
+                CloseButtonStroke.Color = Library.Scheme.AccentColor:Lerp(Library.Scheme.WhiteColor, 0.12)
                 CloseButtonStroke.Transparency = 0.2
             else
                 CloseButton.Text = "Close"
@@ -8490,10 +8546,10 @@ do
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
             local isPortrait = viewport.Y > viewport.X
     
-            local minWScale = isPortrait and 0.72 or 0.26
+            local minWScale = isPortrait and 0.70 or 0.24
             local maxWScale = isPortrait and 0.96 or 0.68
-            local minHScale = isPortrait and 0.44 or 0.36
-            local maxHScale = 0.82
+            local minHScale = isPortrait and 0.40 or 0.34
+            local maxHScale = 0.72
     
             PopupScale.W = math.clamp(PopupScale.W, minWScale, maxWScale)
             PopupScale.H = math.clamp(PopupScale.H, minHScale, maxHScale)
@@ -8501,18 +8557,18 @@ do
             local width = viewport.X * PopupScale.W
             local height = viewport.Y * PopupScale.H
     
-            local padX = width * 0.028
-            local padY = height * 0.025
-            local headerH = math.clamp(height * 0.09, 34, 46)
-            local searchH = math.clamp(height * 0.09, 34, 42)
-            local gap = math.clamp(height * 0.016, 6, 10)
+            local padX = math.clamp(width * 0.025, 10, 14)
+            local padY = math.clamp(height * 0.022, 8, 12)
+            local headerH = math.clamp(height * 0.085, 32, 40)
+            local searchH = math.clamp(height * 0.085, 32, 38)
+            local gap = math.clamp(height * 0.014, 5, 8)
     
-            local titleText = math.clamp(math.floor(height * 0.038), 13, 22)
-            local inputText = math.clamp(math.floor(height * 0.031), 12, 18)
+            local titleText = math.clamp(math.floor(height * 0.034), 13, 17)
+            local inputText = math.clamp(math.floor(height * 0.029), 12, 15)
     
             -- ~10% smaller rows/buttons than previous
-            local optionText = math.clamp(math.floor(height * 0.027), 12, 17)
-            local rowH = math.clamp(height * 0.075, 34, 42)
+            local optionText = math.clamp(math.floor(height * 0.026), 12, 14)
+            local rowH = math.clamp(height * 0.068, 32, 38)
     
             return {
                 width = width,
@@ -8562,112 +8618,43 @@ do
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
     
             local hasBulk = (Info.Multi == true)
+            local bulkGap = 5
+            local bulkH = 27
+            local bulkW = 50
 
-    
-            local bulkGap = 6
-
-    
-            local bulkH = math.clamp(math.floor(M.searchH * 0.72), 26, 30)
-
-    
-            local bulkW = math.clamp(math.floor(bulkH * 1.75), 48, 56)
-
-    
-            local bulkTotalW = hasBulk and ((bulkW * 2) + bulkGap) or 0
-
-
-    
             if SearchInput.Visible then
-
-    
                 SearchInput.Position = UDim2.fromOffset(innerPadX, innerPadY)
-
-    
-                SearchInput.Size = UDim2.new(1, -((innerPadX * 2) + (hasBulk and (bulkTotalW + 8) or 0)), 0, M.searchH)
-
-    
+                SearchInput.Size = UDim2.new(1, -(innerPadX * 2), 0, M.searchH)
                 SearchInput.TextSize = M.inputText
 
-
-    
                 if hasBulk then
-
-    
-                    AllButton.Size = UDim2.fromOffset(bulkW, bulkH)
-
-    
+                    local bulkY = innerPadY + M.searchH + 6
                     NoneButton.Size = UDim2.fromOffset(bulkW, bulkH)
-
-
-    
-                    local buttonsY = innerPadY + math.floor((M.searchH - bulkH) / 2)
-
-    
-                    NoneButton.Position = UDim2.new(1, -innerPadX - bulkW, 0, buttonsY)
-
-    
-                    AllButton.Position = UDim2.new(1, -innerPadX - bulkW - bulkGap - bulkW, 0, buttonsY)
-
-    
-                end
-
-
-    
-                listTop = innerPadY + M.searchH + M.gap
-
-    
-                List.Position = UDim2.fromOffset(innerPadX, listTop)
-
-    
-                List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
-
-    
-            else
-
-    
-                if hasBulk then
-
-    
                     AllButton.Size = UDim2.fromOffset(bulkW, bulkH)
-
-    
-                    NoneButton.Size = UDim2.fromOffset(bulkW, bulkH)
-
-
-    
-                    NoneButton.Position = UDim2.new(1, -innerPadX - bulkW, 0, innerPadY)
-
-    
-                    AllButton.Position = UDim2.new(1, -innerPadX - bulkW - bulkGap - bulkW, 0, innerPadY)
-
-
-    
-                    listTop = innerPadY + bulkH + M.gap
-
-    
-                    List.Position = UDim2.fromOffset(innerPadX, listTop)
-
-    
-                    List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
-
-    
+                    NoneButton.Position = UDim2.new(1, -innerPadX - bulkW, 0, bulkY)
+                    AllButton.Position = UDim2.new(1, -innerPadX - (bulkW * 2) - bulkGap, 0, bulkY)
+                    listTop = bulkY + bulkH + M.gap
                 else
-
-    
-                    List.Position = UDim2.fromOffset(innerPadX, innerPadY)
-
-    
-                    List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(innerPadY * 2))
-
-    
+                    listTop = innerPadY + M.searchH + M.gap
                 end
-
-    
+            else
+                if hasBulk then
+                    NoneButton.Size = UDim2.fromOffset(bulkW, bulkH)
+                    AllButton.Size = UDim2.fromOffset(bulkW, bulkH)
+                    NoneButton.Position = UDim2.new(1, -innerPadX - bulkW, 0, innerPadY)
+                    AllButton.Position = UDim2.new(1, -innerPadX - (bulkW * 2) - bulkGap, 0, innerPadY)
+                    listTop = innerPadY + bulkH + M.gap
+                else
+                    listTop = innerPadY
+                end
             end
-    
+
+            List.Position = UDim2.fromOffset(innerPadX, listTop)
+            List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
+
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
-            ListLayout.Padding = UDim.new(0, math.max(4, math.floor(M.gap * 0.45)))
+            ListLayout.Padding = UDim.new(0, 4)
     
             for _, Entry in pairs(Buttons) do
                 Entry.Button.Size = UDim2.new(1, -8, 0, CurrentRowHeight)
@@ -8684,7 +8671,7 @@ do
             local Stroke = Entry.Stroke or Entry.Button:FindFirstChild("SelectionStroke")
 
             Entry.Button.BackgroundColor3 = selected
-                and Color3.fromRGB(48, 46, 54)
+                and Color3.fromRGB(42, 39, 48)
                 or Color3.fromRGB(22, 22, 25)
             Entry.Button.BackgroundTransparency = 0
             Entry.Button.TextTransparency = Entry.Disabled and 0.8 or 0
@@ -8692,7 +8679,7 @@ do
 
             if Stroke then
                 Stroke.Color = Library.Scheme.AccentColor
-                Stroke.Transparency = selected and 0.12 or 1
+                Stroke.Transparency = selected and 0.18 or 1
             end
         end
     
@@ -9081,10 +9068,19 @@ do
     
         function Dropdown:SetText(Text: string)
             Dropdown.Text = Text
-            Holder.Size = UDim2.new(1, 0, 0, (Text and 46 or 28) * Library.DPIScale)
-    
+            Boxed = Text ~= nil and Info.Boxed ~= false
+
+            Holder.BackgroundTransparency = Boxed and 0 or 1
+            Holder.Size = UDim2.new(1, 0, 0, (Boxed and 54 or 25) * Library.DPIScale)
+
+            Label.Position = Boxed and UDim2.fromOffset(9, 5) or UDim2.fromOffset(0, 0)
+            Label.Size = Boxed and UDim2.new(1, -18, 0, 15) or UDim2.new(1, 0, 0, 14)
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
+
+            Display.Position = Boxed and UDim2.fromOffset(7, 23) or UDim2.fromOffset(0, 4)
+            Display.Size = Boxed and UDim2.new(1, -14, 0, 24) or UDim2.new(1, 0, 0, 21)
+
             Title.Text = Text or "Select"
         end
     
