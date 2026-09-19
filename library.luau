@@ -262,15 +262,15 @@ local Library = {
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(11, 11, 14),
-        MainColor = Color3.fromRGB(20, 20, 24),
-        AccentColor = Color3.fromRGB(128, 92, 255),
-        OutlineColor = Color3.fromRGB(44, 44, 52),
-        FontColor = Color3.fromRGB(242, 242, 246),
+        BackgroundColor = Color3.fromRGB(15, 15, 15),
+        MainColor = Color3.fromRGB(25, 25, 25),
+        AccentColor = Color3.fromRGB(125, 85, 255),
+        OutlineColor = Color3.fromRGB(40, 40, 40),
+        FontColor = Color3.new(1, 1, 1),
         Font = Font.fromEnum(Enum.Font.Code),
 
-        RedColor = Color3.fromRGB(239, 68, 86),
-        DestructiveColor = Color3.fromRGB(220, 58, 74),
+        RedColor = Color3.fromRGB(255, 50, 50),
+        DestructiveColor = Color3.fromRGB(220, 38, 38),
         DarkColor = Color3.new(0, 0, 0),
         WhiteColor = Color3.new(1, 1, 1),
 
@@ -495,6 +495,11 @@ local Templates = {
         Multi = false,
         DragSelect = false,
         MaxVisibleDropdownItems = 8,
+
+        -- Compact popup defaults
+        PopupWidth = 560,
+        PopupHeight = 460,
+        ShowBulkActions = true,
 
         Callback = function() end,
         Changed = function() end,
@@ -6972,7 +6977,7 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromScale(0.56, 0.76),
+            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 460),
             Visible = false,
             ZIndex = 120,
             Parent = Library.ScreenGui,
@@ -7059,43 +7064,6 @@ do
             Parent = CloseButton,
         })
 
-        local ActionRow = New("Frame", {
-            BackgroundTransparency = 1,
-            Visible = Info.Multi == true,
-            ZIndex = 123,
-            Parent = PopupBody,
-        })
-
-        local SelectAllButton = New("TextButton", {
-            AutoButtonColor = false,
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Text = "All",
-            TextSize = 13,
-            ZIndex = 123,
-            Parent = ActionRow,
-        })
-        New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
-            Parent = SelectAllButton,
-        })
-
-        local ClearButton = New("TextButton", {
-            AutoButtonColor = false,
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Text = "None",
-            TextSize = 13,
-            ZIndex = 123,
-            Parent = ActionRow,
-        })
-        New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
-            Parent = ClearButton,
-        })
-
         local SearchInput = New("TextBox", {
             BackgroundColor3 = "MainColor",
             BorderColor3 = "OutlineColor",
@@ -7116,6 +7084,44 @@ do
             PaddingLeft = UDim.new(0, 10),
             PaddingRight = UDim.new(0, 8),
             Parent = SearchInput,
+        })
+
+
+        local BulkActions = New("Frame", {
+            BackgroundTransparency = 1,
+            Visible = Info.Multi == true and Info.ShowBulkActions ~= false,
+            ZIndex = 123,
+            Parent = PopupBody,
+        })
+
+        local SelectAllButton = New("TextButton", {
+            BackgroundColor3 = "MainColor",
+            BorderColor3 = "OutlineColor",
+            BorderSizePixel = 1,
+            Text = "All",
+            TextSize = 12,
+            ZIndex = 124,
+            Parent = BulkActions,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(0, Library.CornerRadius),
+            Parent = SelectAllButton,
+        })
+
+        local ClearButton = New("TextButton", {
+            BackgroundColor3 = "MainColor",
+            BorderColor3 = "OutlineColor",
+            BorderSizePixel = 1,
+            Text = "Clear",
+            TextSize = 12,
+            ZIndex = 124,
+            Parent = BulkActions,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(0, Library.CornerRadius),
+            Parent = ClearButton,
         })
 
         local List = New("ScrollingFrame", {
@@ -7150,6 +7156,7 @@ do
             Position = UDim2.fromScale(1, 1),
             Size = UDim2.fromOffset(18, 18),
             Text = "",
+            Visible = false,
             ZIndex = 124,
             Parent = Popup,
         })
@@ -7161,7 +7168,8 @@ do
 
         local Buttons = {}
         local MenuState = { Active = false, Menu = Popup }
-        local PopupScale = { W = 0.56, H = 0.76 }
+        local PopupFixedWidth = tonumber(Info.PopupWidth) or 560
+        local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
         local CurrentRowHeight = 40
         local CurrentOptionTextSize = 14
         local RenderVirtualRows
@@ -7275,32 +7283,24 @@ do
 
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
-            local isPortrait = viewport.Y > viewport.X
 
-            local minWScale = isPortrait and 0.78 or 0.42
-            local maxWScale = isPortrait and 0.96 or 0.82
-            local minHScale = isPortrait and 0.48 or 0.52
-            local maxHScale = 0.90
+            -- Fixed desktop size, only clamped when the screen is smaller.
+            local maxWidth = math.max(320, viewport.X - 24)
+            local maxHeight = math.max(300, viewport.Y - 24)
+            local width = math.min(PopupFixedWidth, maxWidth)
+            local height = math.min(PopupFixedHeight, maxHeight)
 
-            PopupScale.W = math.clamp(PopupScale.W, minWScale, maxWScale)
-            PopupScale.H = math.clamp(PopupScale.H, minHScale, maxHScale)
+            local padX = math.max(12, math.floor(width * 0.028))
+            local padY = math.max(10, math.floor(height * 0.024))
+            local headerH = 42
+            local searchH = 40
+            local actionH = 26
+            local gap = 8
 
-            local width = viewport.X * PopupScale.W
-            local height = viewport.Y * PopupScale.H
-
-            local padX = width * 0.036
-            local padY = height * 0.03
-            local headerH = height * 0.08
-            local searchH = height * 0.085
-            local gap = height * 0.018
-
-            local titleText = math.clamp(math.floor(height * 0.038), 13, 22)
-            local inputText = math.clamp(math.floor(height * 0.031), 12, 18)
-
-            -- ~10% smaller rows/buttons than previous
-            local optionText = math.clamp(math.floor(height * 0.027), 12, 17)
-            local rowH = math.clamp(height * 0.078, 30, 52)
-            local actionH = math.clamp(height * 0.05, 24, 28)
+            local titleText = 18
+            local inputText = 14
+            local optionText = 14
+            local rowH = 40
 
             return {
                 width = width,
@@ -7309,12 +7309,12 @@ do
                 padY = padY,
                 headerH = headerH,
                 searchH = searchH,
+                actionH = actionH,
                 gap = gap,
                 titleText = titleText,
                 inputText = inputText,
                 optionText = optionText,
                 rowH = rowH,
-                actionH = actionH,
             }
         end
 
@@ -7324,7 +7324,7 @@ do
             local closeW = math.max(78, math.floor(closeH * 2.05))
             local bodyTop, innerPadX, innerPadY, listTop
 
-            Popup.Size = UDim2.fromScale(PopupScale.W, PopupScale.H)
+            Popup.Size = UDim2.fromOffset(M.width, M.height)
 
             Header.Position = UDim2.fromOffset(M.padX, M.padY)
             Header.Size = UDim2.new(1, -M.padX * 2, 0, M.headerH)
@@ -7350,31 +7350,35 @@ do
             innerPadX = math.max(10, math.floor(M.padX * 0.7))
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
 
-            local rowTop = innerPadY
+            listTop = innerPadY
+
             if SearchInput.Visible then
-                SearchInput.Position = UDim2.fromOffset(innerPadX, innerPadY)
+                SearchInput.Position = UDim2.fromOffset(innerPadX, listTop)
                 SearchInput.Size = UDim2.new(1, -(innerPadX * 2), 0, M.searchH)
                 SearchInput.TextSize = M.inputText
-                rowTop = innerPadY + M.searchH + M.gap
+                listTop += M.searchH + M.gap
             end
 
-            if Info.Multi then
-                local buttonW = 58
-                local buttonGap = 8
-                ActionRow.Visible = true
-                ActionRow.Position = UDim2.fromOffset(innerPadX, rowTop)
-                ActionRow.Size = UDim2.new(1, -(innerPadX * 2), 0, M.actionH)
-                ClearButton.Size = UDim2.fromOffset(buttonW, M.actionH)
-                ClearButton.Position = UDim2.new(1, -buttonW, 0, 0)
-                SelectAllButton.Size = UDim2.fromOffset(buttonW, M.actionH)
-                SelectAllButton.Position = UDim2.new(1, -(buttonW * 2 + buttonGap), 0, 0)
-                rowTop = rowTop + M.actionH + math.max(6, math.floor(M.gap * 0.7))
-            else
-                ActionRow.Visible = false
+            if BulkActions.Visible then
+                local actionWidth = 58
+                local actionGap = 6
+
+                BulkActions.Position = UDim2.fromOffset(innerPadX, listTop)
+                BulkActions.Size = UDim2.new(1, -(innerPadX * 2), 0, M.actionH)
+
+                ClearButton.Size = UDim2.fromOffset(actionWidth, M.actionH)
+                ClearButton.Position = UDim2.new(1, -actionWidth, 0, 0)
+                ClearButton.TextSize = 12
+
+                SelectAllButton.Size = UDim2.fromOffset(actionWidth, M.actionH)
+                SelectAllButton.Position = UDim2.new(1, -(actionWidth * 2 + actionGap), 0, 0)
+                SelectAllButton.TextSize = 12
+
+                listTop += M.actionH + M.gap
             end
 
-            List.Position = UDim2.fromOffset(innerPadX, rowTop)
-            List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(rowTop + innerPadY))
+            List.Position = UDim2.fromOffset(innerPadX, listTop)
+            List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
 
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
@@ -7393,11 +7397,9 @@ do
         local function UpdateEntry(Entry)
             local selected = IsSelected(Entry.Value)
 
-            Entry.Button.BackgroundColor3 = selected
-                and Library.Scheme.AccentColor:Lerp(Library.Scheme.MainColor, 0.35)
-                or Library.Scheme.MainColor
-            Entry.Button.BackgroundTransparency = selected and 0.08 or 0.18
-            Entry.Button.TextTransparency = Entry.Disabled and 0.8 or (selected and 0.02 or 0.18)
+            Entry.Button.BackgroundColor3 = Library.Scheme.MainColor:Lerp(Library.Scheme.AccentColor, 0.15)
+            Entry.Button.BackgroundTransparency = selected and 0.5 or 1 
+            Entry.Button.TextTransparency = Entry.Disabled and 0.8 or (selected and 0.04 or 0.45)
             Entry.Button.Text = tostring(GetOptionText(Entry.Value))
         end
 
@@ -7487,36 +7489,6 @@ do
                 ClosePopup()
             end
         end
-
-        local function ApplyBulkSelection(enableAll)
-            if not Info.Multi then
-                return
-            end
-            local nextValues = {}
-            if enableAll then
-                for _, value in pairs(Dropdown.Values or {}) do
-                    nextValues[value] = true
-                end
-            end
-            Dropdown.Value = nextValues
-            Dropdown:Display()
-            RefreshButtons()
-            Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-            Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-            Library:UpdateDependencyBoxes()
-        end
-
-        SelectAllButton.MouseButton1Click:Connect(function()
-            if not Dropdown.Disabled then
-                ApplyBulkSelection(true)
-            end
-        end)
-
-        ClearButton.MouseButton1Click:Connect(function()
-            if not Dropdown.Disabled then
-                ApplyBulkSelection(false)
-            end
-        end)
 
         local function CreateDropdownButton(LayoutOrder)
             local Button = New("TextButton", {
@@ -7947,6 +7919,35 @@ do
 
         CloseButton.MouseButton1Click:Connect(ClosePopup)
 
+        SelectAllButton.MouseButton1Click:Connect(function()
+            if not Info.Multi or Dropdown.Disabled then
+                return
+            end
+
+            local Selected = {}
+            local DisabledLookup = {}
+
+            for _, DisabledValue in pairs(Dropdown.DisabledValues or {}) do
+                DisabledLookup[ResolveOptionValue(DisabledValue)] = true
+            end
+
+            for _, Value in pairs(Dropdown.Values or {}) do
+                if not DisabledLookup[Value] then
+                    Selected[Value] = true
+                end
+            end
+
+            Dropdown:SetValue(Selected)
+        end)
+
+        ClearButton.MouseButton1Click:Connect(function()
+            if not Info.Multi or Dropdown.Disabled then
+                return
+            end
+
+            Dropdown:SetValue({})
+        end)
+
         Library:GiveSignal(List:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
             if VirtualState.Active and RenderVirtualRows then
                 RenderVirtualRows(false)
@@ -7968,18 +7969,6 @@ do
         pcall(function()
             Library:MakeDraggable(Popup, Header, false, true)
         end)
-
-        pcall(function()
-            Library:MakeResizable(Popup, ResizeHandle, function()
-                local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
-                if viewport.X > 0 and viewport.Y > 0 then
-                    PopupScale.W = Popup.AbsoluteSize.X / viewport.X
-                    PopupScale.H = Popup.AbsoluteSize.Y / viewport.Y
-                end
-                ApplyPopupLayout()
-            end)
-        end)
-
         local Defaults = {}
         local function AddDefaultValue(Value)
             local Index = table.find(Dropdown.Values, Value)
@@ -8187,7 +8176,7 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromScale(0.56, 0.76),
+            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 460),
             Visible = false,
             ZIndex = 120,
             Parent = Library.ScreenGui,
@@ -8273,46 +8262,7 @@ do
             Transparency = 0.25,
             Parent = CloseButton,
         })
-
-        local ActionRow = New("Frame", {
-            BackgroundTransparency = 1,
-            Visible = Info.Multi == true,
-            ZIndex = 123,
-            Parent = PopupBody,
-        })
-
-        local SelectAllButton = New("TextButton", {
-            AutoButtonColor = false,
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Text = "Select All",
-            TextSize = 13,
-            TextTransparency = 0.08,
-            ZIndex = 124,
-            Parent = ActionRow,
-        })
-        New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
-            Parent = SelectAllButton,
-        })
-
-        local ClearButton = New("TextButton", {
-            AutoButtonColor = false,
-            BackgroundColor3 = "MainColor",
-            BorderColor3 = "OutlineColor",
-            BorderSizePixel = 1,
-            Text = "Clear",
-            TextSize = 13,
-            TextTransparency = 0.08,
-            ZIndex = 124,
-            Parent = ActionRow,
-        })
-        New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
-            Parent = ClearButton,
-        })
-
+    
         local SearchInput = New("TextBox", {
             BackgroundColor3 = "MainColor",
             BorderColor3 = "OutlineColor",
@@ -8335,6 +8285,44 @@ do
             Parent = SearchInput,
         })
     
+
+        local BulkActions = New("Frame", {
+            BackgroundTransparency = 1,
+            Visible = Info.Multi == true and Info.ShowBulkActions ~= false,
+            ZIndex = 123,
+            Parent = PopupBody,
+        })
+
+        local SelectAllButton = New("TextButton", {
+            BackgroundColor3 = "MainColor",
+            BorderColor3 = "OutlineColor",
+            BorderSizePixel = 1,
+            Text = "All",
+            TextSize = 12,
+            ZIndex = 124,
+            Parent = BulkActions,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(0, Library.CornerRadius),
+            Parent = SelectAllButton,
+        })
+
+        local ClearButton = New("TextButton", {
+            BackgroundColor3 = "MainColor",
+            BorderColor3 = "OutlineColor",
+            BorderSizePixel = 1,
+            Text = "Clear",
+            TextSize = 12,
+            ZIndex = 124,
+            Parent = BulkActions,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(0, Library.CornerRadius),
+            Parent = ClearButton,
+        })
+
         local List = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             BackgroundColor3 = "MainColor",
@@ -8343,7 +8331,7 @@ do
             BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             CanvasSize = UDim2.fromOffset(0, 0),
             ScrollBarImageColor3 = "OutlineColor",
-            ScrollBarThickness = 3,
+            ScrollBarThickness = 4,
             TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             ZIndex = 123,
             Parent = PopupBody,
@@ -8367,6 +8355,7 @@ do
             Position = UDim2.fromScale(1, 1),
             Size = UDim2.fromOffset(18, 18),
             Text = "",
+            Visible = false,
             ZIndex = 124,
             Parent = Popup,
         })
@@ -8378,7 +8367,8 @@ do
     
         local Buttons = {}
         local MenuState = { Active = false, Menu = Popup }
-        local PopupScale = { W = 0.34, H = 0.50 }
+        local PopupFixedWidth = tonumber(Info.PopupWidth) or 560
+        local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
         local CurrentRowHeight = 40
         local CurrentOptionTextSize = 14
         local RenderVirtualRows
@@ -8438,32 +8428,24 @@ do
     
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
-            local isPortrait = viewport.Y > viewport.X
 
-            local maxWidth = math.max(360, math.min(620, viewport.X - 32))
-            local maxHeight = math.max(320, math.min(470, viewport.Y - 32))
-            local minWidth = math.min(440, maxWidth)
-            local minHeight = math.min(340, maxHeight)
+            -- Fixed desktop size, only clamped when the screen is smaller.
+            local maxWidth = math.max(320, viewport.X - 24)
+            local maxHeight = math.max(300, viewport.Y - 24)
+            local width = math.min(PopupFixedWidth, maxWidth)
+            local height = math.min(PopupFixedHeight, maxHeight)
 
-            local width = math.clamp(viewport.X * PopupScale.W, minWidth, maxWidth)
-            local height = math.clamp(viewport.Y * PopupScale.H, minHeight, maxHeight)
+            local padX = math.max(12, math.floor(width * 0.028))
+            local padY = math.max(10, math.floor(height * 0.024))
+            local headerH = 42
+            local searchH = 40
+            local actionH = 26
+            local gap = 8
 
-            if isPortrait then
-                width = math.min(viewport.X - 24, math.max(width, viewport.X * 0.86))
-                height = math.min(viewport.Y - 30, math.max(height, viewport.Y * 0.54))
-            end
-
-            local padX = math.clamp(math.floor(width * 0.030), 12, 18)
-            local padY = math.clamp(math.floor(height * 0.026), 10, 15)
-            local headerH = math.clamp(math.floor(height * 0.095), 38, 46)
-            local searchH = math.clamp(math.floor(height * 0.095), 36, 42)
-            local gap = math.clamp(math.floor(height * 0.018), 7, 10)
-
-            local titleText = math.clamp(math.floor(height * 0.036), 14, 18)
-            local inputText = math.clamp(math.floor(height * 0.030), 13, 15)
-            local optionText = math.clamp(math.floor(height * 0.029), 13, 15)
-            local rowH = math.clamp(math.floor(height * 0.080), 34, 40)
-            local actionH = 28
+            local titleText = 18
+            local inputText = 14
+            local optionText = 14
+            local rowH = 40
 
             return {
                 width = width,
@@ -8472,12 +8454,12 @@ do
                 padY = padY,
                 headerH = headerH,
                 searchH = searchH,
+                actionH = actionH,
                 gap = gap,
                 titleText = titleText,
                 inputText = inputText,
                 optionText = optionText,
                 rowH = rowH,
-                actionH = actionH,
             }
         end
 
@@ -8513,38 +8495,36 @@ do
             innerPadX = math.max(10, math.floor(M.padX * 0.7))
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
     
-            local rowTop = innerPadY
+            listTop = innerPadY
 
             if SearchInput.Visible then
-                SearchInput.Position = UDim2.fromOffset(innerPadX, innerPadY)
+                SearchInput.Position = UDim2.fromOffset(innerPadX, listTop)
                 SearchInput.Size = UDim2.new(1, -(innerPadX * 2), 0, M.searchH)
                 SearchInput.TextSize = M.inputText
-                rowTop = innerPadY + M.searchH + M.gap
+                listTop += M.searchH + M.gap
             end
 
-            if Info.Multi then
-                ActionRow.Visible = true
-                ActionRow.Position = UDim2.fromOffset(innerPadX, rowTop)
-                ActionRow.Size = UDim2.new(1, -(innerPadX * 2), 0, M.actionH)
+            if BulkActions.Visible then
+                local actionWidth = 58
+                local actionGap = 6
 
-                local clearW = 64
-                local allW = 88
-                local actionGap = 7
+                BulkActions.Position = UDim2.fromOffset(innerPadX, listTop)
+                BulkActions.Size = UDim2.new(1, -(innerPadX * 2), 0, M.actionH)
 
-                ClearButton.Size = UDim2.fromOffset(clearW, M.actionH)
-                ClearButton.Position = UDim2.new(1, -clearW, 0, 0)
+                ClearButton.Size = UDim2.fromOffset(actionWidth, M.actionH)
+                ClearButton.Position = UDim2.new(1, -actionWidth, 0, 0)
+                ClearButton.TextSize = 12
 
-                SelectAllButton.Size = UDim2.fromOffset(allW, M.actionH)
-                SelectAllButton.Position = UDim2.new(1, -(clearW + actionGap + allW), 0, 0)
+                SelectAllButton.Size = UDim2.fromOffset(actionWidth, M.actionH)
+                SelectAllButton.Position = UDim2.new(1, -(actionWidth * 2 + actionGap), 0, 0)
+                SelectAllButton.TextSize = 12
 
-                rowTop = rowTop + M.actionH + M.gap
-            else
-                ActionRow.Visible = false
+                listTop += M.actionH + M.gap
             end
 
-            List.Position = UDim2.fromOffset(innerPadX, rowTop)
-            List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(rowTop + innerPadY))
-
+            List.Position = UDim2.fromOffset(innerPadX, listTop)
+            List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
+    
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
             ListLayout.Padding = UDim.new(0, math.max(4, math.floor(M.gap * 0.45)))
@@ -8561,16 +8541,13 @@ do
     
         local function UpdateEntry(Entry)
             local selected = IsSelected(Entry.Value)
-
-            Entry.Button.BackgroundColor3 = selected
-                and Library.Scheme.AccentColor:Lerp(Library.Scheme.MainColor, 0.46)
-                or Library.Scheme.MainColor:Lerp(Library.Scheme.WhiteColor, 0.025)
-
-            Entry.Button.BackgroundTransparency = selected and 0.05 or 0.10
-            Entry.Button.TextTransparency = Entry.Disabled and 0.8 or (selected and 0 or 0.12)
+    
+            Entry.Button.BackgroundColor3 = Library.Scheme.MainColor:Lerp(Library.Scheme.AccentColor, 0.15)
+            Entry.Button.BackgroundTransparency = selected and 0.5 or 1 
+            Entry.Button.TextTransparency = Entry.Disabled and 0.8 or (selected and 0.04 or 0.45)
             Entry.Button.Text = FormatZanjiDropdownValue(Entry.Value)
         end
-
+    
         local function RefreshButtons()
             for _, Entry in pairs(Buttons) do
                 UpdateEntry(Entry)
@@ -8650,47 +8627,6 @@ do
             end
         end
     
-        local function ApplyBulkSelection(selectEverything)
-            if not Info.Multi or Dropdown.Disabled then
-                return
-            end
-
-            local nextValue = {}
-
-            if selectEverything then
-                for _, value in ipairs(Dropdown.Values or {}) do
-                    local disabled = false
-
-                    for _, disabledValue in ipairs(Dropdown.DisabledValues or {}) do
-                        if disabledValue == value then
-                            disabled = true
-                            break
-                        end
-                    end
-
-                    if not disabled then
-                        nextValue[value] = true
-                    end
-                end
-            end
-
-            Dropdown.Value = nextValue
-            Dropdown:Display()
-            RefreshButtons()
-
-            Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-            Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-            Library:UpdateDependencyBoxes()
-        end
-
-        SelectAllButton.MouseButton1Click:Connect(function()
-            ApplyBulkSelection(true)
-        end)
-
-        ClearButton.MouseButton1Click:Connect(function()
-            ApplyBulkSelection(false)
-        end)
-
         local function CreateDropdownButton(LayoutOrder)
             local Button = New("TextButton", {
                 BackgroundColor3 = "MainColor",
@@ -9054,6 +8990,35 @@ do
         end)
     
         CloseButton.MouseButton1Click:Connect(ClosePopup)
+
+        SelectAllButton.MouseButton1Click:Connect(function()
+            if not Info.Multi or Dropdown.Disabled then
+                return
+            end
+
+            local Selected = {}
+            local DisabledLookup = {}
+
+            for _, DisabledValue in pairs(Dropdown.DisabledValues or {}) do
+                DisabledLookup[DisabledValue] = true
+            end
+
+            for _, Value in pairs(Dropdown.Values or {}) do
+                if not DisabledLookup[Value] then
+                    Selected[Value] = true
+                end
+            end
+
+            Dropdown:SetValue(Selected)
+        end)
+
+        ClearButton.MouseButton1Click:Connect(function()
+            if not Info.Multi or Dropdown.Disabled then
+                return
+            end
+
+            Dropdown:SetValue({})
+        end)
     
         Library:GiveSignal(List:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
             if VirtualState.Active and RenderVirtualRows then
@@ -9076,18 +9041,6 @@ do
         pcall(function()
             Library:MakeDraggable(Popup, Header, false, true)
         end)
-    
-        pcall(function()
-            Library:MakeResizable(Popup, ResizeHandle, function()
-                local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
-                if viewport.X > 0 and viewport.Y > 0 then
-                    PopupScale.W = Popup.AbsoluteSize.X / viewport.X
-                    PopupScale.H = Popup.AbsoluteSize.Y / viewport.Y
-                end
-                ApplyPopupLayout()
-            end)
-        end)
-    
         local Defaults = {}
         if typeof(Info.Default) == "string" then
             local Index = table.find(Dropdown.Values, Info.Default)
@@ -11353,7 +11306,6 @@ function Library:CreateWindow(WindowInfo)
         local TabButton: TextButton
         local TabLabel
         local TabIcon
-        local TabButtonStroke
 
         local TabContainer
         local TabCanvas
@@ -11363,24 +11315,12 @@ function Library:CreateWindow(WindowInfo)
         Icon = Library:GetCustomIcon(Icon)
         do
             TabButton = New("TextButton", {
-                AutoButtonColor = false,
                 BackgroundColor3 = "MainColor",
-                BackgroundTransparency = 0.78,
+                BackgroundTransparency = 1,
                 Size = UDim2.new(1, 0, 0, 40),
                 Text = "",
                 LayoutOrder = Order,
                 Parent = Tabs,
-            })
-            New("UICorner", {
-                CornerRadius = UDim.new(0, Library.CornerRadius + 1),
-                Parent = TabButton,
-            })
-            TabButtonStroke = New("UIStroke", {
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                Thickness = 1,
-                Transparency = 0.72,
-                Color = Library.Scheme.OutlineColor,
-                Parent = TabButton,
             })
             local ButtonPadding = New("UIPadding", {
                 PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
@@ -12458,14 +12398,8 @@ function Library:CreateWindow(WindowInfo)
                 return
             end
 
-            TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = Hovering and 0.64 or 0.78,
-            }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = Hovering and 0.25 or 0.5,
-            }):Play()
-            TweenService:Create(TabButtonStroke, Library.TweenInfo, {
-                Transparency = Hovering and 0.58 or 0.72,
             }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
@@ -12484,14 +12418,10 @@ function Library:CreateWindow(WindowInfo)
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = 0.18,
+                BackgroundTransparency = 0,
             }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0,
-            }):Play()
-            TweenService:Create(TabButtonStroke, Library.TweenInfo, {
-                Transparency = 0.18,
-                Color = Library.Scheme.AccentColor,
             }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
@@ -12515,11 +12445,7 @@ function Library:CreateWindow(WindowInfo)
 
         function Tab:Hide()
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = 0.78,
-            }):Play()
-            TweenService:Create(TabButtonStroke, Library.TweenInfo, {
-                Transparency = 0.72,
-                Color = Library.Scheme.OutlineColor,
+                BackgroundTransparency = 1,
             }):Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
