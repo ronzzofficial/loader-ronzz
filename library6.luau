@@ -262,21 +262,21 @@ local Library = {
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        -- ZANJI clean purple
-        -- Mostly neutral charcoal. Purple appears only on active/selected controls.
-        BackgroundColor = Color3.fromRGB(13, 13, 15),
-        MainColor = Color3.fromRGB(22, 22, 25),
-        CardColor = Color3.fromRGB(28, 28, 32),
-        AccentColor = Color3.fromRGB(132, 96, 224),
-        AccentSoftColor = Color3.fromRGB(48, 40, 72),
-        OutlineColor = Color3.fromRGB(45, 45, 52),
-        FontColor = Color3.fromRGB(232, 232, 236),
-        MutedColor = Color3.fromRGB(146, 146, 156),
+        -- ZANJI neutral-dark palette
+        -- Reference surfaces: 15 / 25 / 32 / 40
+        BackgroundColor = Color3.fromRGB(15, 15, 15),
+        MainColor = Color3.fromRGB(25, 25, 25),
+        CardColor = Color3.fromRGB(32, 32, 32),
+        AccentColor = Color3.fromRGB(125, 85, 255),
+        AccentSoftColor = Color3.fromRGB(52, 42, 82),
+        OutlineColor = Color3.fromRGB(40, 40, 40),
+        FontColor = Color3.fromRGB(235, 235, 238),
+        MutedColor = Color3.fromRGB(166, 166, 166),
         Font = Font.fromEnum(Enum.Font.Code),
 
         RedColor = Color3.fromRGB(242, 112, 112),
         DestructiveColor = Color3.fromRGB(211, 73, 83),
-        DarkColor = Color3.fromRGB(7, 7, 9),
+        DarkColor = Color3.fromRGB(8, 8, 8),
         WhiteColor = Color3.new(1, 1, 1),
 
         BackgroundImage = ""
@@ -5892,14 +5892,35 @@ do
             Type = "Toggle",
         }
 
+        local OuterHolder = New("Frame", {
+            BackgroundColor3 = "MainColor",
+            BackgroundTransparency = 0,
+            Size = UDim2.new(1, 0, 0, 42),
+            Visible = Toggle.Visible,
+            Parent = Container,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(0, Library.CornerRadius + 3),
+            Parent = OuterHolder,
+        })
+
+        New("UIStroke", {
+            Color = "OutlineColor",
+            Thickness = 1,
+            Transparency = 0.58,
+            Parent = OuterHolder,
+        })
+
         local Button = New("TextButton", {
             Active = not Toggle.Disabled,
             BackgroundColor3 = "CardColor",
             BackgroundTransparency = 0,
-            Size = UDim2.new(1, 0, 0, 30),
+            Position = UDim2.fromOffset(6, 6),
+            Size = UDim2.new(1, -12, 0, 30),
             Text = "",
-            Visible = Toggle.Visible,
-            Parent = Container,
+            Visible = true,
+            Parent = OuterHolder,
         })
 
         New("UICorner", {
@@ -5910,17 +5931,17 @@ do
         New("UIStroke", {
             Color = "OutlineColor",
             Thickness = 1,
-            Transparency = 0.52,
+            Transparency = 0.72,
             Parent = Button,
         })
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
             Position = UDim2.fromOffset(9, 0),
-            Size = UDim2.new(1, -52, 1, 0),
+            Size = UDim2.new(1, -50, 1, 0),
             Text = Toggle.Text,
             TextSize = 12,
-            TextTransparency = 0.4,
+            TextTransparency = 0.36,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Button,
         })
@@ -5935,8 +5956,8 @@ do
         local Switch = New("Frame", {
             AnchorPoint = Vector2.new(1, 0.5),
             BackgroundColor3 = "MainColor",
-            Position = UDim2.new(1, -8, 0.5, 0),
-            Size = UDim2.fromOffset(29, 16),
+            Position = UDim2.new(1, -9, 0.5, 0),
+            Size = UDim2.fromOffset(30, 17),
             Parent = Button,
         })
         New("UICorner", {
@@ -5952,6 +5973,7 @@ do
         })
         local SwitchStroke = New("UIStroke", {
             Color = "OutlineColor",
+            Transparency = 0.12,
             Parent = Switch,
         })
 
@@ -6000,7 +6022,7 @@ do
             end
 
             TweenService:Create(Label, Library.TweenInfo, {
-                TextTransparency = Toggle.Value and 0 or 0.4,
+                TextTransparency = Toggle.Value and 0.08 or 0.36,
             }):Play()
             TweenService:Create(Ball, Library.TweenInfo, {
                 AnchorPoint = Vector2.new(Offset, 0),
@@ -6062,7 +6084,7 @@ do
         function Toggle:SetVisible(Visible: boolean)
             Toggle.Visible = Visible
 
-            Button.Visible = Toggle.Visible
+            OuterHolder.Visible = Toggle.Visible
             Groupbox:Resize()
         end
 
@@ -6096,7 +6118,7 @@ do
         Toggle.Container = Container
         setmetatable(Toggle, BaseAddons)
 
-        Toggle.Holder = Button
+        Toggle.Holder = OuterHolder
         table.insert(Groupbox.Elements, Toggle)
 
         Toggle.Default = Toggle.Value
@@ -6116,8 +6138,8 @@ do
                 Toggle.TooltipTable:Destroy()
             end
 
-            if Button then
-                Button:Destroy()
+            if OuterHolder then
+                OuterHolder:Destroy()
             end
 
             if Toggle.Addons then
@@ -8187,7 +8209,7 @@ do
         local Boxed = Dropdown.Text ~= nil and Info.Boxed ~= false
 
         local Holder = New("Frame", {
-            BackgroundColor3 = Boxed and "CardColor" or "BackgroundColor",
+            BackgroundColor3 = Boxed and "MainColor" or "BackgroundColor",
             BackgroundTransparency = Boxed and 0 or 1,
             BorderSizePixel = 0,
             Size = UDim2.new(1, 0, 0, Boxed and 54 or 25),
@@ -8224,7 +8246,7 @@ do
         local Display = New("TextButton", {
             Active = not Dropdown.Disabled,
             AnchorPoint = Vector2.zero,
-            BackgroundColor3 = "BackgroundColor",
+            BackgroundColor3 = "CardColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 0,
             Position = Boxed and UDim2.fromOffset(7, 23) or UDim2.fromOffset(0, 4),
