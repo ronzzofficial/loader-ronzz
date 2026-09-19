@@ -159,6 +159,26 @@ do
     end
 end
 
+local ZANJI_UI = {
+    Font = Enum.Font.Code,
+
+    Text = 12,
+    SmallText = 11,
+    TinyText = 10,
+    GroupTitle = 13,
+    TabText = 13,
+    WindowTitle = 15,
+    PopupTitle = 15,
+
+    ControlHeight = 30,
+    FieldCardHeight = 50,
+    FieldHeight = 25,
+
+    Radius = 5,
+    InnerGap = 2,
+    ContentInset = 5,
+}
+
 local Library = {
     LocalPlayer = LocalPlayer,
     IsRobloxFocused = true,
@@ -272,7 +292,7 @@ local Library = {
         OutlineColor = Color3.fromRGB(40, 40, 40),
         FontColor = Color3.fromRGB(235, 235, 238),
         MutedColor = Color3.fromRGB(166, 166, 166),
-        Font = Font.fromEnum(Enum.Font.Code),
+        Font = Font.fromEnum(ZANJI_UI.Font),
 
         RedColor = Color3.fromRGB(242, 112, 112),
         DestructiveColor = Color3.fromRGB(211, 73, 83),
@@ -2034,7 +2054,7 @@ function Library:AddDraggableLabel(...)
         Size = UDim2.fromOffset(0, 0),
         Position = UDim2.fromOffset(6, 6),
         Text = Text,
-        TextSize = 15,
+        TextSize = ZANJI_UI.GroupTitle,
         ZIndex = 10,
         Parent = ScreenGui,
     })
@@ -2175,7 +2195,7 @@ function Library:AddDraggableButton(...)
     local Button = New("TextButton", {
         BackgroundColor3 = "BackgroundColor",
         Position = UDim2.fromOffset(6, 6),
-        TextSize = 16,
+        TextSize = ZANJI_UI.TabText,
         ZIndex = 10,
         Parent = ScreenGui,
     })
@@ -2296,7 +2316,7 @@ function Library:AddDraggableMenu(Name: string)
         BackgroundTransparency = 1,
         Size = UDim2.new(1, 0, 0, 34),
         Text = Name,
-        TextSize = 15,
+        TextSize = ZANJI_UI.GroupTitle,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = Holder,
     })
@@ -2808,7 +2828,7 @@ end))
 local TooltipLabel = New("TextLabel", {
     AutomaticSize = Enum.AutomaticSize.Y,
     BackgroundColor3 = "BackgroundColor",
-    TextSize = 14,
+    TextSize = ZANJI_UI.Text,
     TextWrapped = true,
     Visible = false,
     ZIndex = 20,
@@ -3230,7 +3250,7 @@ do
             BackgroundColor3 = "MainColor",
             Size = UDim2.fromOffset(18, 18),
             Text = (IsForButton and SlideOverflow) and "" or KeyPicker.Value,
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             Parent = ToggleLabel,
         })
 
@@ -3242,7 +3262,7 @@ do
                 Size = UDim2.new(1, 0, 1, 0),
                 Position = UDim2.new(0, 0, 0, 0),
                 Text = KeyPicker.Value,
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 FontFace = Picker.FontFace,
                 TextXAlignment = Enum.TextXAlignment.Center,
                 Parent = Picker,
@@ -3301,7 +3321,7 @@ do
                 BackgroundTransparency = 1,
                 Size = UDim2.fromScale(0, 1),
                 Text = "",
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 TextTransparency = 0.5,
                 Parent = Holder,
             })
@@ -3393,7 +3413,7 @@ do
                 BackgroundTransparency = 1,
                 Size = UDim2.new(1, 0, 0, IsForButton and 21 or (TotalModeButtons == 1 and 18 or 19)),
                 Text = Mode,
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 TextTransparency = 0.5,
                 Parent = MenuTable.Menu,
             })
@@ -4163,7 +4183,7 @@ do
             BackgroundTransparency = 1,
             Size = UDim2.fromScale(1, 1),
             Text = "",
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             TextTransparency = 0.5,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Center,
@@ -4186,7 +4206,7 @@ do
                 BackgroundTransparency = 1,
                 Size = UDim2.new(1, 0, 0, 8),
                 Text = ColorPicker.Title,
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Parent = ContentHolder,
             })
@@ -4417,7 +4437,7 @@ do
             ClearTextOnFocus = false,
             Size = UDim2.fromScale(1, 1),
             Text = "#??????",
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             Parent = InfoHolder,
         })
 
@@ -4439,7 +4459,7 @@ do
             ClearTextOnFocus = false,
             Size = UDim2.fromScale(1, 1),
             Text = "?, ?, ?",
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             Parent = InfoHolder,
         })
 
@@ -4472,7 +4492,7 @@ do
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, 0, 0, 21),
                     Text = Text,
-                    TextSize = 14,
+                    TextSize = ZANJI_UI.Text,
                     Parent = ContextMenu.Menu,
                 })
 
@@ -4539,7 +4559,7 @@ do
             BackgroundColor3 = "MainColor",
             Size = UDim2.fromScale(1, 1),
             Text = "Copy color",
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             Parent = ActionHolder,
         })
         New("UIStroke", {
@@ -4558,7 +4578,7 @@ do
             BackgroundColor3 = "MainColor",
             Size = UDim2.fromScale(1, 1),
             Text = "Paste color",
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             Parent = ActionHolder,
         })
         New("UIStroke", {
@@ -4946,7 +4966,7 @@ do
                 BackgroundTransparency = 1,
                 Size = UDim2.fromScale(1, 0),
                 Text = Text,
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 TextTransparency = 0.5,
                 TextXAlignment = Enum.TextXAlignment.Center,
                 Parent = InnerHolder,
@@ -5042,13 +5062,13 @@ do
 
             Data.Text = Params.Text or ""
             Data.DoesWrap = Params.DoesWrap or false
-            Data.Size = Params.Size or 14
+            Data.Size = Params.Size or ZANJI_UI.Text
             Data.Visible = Params.Visible or true
             Data.Idx = typeof(Second) == "table" and First or nil
         else
             Data.Text = First or ""
             Data.DoesWrap = Second or false
-            Data.Size = 14
+            Data.Size = ZANJI_UI.Text
             Data.Visible = true
             Data.Idx = select(3, ...) or nil
         end
@@ -5289,14 +5309,14 @@ do
 
         local Holder = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 30),
+            Size = UDim2.new(1, 0, 0, ZANJI_UI.ControlHeight),
             Parent = Container,
         })
 
         New("UIListLayout", {
             FillDirection = Enum.FillDirection.Horizontal,
             HorizontalFlex = Enum.UIFlexAlignment.Fill,
-            Padding = UDim.new(0, 9),
+            Padding = UDim.new(0, 5),
             Parent = Holder,
         })
 
@@ -5306,7 +5326,7 @@ do
                 BackgroundColor3 = Button.Disabled and "MainColor" or "CardColor",
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
-                TextSize = 12,
+                TextSize = ZANJI_UI.Text,
                 TextTransparency = 0.12,
                 Visible = Button.Visible,
                 Parent = Holder,
@@ -5321,7 +5341,7 @@ do
             table.insert(
                 Library.Corners,
                 New("UICorner", {
-                    CornerRadius = UDim.new(0, Library.CornerRadius + 2),
+                    CornerRadius = UDim.new(0, ZANJI_UI.Radius),
                     Parent = Base,
                 })
             )
@@ -5650,7 +5670,7 @@ do
             Position = UDim2.fromOffset(26, 0),
             Size = UDim2.new(1, -26, 1, 0),
             Text = Toggle.Text,
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             TextTransparency = 0.4,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Button,
@@ -5894,7 +5914,7 @@ do
 
         local OuterHolder = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 30),
+            Size = UDim2.new(1, 0, 0, ZANJI_UI.ControlHeight),
             Visible = Toggle.Visible,
             Parent = Container,
         })
@@ -5905,14 +5925,14 @@ do
             BackgroundColor3 = "CardColor",
             BackgroundTransparency = 0,
             Position = UDim2.fromOffset(0, 0),
-            Size = UDim2.new(1, 0, 0, 30),
+            Size = UDim2.new(1, 0, 0, ZANJI_UI.ControlHeight),
             Text = "",
             Visible = true,
             Parent = OuterHolder,
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, ZANJI_UI.Radius),
             Parent = Button,
         })
 
@@ -5928,7 +5948,7 @@ do
             Position = UDim2.fromOffset(9, 0),
             Size = UDim2.new(1, -50, 1, 0),
             Text = Toggle.Text,
-            TextSize = 12,
+            TextSize = ZANJI_UI.Text,
             TextTransparency = 0.38,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Button,
@@ -6195,13 +6215,13 @@ do
         local Holder = New("Frame", {
             BackgroundColor3 = "CardColor",
             BackgroundTransparency = 0,
-            Size = UDim2.new(1, 0, 0, 50),
+            Size = UDim2.new(1, 0, 0, ZANJI_UI.FieldCardHeight),
             Visible = Input.Visible,
             Parent = Container,
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, ZANJI_UI.Radius),
             Parent = Holder,
         })
 
@@ -6217,7 +6237,7 @@ do
             Position = UDim2.fromOffset(5, 2),
             Size = UDim2.new(1, -10, 0, 15),
             Text = Input.Text,
-            TextSize = 12,
+            TextSize = ZANJI_UI.Text,
             TextTransparency = 0.12,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Holder,
@@ -6229,10 +6249,10 @@ do
             ClearTextOnFocus = not Input.Disabled and Input.ClearTextOnFocus,
             PlaceholderText = Input.Placeholder,
             Position = UDim2.fromOffset(5, 21),
-            Size = UDim2.new(1, -10, 0, 25),
+            Size = UDim2.new(1, -10, 0, ZANJI_UI.FieldHeight),
             Text = Input.Value,
             TextEditable = not Input.Disabled,
-            TextScaled = true,
+            TextSize = ZANJI_UI.Text,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Holder,
         })
@@ -6252,7 +6272,7 @@ do
         table.insert(
             Library.Corners,
             New("UICorner", {
-                CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+                CornerRadius = UDim.new(0, ZANJI_UI.Radius),
                 Parent = Box,
             })
         )
@@ -6451,19 +6471,34 @@ do
         }
 
         local Holder = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, Info.Compact and 15 or 33),
+            BackgroundColor3 = Info.Compact and "BackgroundColor" or "CardColor",
+            BackgroundTransparency = Info.Compact and 1 or 0,
+            Size = UDim2.new(1, 0, 0, Info.Compact and 15 or ZANJI_UI.FieldCardHeight),
             Visible = Slider.Visible,
             Parent = Container,
         })
+
+        if not Info.Compact then
+            New("UICorner", {
+                CornerRadius = UDim.new(0, ZANJI_UI.Radius),
+                Parent = Holder,
+            })
+            New("UIStroke", {
+                Color = "OutlineColor",
+                Thickness = 1,
+                Transparency = 0.18,
+                Parent = Holder,
+            })
+        end
 
         local SliderLabel
         if not Info.Compact then
             SliderLabel = New("TextLabel", {
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 14),
+                Position = UDim2.fromOffset(5, 2),
+                Size = UDim2.new(1, -10, 0, 15),
                 Text = Slider.Text,
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Parent = Holder,
             })
@@ -6473,8 +6508,8 @@ do
             Active = not Slider.Disabled,
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = "MainColor",
-            Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(1, 0, 0, 15),
+            Position = Info.Compact and UDim2.fromScale(0, 1) or UDim2.fromOffset(5, 29),
+            Size = Info.Compact and UDim2.new(1, 0, 0, 15) or UDim2.new(1, -10, 0, 15),
             Text = "",
             Parent = Holder,
         })
@@ -6488,7 +6523,7 @@ do
             BackgroundTransparency = 1,
             Size = UDim2.fromScale(1, 1),
             Text = "",
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             ZIndex = Bar.ZIndex + 2,
             Parent = Bar,
         })
@@ -6505,7 +6540,7 @@ do
                 BackgroundTransparency = 1,
                 Size = UDim2.fromScale(1, 1),
                 Text = "",
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 ZIndex = Bar.ZIndex + 3,
                 Visible = false,
                 ClearTextOnFocus = false,
@@ -6971,7 +7006,7 @@ do
             BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 0, 14),
             Text = Dropdown.Text,
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             TextXAlignment = Enum.TextXAlignment.Left,
             Visible = not not Info.Text,
             Parent = Holder,
@@ -6987,7 +7022,7 @@ do
             Size = UDim2.new(1, 0, 0, 21),
             Text = "---",
             RichText = true,
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Holder,
@@ -7234,7 +7269,7 @@ do
         local MenuState = { Active = false, Menu = Popup }
         local PopupScale = { W = 0.30, H = 0.48 }
         local CurrentRowHeight = 40
-        local CurrentOptionTextSize = 14
+        local CurrentOptionTextSize = ZANJI_UI.Text
         local RenderVirtualRows
         local VirtualState = {
             Active = false,
@@ -8200,14 +8235,14 @@ do
             BackgroundColor3 = Boxed and "CardColor" or "BackgroundColor",
             BackgroundTransparency = Boxed and 0 or 1,
             BorderSizePixel = 0,
-            Size = UDim2.new(1, 0, 0, Boxed and 50 or 25),
+            Size = UDim2.new(1, 0, 0, Boxed and ZANJI_UI.FieldCardHeight or ZANJI_UI.FieldHeight),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
 
         if Boxed then
             New("UICorner", {
-                CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+                CornerRadius = UDim.new(0, ZANJI_UI.Radius),
                 Parent = Holder,
             })
 
@@ -8224,7 +8259,7 @@ do
             Position = Boxed and UDim2.fromOffset(5, 2) or UDim2.fromOffset(0, 0),
             Size = Boxed and UDim2.new(1, -10, 0, 15) or UDim2.new(1, 0, 0, 14),
             Text = Dropdown.Text,
-            TextSize = 12,
+            TextSize = ZANJI_UI.Text,
             TextTransparency = 0.18,
             TextXAlignment = Enum.TextXAlignment.Left,
             Visible = not not Info.Text,
@@ -8238,17 +8273,17 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 0,
             Position = Boxed and UDim2.fromOffset(5, 21) or UDim2.fromOffset(0, 4),
-            Size = Boxed and UDim2.new(1, -10, 0, 25) or UDim2.new(1, 0, 0, 21),
+            Size = Boxed and UDim2.new(1, -10, 0, ZANJI_UI.FieldHeight) or UDim2.new(1, 0, 0, 21),
             Text = "---",
             RichText = true,
-            TextSize = 12,
+            TextSize = ZANJI_UI.Text,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Holder,
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, ZANJI_UI.Radius),
             Parent = Display,
         })
     
@@ -8382,7 +8417,7 @@ do
         })
     
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, ZANJI_UI.Radius),
             Parent = CloseButton,
         })
     
@@ -8405,7 +8440,7 @@ do
         })
     
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, ZANJI_UI.Radius),
             Parent = SearchInput,
         })
 
@@ -8428,7 +8463,7 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 0,
             Text = "All",
-            TextSize = 12,
+            TextSize = ZANJI_UI.Text,
             TextTransparency = 0.12,
             Visible = Info.Multi == true,
             ZIndex = 123,
@@ -8436,7 +8471,7 @@ do
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, ZANJI_UI.Radius),
             Parent = AllButton,
         })
 
@@ -8453,7 +8488,7 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 0,
             Text = "None",
-            TextSize = 12,
+            TextSize = ZANJI_UI.Text,
             TextTransparency = 0.12,
             Visible = Info.Multi == true,
             ZIndex = 123,
@@ -8461,7 +8496,7 @@ do
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, ZANJI_UI.Radius),
             Parent = NoneButton,
         })
 
@@ -8487,7 +8522,7 @@ do
         })
     
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, ZANJI_UI.Radius),
             Parent = List,
         })
 
@@ -8524,7 +8559,7 @@ do
         local MenuState = { Active = false, Menu = Popup }
         local PopupScale = { W = 0.285, H = 0.425 }
         local CurrentRowHeight = 40
-        local CurrentOptionTextSize = 14
+        local CurrentOptionTextSize = ZANJI_UI.Text
         local RenderVirtualRows
         local VirtualState = {
             Active = false,
@@ -8601,11 +8636,11 @@ do
             local searchH = math.clamp(height * 0.085, 32, 38)
             local gap = math.clamp(height * 0.014, 5, 8)
     
-            local titleText = math.clamp(math.floor(height * 0.034), 13, 17)
-            local inputText = math.clamp(math.floor(height * 0.029), 12, 15)
+            local titleText = ZANJI_UI.PopupTitle
+            local inputText = ZANJI_UI.Text
     
             -- ~10% smaller rows/buttons than previous
-            local optionText = math.clamp(math.floor(height * 0.026), 12, 14)
+            local optionText = ZANJI_UI.Text
             local rowH = math.clamp(height * 0.068, 32, 38)
     
             return {
@@ -8817,7 +8852,7 @@ do
             })
 
             New("UICorner", {
-                CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+                CornerRadius = UDim.new(0, ZANJI_UI.Radius),
                 Parent = Button,
             })
 
@@ -9109,7 +9144,7 @@ do
             Boxed = Text ~= nil and Info.Boxed ~= false
 
             Holder.BackgroundTransparency = Boxed and 0 or 1
-            Holder.Size = UDim2.new(1, 0, 0, (Boxed and 50 or 25) * Library.DPIScale)
+            Holder.Size = UDim2.new(1, 0, 0, (Boxed and ZANJI_UI.FieldCardHeight or ZANJI_UI.FieldHeight) * Library.DPIScale)
 
             Label.Position = Boxed and UDim2.fromOffset(5, 2) or UDim2.fromOffset(0, 0)
             Label.Size = Boxed and UDim2.new(1, -10, 0, 15) or UDim2.new(1, 0, 0, 14)
@@ -9117,7 +9152,7 @@ do
             Label.Visible = not not Text
 
             Display.Position = Boxed and UDim2.fromOffset(5, 21) or UDim2.fromOffset(0, 4)
-            Display.Size = Boxed and UDim2.new(1, -10, 0, 25) or UDim2.new(1, 0, 0, 21)
+            Display.Size = Boxed and UDim2.new(1, -10, 0, ZANJI_UI.FieldHeight) or UDim2.new(1, 0, 0, 21)
 
             Title.Text = Text or "Select"
         end
@@ -10022,7 +10057,7 @@ do
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 3),
+            CornerRadius = UDim.new(0, ZANJI_UI.Radius),
             Parent = CardHolder,
         })
 
@@ -10072,7 +10107,7 @@ do
             local TitleLabel = New("TextLabel", {
                 BackgroundTransparency = 1,
                 Size = UDim2.new(1, 0, 0, 16),
-                FontFace = Font.new(Library.Font, Enum.FontWeight.Regular),
+                FontFace = "Font",
                 Text = tostring(Info.Title),
                 TextColor3 = "FontColor",
                 TextSize = 12,
@@ -10686,7 +10721,7 @@ function Library:Notify(...)
             Size = UDim2.fromScale(0, 0),
             Text = Data.Title,
             TextColor3 = Data.TitleColor or "FontColor",
-            TextSize = 15,
+            TextSize = ZANJI_UI.GroupTitle,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             TextWrapped = true,
@@ -10701,7 +10736,7 @@ function Library:Notify(...)
             Size = UDim2.fromScale(0, 0),
             Text = Data.Description,
             TextColor3 = Data.DescriptionColor or "FontColor",
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextWrapped = true,
             Parent = TextContainer,
@@ -11078,7 +11113,7 @@ function Library:CreateWindow(WindowInfo)
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Size = UDim2.new(0, X, 1, 0),
             Text = WindowInfo.Title,
-            TextSize = 20,
+            TextSize = ZANJI_UI.WindowTitle,
             TextXAlignment = Enum.TextXAlignment.Center,
             Parent = TitleHolder,
         })
@@ -11132,7 +11167,7 @@ function Library:CreateWindow(WindowInfo)
             Size = UDim2.fromScale(1, 0),
             AutomaticSize = Enum.AutomaticSize.Y,
             Text = "",
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = CurrentTabInfo,
         })
@@ -11143,7 +11178,7 @@ function Library:CreateWindow(WindowInfo)
             AutomaticSize = Enum.AutomaticSize.Y,
             Text = "",
             TextWrapped = true,
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextTransparency = 0.5,
             Parent = CurrentTabInfo,
@@ -11153,7 +11188,7 @@ function Library:CreateWindow(WindowInfo)
             BackgroundColor3 = "MainColor",
             PlaceholderText = "Search",
             Size = WindowInfo.SearchbarSize,
-            TextScaled = true,
+            TextSize = ZANJI_UI.Text,
             Visible = not (WindowInfo.DisableSearch or false),
             Parent = RightWrapper,
         })
@@ -11244,7 +11279,7 @@ function Library:CreateWindow(WindowInfo)
             BackgroundTransparency = 1,
             Size = UDim2.fromScale(1, 1),
             Text = WindowInfo.Footer,
-            TextSize = 14,
+            TextSize = ZANJI_UI.Text,
             TextTransparency = 0.5,
             Parent = BottomBar,
         })
@@ -11665,16 +11700,16 @@ function Library:CreateWindow(WindowInfo)
             TabButton = New("TextButton", {
                 BackgroundColor3 = "MainColor",
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 36),
                 Text = "",
                 LayoutOrder = Order,
                 Parent = Tabs,
             })
             local ButtonPadding = New("UIPadding", {
-                PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
-                PaddingLeft = UDim.new(0, IsCompact and 6 or 12),
-                PaddingRight = UDim.new(0, IsCompact and 6 or 12),
-                PaddingTop = UDim.new(0, IsCompact and 6 or 11),
+                PaddingBottom = UDim.new(0, IsCompact and 5 or 9),
+                PaddingLeft = UDim.new(0, IsCompact and 6 or 10),
+                PaddingRight = UDim.new(0, IsCompact and 6 or 10),
+                PaddingTop = UDim.new(0, IsCompact and 5 or 9),
                 Parent = TabButton,
             })
 
@@ -11683,7 +11718,7 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromOffset(30, 0),
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
-                TextSize = 16,
+                TextSize = ZANJI_UI.TabText,
                 TextTransparency = 0.5,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Visible = not IsCompact,
@@ -11859,7 +11894,7 @@ function Library:CreateWindow(WindowInfo)
                 Size = UDim2.new(1, -4, 0, 14),
                 Text = "",
                 TextColor3 = Color3.fromRGB(255, 50, 50),
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Parent = WarningBoxScrollingFrame,
             })
@@ -11876,7 +11911,7 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromOffset(0, 16),
                 Size = UDim2.new(1, -4, 0, 0),
                 Text = "",
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 TextWrapped = true,
                 Parent = WarningBoxScrollingFrame,
                 TextXAlignment = Enum.TextXAlignment.Left,
@@ -12166,7 +12201,7 @@ function Library:CreateWindow(WindowInfo)
                         BackgroundTransparency = 1,
                         Size = UDim2.fromOffset(0, 16),
                         Text = Name,
-                        TextSize = 15,
+                        TextSize = ZANJI_UI.GroupTitle,
                         TextTransparency = 0.5,
                         Parent = ButtonContent,
                     })
@@ -12370,13 +12405,12 @@ function Library:CreateWindow(WindowInfo)
                 Parent = (Info.Side == 1) and TabLeft or TabRight,
             })
             New("UIListLayout", {
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
                 Padding = UDim.new(0, 6),
                 Parent = BoxHolder,
             })
             New("UIPadding", {
                 PaddingBottom = UDim.new(0, 4),
-                PaddingLeft = UDim.new(0, 4),
-                PaddingRight = UDim.new(0, 8),
                 PaddingTop = UDim.new(0, 4),
                 Parent = BoxHolder,
             })
@@ -12397,7 +12431,7 @@ function Library:CreateWindow(WindowInfo)
             do
                 GroupboxHolder = New("Frame", {
                     BackgroundColor3 = "BackgroundColor",
-                    Size = UDim2.fromScale(1, 0),
+                    Size = UDim2.new(1, -12, 0, 0),
                     Parent = BoxHolder,
                 })
                 table.insert(
@@ -12419,10 +12453,10 @@ function Library:CreateWindow(WindowInfo)
                     Parent = GroupboxHolder,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, 6),
-                    PaddingLeft = UDim.new(0, 6),
-                    PaddingRight = UDim.new(0, 6),
-                    PaddingTop = UDim.new(0, 6),
+                    PaddingBottom = UDim.new(0, 5),
+                    PaddingLeft = UDim.new(0, 7),
+                    PaddingRight = UDim.new(0, 7),
+                    PaddingTop = UDim.new(0, 5),
                     Parent = GroupboxTop,
                 })
 
@@ -12435,7 +12469,7 @@ function Library:CreateWindow(WindowInfo)
                         ImageRectOffset = BoxIcon.ImageRectOffset,
                         ImageRectSize = BoxIcon.ImageRectSize,
                         Position = UDim2.fromScale(0, 0.5),
-                        Size = UDim2.fromOffset(22, 22),
+                        Size = UDim2.fromOffset(18, 18),
                         Parent = GroupboxTop,
                     })
                 end
@@ -12443,8 +12477,8 @@ function Library:CreateWindow(WindowInfo)
                 local TextsFrame = New("Frame", {
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(BoxIcon and 24 or 0, 0),
-                    Size = UDim2.new(1, -22 - (BoxIcon and 24 or 0), 0, 0),
+                    Position = UDim2.fromOffset(BoxIcon and 21 or 0, 0),
+                    Size = UDim2.new(1, -22 - (BoxIcon and 21 or 0), 0, 0),
                     Parent = GroupboxTop,
                 })
                 New("UIListLayout", {
@@ -12463,7 +12497,7 @@ function Library:CreateWindow(WindowInfo)
                     BackgroundTransparency = 1,
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Name,
-                    TextSize = 15,
+                    TextSize = ZANJI_UI.GroupTitle,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Parent = TextsFrame,
@@ -12478,7 +12512,7 @@ function Library:CreateWindow(WindowInfo)
                     BackgroundTransparency = 1,
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Description or "",
-                    TextSize = 14,
+                    TextSize = ZANJI_UI.Text,
                     TextTransparency = 0.5,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -12515,7 +12549,7 @@ function Library:CreateWindow(WindowInfo)
                 })
 
                 New("UICorner", {
-                    CornerRadius = UDim.new(0, Library.CornerRadius + 2),
+                    CornerRadius = UDim.new(0, ZANJI_UI.Radius),
                     Parent = GroupboxContainer,
                 })
 
@@ -12531,13 +12565,13 @@ function Library:CreateWindow(WindowInfo)
                 -- frame guarantees equal spacing on both left and right sides.
                 GroupboxContent = New("Frame", {
                     BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(5, 5),
-                    Size = UDim2.new(1, -10, 0, 0),
+                    Position = UDim2.fromOffset(ZANJI_UI.ContentInset, ZANJI_UI.ContentInset),
+                    Size = UDim2.new(1, -(ZANJI_UI.ContentInset * 2), 0, 0),
                     Parent = GroupboxContainer,
                 })
 
                 GroupboxList = New("UIListLayout", {
-                    Padding = UDim.new(0, 2),
+                    Padding = UDim.new(0, ZANJI_UI.InnerGap),
                     Parent = GroupboxContent,
                 })
             end
@@ -12571,11 +12605,11 @@ function Library:CreateWindow(WindowInfo)
 
                 local TopSize = (GroupboxTop.AbsoluteSize.Y / Library.DPIScale)
                 local ContentSize = (GroupboxList.AbsoluteContentSize.Y / Library.DPIScale)
-                local ContainerSize = ContentSize + 12
+                local ContainerSize = ContentSize + (ZANJI_UI.ContentInset * 2)
 
                 local TargetSize = UDim2.new(1, 0, 0, if Groupbox.Collapsed then TopSize else (TopSize + 1 + ContainerSize))
 
-                GroupboxContent.Size = UDim2.new(1, -10, 0, ContentSize)
+                GroupboxContent.Size = UDim2.new(1, -(ZANJI_UI.ContentInset * 2), 0, ContentSize)
                 GroupboxContainer.Size = UDim2.new(1, 0, 0, ContainerSize)
                 GroupboxLine.Visible = not Groupbox.Collapsed
                 if Library.Animations and Library.Animations.Groupbox then
@@ -12942,15 +12976,15 @@ function Library:CreateWindow(WindowInfo)
             TabButton = New("TextButton", {
                 BackgroundColor3 = "MainColor",
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 36),
                 Text = "",
                 Parent = Tabs,
             })
             local ButtonPadding = New("UIPadding", {
-                PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
-                PaddingLeft = UDim.new(0, IsCompact and 6 or 12),
-                PaddingRight = UDim.new(0, IsCompact and 6 or 12),
-                PaddingTop = UDim.new(0, IsCompact and 6 or 11),
+                PaddingBottom = UDim.new(0, IsCompact and 5 or 9),
+                PaddingLeft = UDim.new(0, IsCompact and 6 or 10),
+                PaddingRight = UDim.new(0, IsCompact and 6 or 10),
+                PaddingTop = UDim.new(0, IsCompact and 5 or 9),
                 Parent = TabButton,
             })
 
@@ -12959,7 +12993,7 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromOffset(30, 0),
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
-                TextSize = 16,
+                TextSize = ZANJI_UI.TabText,
                 TextTransparency = 0.5,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Visible = not IsCompact,
@@ -13043,7 +13077,7 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundColor3 = "MainColor",
                 PlaceholderText = "Key",
                 Size = UDim2.new(1, -71, 1, 0),
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Parent = Holder,
             })
@@ -13070,7 +13104,7 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromScale(1, 0),
                 Size = UDim2.new(0, 63, 1, 0),
                 Text = "Execute",
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 Parent = Holder,
             })
             New("UIStroke", {
@@ -13353,7 +13387,7 @@ function Library:CreateWindow(WindowInfo)
             Size = UDim2.new(1, 0, 0, 18),
             AutomaticSize = Enum.AutomaticSize.Y,
             Text = Info.Title,
-            TextSize = 18,
+            TextSize = ZANJI_UI.PopupTitle,
             TextColor3 = Info.TitleColor or "FontColor",
             TextXAlignment = Enum.TextXAlignment.Left,
             LayoutOrder = 2,
@@ -13366,7 +13400,7 @@ function Library:CreateWindow(WindowInfo)
             Size = UDim2.new(1, 0, 0, 14),
             AutomaticSize = Enum.AutomaticSize.Y,
             Text = Info.Description,
-            TextSize = 14,
+            TextSize = ZANJI_UI.SmallText,
             TextTransparency = Info.DescriptionColor and 0 or 0.2,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextColor3 = Info.DescriptionColor or "FontColor",
@@ -13453,7 +13487,7 @@ function Library:CreateWindow(WindowInfo)
 
             DialogFrame.Size = UDim2.fromOffset(TargetWidth, 0)
 
-            local _DescX, DescY = Library:GetTextBounds(DescriptionLabel.Text, Library.Scheme.Font, 14, TargetWidth - 30)
+            local _DescX, DescY = Library:GetTextBounds(DescriptionLabel.Text, Library.Scheme.Font, ZANJI_UI.Text, TargetWidth - 30)
             DescriptionLabel.Size = UDim2.new(1, 0, 0, DescY)
 
             local HasElements = false
@@ -13602,12 +13636,12 @@ function Library:CreateWindow(WindowInfo)
                 Text = ButtonInfo.Title or ButtonIdx,
                 TextColor3 = TextColor,
                 TextTransparency = WaitTime > 0 and 0.5 or 0,
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 ZIndex = 9002,
                 Parent = TextBtn,
             })
 
-            local LabelX, _ = Library:GetTextBounds(BtnLabel.Text, Library.Scheme.Font, 14, 250)
+            local LabelX, _ = Library:GetTextBounds(BtnLabel.Text, Library.Scheme.Font, ZANJI_UI.Text, 250)
             ButtonContainer.Size = UDim2.fromOffset(LabelX + 30, 26)
             TextBtn.Size = UDim2.fromOffset(LabelX + 30, 26)
 
@@ -14360,7 +14394,7 @@ function Library:CreateLoading(LoadingInfo)
         BackgroundTransparency = 1,
         Size = UDim2.new(0, TitleX, 1, 0),
         Text = LoadingInfo.Title,
-        TextSize = 20,
+        TextSize = ZANJI_UI.WindowTitle,
         Parent = TitleHolder,
     })
 
@@ -14422,7 +14456,7 @@ function Library:CreateLoading(LoadingInfo)
         AutomaticSize = Loading.AutoResizeHeight and Enum.AutomaticSize.Y or Enum.AutomaticSize.XY,
         Size = Loading.AutoResizeHeight and UDim2.new(1, -60, 0, 0) or UDim2.fromOffset(0, 0),
         Text = "",
-        TextSize = 18,
+        TextSize = ZANJI_UI.PopupTitle,
         TextWrapped = Loading.AutoResizeHeight,
         Parent = InnerContent,
     })
@@ -14432,7 +14466,7 @@ function Library:CreateLoading(LoadingInfo)
         AutomaticSize = Loading.AutoResizeHeight and Enum.AutomaticSize.Y or Enum.AutomaticSize.XY,
         Size = Loading.AutoResizeHeight and UDim2.new(1, -60, 0, 0) or UDim2.fromOffset(0, 0),
         Text = "",
-        TextSize = 14,
+        TextSize = ZANJI_UI.SmallText,
         TextTransparency = 0.5,
         TextWrapped = Loading.AutoResizeHeight,
         Parent = InnerContent,
@@ -14459,7 +14493,7 @@ function Library:CreateLoading(LoadingInfo)
         BackgroundTransparency = 1,
         Size = UDim2.fromScale(1, 1),
         Text = "",
-        TextSize = 14,
+        TextSize = ZANJI_UI.Text,
         ZIndex = 2,
         Parent = SliderBar,
     })
@@ -14536,7 +14570,7 @@ function Library:CreateLoading(LoadingInfo)
         Size = UDim2.new(1, -30, 0, 18),
         Text = "Error",
         TextColor3 = "RedColor",
-        TextSize = 18,
+        TextSize = ZANJI_UI.PopupTitle,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = ErrorFrame,
     })
@@ -14546,7 +14580,7 @@ function Library:CreateLoading(LoadingInfo)
         Position = UDim2.fromOffset(15, 39),
         Size = UDim2.new(1, -30, 1, -90),
         Text = "Error Message",
-        TextSize = 14,
+        TextSize = ZANJI_UI.Text,
         TextTransparency = 0.2,
         TextWrapped = true,
         TextXAlignment = Enum.TextXAlignment.Left,
@@ -14735,7 +14769,7 @@ function Library:CreateLoading(LoadingInfo)
 
     function Loading:RecalculateErrorHeight()
         local TargetWidth = (Loading.ShowSidebar and Loading.ContentWidth or Loading.WindowWidth) - 30
-        local _, ErrorY = Library:GetTextBounds(ErrorLabel.Text, Library.Scheme.Font, 14, TargetWidth)
+        local _, ErrorY = Library:GetTextBounds(ErrorLabel.Text, Library.Scheme.Font, ZANJI_UI.Text, TargetWidth)
 
         ErrorLabel.Size = UDim2.new(1, -30, 0, ErrorY)
 
@@ -14830,11 +14864,11 @@ function Library:CreateLoading(LoadingInfo)
                 Size = UDim2.fromScale(1, 1),
                 Text = ButtonInfo.Title or Idx,
                 TextColor3 = TextColor,
-                TextSize = 14,
+                TextSize = ZANJI_UI.Text,
                 Parent = TextBtn,
             })
 
-            local LabelX, _ = Library:GetTextBounds(BtnLabel.Text, Library.Scheme.Font, 14, 250)
+            local LabelX, _ = Library:GetTextBounds(BtnLabel.Text, Library.Scheme.Font, ZANJI_UI.Text, 250)
             ButtonContainer.Size = UDim2.fromOffset(LabelX + 30, 26)
             TextBtn.Size = UDim2.fromOffset(LabelX + 30, 26)
 
