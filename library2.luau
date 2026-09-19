@@ -262,16 +262,21 @@ local Library = {
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(15, 15, 15),
-        MainColor = Color3.fromRGB(25, 25, 25),
-        AccentColor = Color3.fromRGB(125, 85, 255),
-        OutlineColor = Color3.fromRGB(40, 40, 40),
-        FontColor = Color3.new(1, 1, 1),
+        -- ZANJI soft-dark palette
+        -- Purple is kept for active/selected states instead of covering every surface.
+        BackgroundColor = Color3.fromRGB(14, 14, 16),
+        MainColor = Color3.fromRGB(24, 24, 27),
+        CardColor = Color3.fromRGB(31, 31, 34),
+        AccentColor = Color3.fromRGB(120, 82, 244),
+        AccentSoftColor = Color3.fromRGB(57, 42, 106),
+        OutlineColor = Color3.fromRGB(43, 43, 49),
+        FontColor = Color3.fromRGB(236, 236, 240),
+        MutedColor = Color3.fromRGB(150, 150, 160),
         Font = Font.fromEnum(Enum.Font.Code),
 
-        RedColor = Color3.fromRGB(255, 50, 50),
-        DestructiveColor = Color3.fromRGB(220, 38, 38),
-        DarkColor = Color3.new(0, 0, 0),
+        RedColor = Color3.fromRGB(248, 113, 113),
+        DestructiveColor = Color3.fromRGB(220, 72, 82),
+        DarkColor = Color3.fromRGB(7, 7, 9),
         WhiteColor = Color3.new(1, 1, 1),
 
         BackgroundImage = ""
@@ -4866,6 +4871,32 @@ do
     end
 end
 
+
+local ZANJI_DROPDOWN_RARITY_COLORS = {
+    Ethereal = Color3.fromRGB(103, 232, 249),
+    Divine = Color3.fromRGB(244, 151, 211),
+    Mythic = Color3.fromRGB(248, 113, 113),
+    Legendary = Color3.fromRGB(251, 191, 36),
+    Epic = Color3.fromRGB(167, 139, 250),
+    Rare = Color3.fromRGB(96, 165, 250),
+    Uncommon = Color3.fromRGB(92, 220, 135),
+    Common = Color3.fromRGB(210, 210, 216),
+}
+
+local function ZanjiColorDropdownValue(Value)
+    local Text = tostring(Value)
+    local Color = ZANJI_DROPDOWN_RARITY_COLORS[Text]
+    if not Color then
+        return Text
+    end
+
+    return string.format(
+        '<font color="#%s">%s</font>',
+        Color:ToHex(),
+        Text
+    )
+end
+
 local BaseGroupbox = {}
 do
     -- use Groupbox:AddCard() when you want related controls inside one inner box
@@ -6970,7 +7001,7 @@ do
         local Popup = New("Frame", {
             Active = true,
             AnchorPoint = Vector2.new(0.5, 0.5),
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Position = UDim2.fromScale(0.5, 0.5),
@@ -6989,7 +7020,7 @@ do
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
             Thickness = 1.2,
             Transparency = 0.15,
-            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.28),
+            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.10),
             Parent = Popup,
         })
 
@@ -7013,7 +7044,7 @@ do
         })
 
         local PopupBody = New("Frame", {
-            BackgroundColor3 = "BackgroundColor",
+            BackgroundColor3 = "MainColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             ZIndex = 121,
@@ -7028,6 +7059,7 @@ do
         local Header = New("Frame", {
             Active = true,
             BackgroundTransparency = 1,
+            Selectable = true,
             ZIndex = 122,
             Parent = Popup,
         })
@@ -7062,12 +7094,12 @@ do
         })
 
         local SearchInput = New("TextBox", {
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             PlaceholderText = "Search items...",
             TextXAlignment = Enum.TextXAlignment.Left,
-            Visible = Info.Searchable == true,
+            Visible = (Info.Multi == true) or (Info.Searchable == true),
             ZIndex = 123,
             Parent = PopupBody,
         })
@@ -7089,6 +7121,8 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Text = "All",
+            TextSize = 12,
+            TextTransparency = 0.12,
             Visible = Info.Multi == true,
             ZIndex = 123,
             Parent = PopupBody,
@@ -7105,6 +7139,8 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Text = "None",
+            TextSize = 12,
+            TextTransparency = 0.12,
             Visible = Info.Multi == true,
             ZIndex = 123,
             Parent = PopupBody,
@@ -7117,7 +7153,7 @@ do
 
         local List = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
@@ -7158,7 +7194,7 @@ do
 
         local Buttons = {}
         local MenuState = { Active = false, Menu = Popup }
-        local PopupScale = { W = 0.56, H = 0.76 }
+        local PopupScale = { W = 0.30, H = 0.48 }
         local CurrentRowHeight = 40
         local CurrentOptionTextSize = 14
         local RenderVirtualRows
@@ -7274,10 +7310,10 @@ do
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
             local isPortrait = viewport.Y > viewport.X
 
-            local minWScale = isPortrait and 0.78 or 0.42
-            local maxWScale = isPortrait and 0.96 or 0.82
-            local minHScale = isPortrait and 0.48 or 0.52
-            local maxHScale = 0.90
+            local minWScale = isPortrait and 0.72 or 0.26
+            local maxWScale = isPortrait and 0.96 or 0.68
+            local minHScale = isPortrait and 0.44 or 0.36
+            local maxHScale = 0.82
 
             PopupScale.W = math.clamp(PopupScale.W, minWScale, maxWScale)
             PopupScale.H = math.clamp(PopupScale.H, minHScale, maxHScale)
@@ -7285,18 +7321,18 @@ do
             local width = viewport.X * PopupScale.W
             local height = viewport.Y * PopupScale.H
 
-            local padX = width * 0.036
-            local padY = height * 0.03
-            local headerH = height * 0.08
-            local searchH = height * 0.085
-            local gap = height * 0.018
+            local padX = width * 0.028
+            local padY = height * 0.025
+            local headerH = math.clamp(height * 0.09, 34, 46)
+            local searchH = math.clamp(height * 0.09, 34, 42)
+            local gap = math.clamp(height * 0.016, 6, 10)
 
             local titleText = math.clamp(math.floor(height * 0.038), 13, 22)
             local inputText = math.clamp(math.floor(height * 0.031), 12, 18)
 
             -- ~10% smaller rows/buttons than previous
             local optionText = math.clamp(math.floor(height * 0.027), 12, 17)
-            local rowH = math.clamp(height * 0.078, 30, 52)
+            local rowH = math.clamp(height * 0.075, 34, 42)
 
             return {
                 width = width,
@@ -7347,8 +7383,8 @@ do
 
             local hasBulk = (Info.Multi == true)
             local bulkGap = 6
-            local bulkH = math.max(24, math.floor(M.searchH * 0.66))
-            local bulkW = math.max(46, math.floor(bulkH * 1.22))
+            local bulkH = math.clamp(math.floor(M.searchH * 0.72), 26, 30)
+            local bulkW = math.clamp(math.floor(bulkH * 1.75), 48, 56)
             local bulkTotalW = hasBulk and ((bulkW * 2) + bulkGap) or 0
 
             if SearchInput.Visible then
@@ -7404,11 +7440,11 @@ do
             local Stroke = Entry.Stroke or Entry.Button:FindFirstChild("SelectionStroke")
 
             Entry.Button.BackgroundColor3 = selected
-                and Library.Scheme.MainColor:Lerp(Library.Scheme.WhiteColor, 0.18)
-                or Library.Scheme.MainColor
+                and Color3.fromRGB(61, 61, 61)
+                or Color3.fromRGB(24, 24, 27)
             Entry.Button.BackgroundTransparency = 0
             Entry.Button.TextTransparency = Entry.Disabled and 0.8 or 0
-            Entry.Button.Text = tostring(GetOptionText(Entry.Value))
+            Entry.Button.Text = ZanjiColorDropdownValue(GetOptionText(Entry.Value))
 
             if Stroke then
                 Stroke.Color = Library.Scheme.AccentColor
@@ -7982,7 +8018,7 @@ do
         end
 
         pcall(function()
-            Library:MakeDraggable(Popup, Header, false, true)
+            Library:MakeDraggable(Popup, Header, true, false)
         end)
 
         pcall(function()
@@ -8117,7 +8153,7 @@ do
                 end
             end
 
-            return tostring(Value)
+            return ZanjiColorDropdownValue(Value)
         end
     
         local Holder = New("Frame", {
@@ -8199,7 +8235,7 @@ do
         local Popup = New("Frame", {
             Active = true,
             AnchorPoint = Vector2.new(0.5, 0.5),
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Position = UDim2.fromScale(0.5, 0.5),
@@ -8218,7 +8254,7 @@ do
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
             Thickness = 1.2,
             Transparency = 0.15,
-            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.28),
+            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.10),
             Parent = Popup,
         })
     
@@ -8242,7 +8278,7 @@ do
         })
     
         local PopupBody = New("Frame", {
-            BackgroundColor3 = "BackgroundColor",
+            BackgroundColor3 = "MainColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             ZIndex = 121,
@@ -8257,6 +8293,7 @@ do
         local Header = New("Frame", {
             Active = true,
             BackgroundTransparency = 1,
+            Selectable = true,
             ZIndex = 122,
             Parent = Popup,
         })
@@ -8291,12 +8328,12 @@ do
         })
     
         local SearchInput = New("TextBox", {
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             PlaceholderText = "Search items...",
             TextXAlignment = Enum.TextXAlignment.Left,
-            Visible = Info.Searchable == true,
+            Visible = (Info.Multi == true) or (Info.Searchable == true),
             ZIndex = 123,
             Parent = PopupBody,
         })
@@ -8318,6 +8355,8 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Text = "All",
+            TextSize = 12,
+            TextTransparency = 0.12,
             Visible = Info.Multi == true,
             ZIndex = 123,
             Parent = PopupBody,
@@ -8334,6 +8373,8 @@ do
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Text = "None",
+            TextSize = 12,
+            TextTransparency = 0.12,
             Visible = Info.Multi == true,
             ZIndex = 123,
             Parent = PopupBody,
@@ -8346,7 +8387,7 @@ do
 
         local List = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = "BackgroundColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
@@ -8387,7 +8428,7 @@ do
     
         local Buttons = {}
         local MenuState = { Active = false, Menu = Popup }
-        local PopupScale = { W = 0.56, H = 0.76 }
+        local PopupScale = { W = 0.30, H = 0.48 }
         local CurrentRowHeight = 40
         local CurrentOptionTextSize = 14
         local RenderVirtualRows
@@ -8449,10 +8490,10 @@ do
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
             local isPortrait = viewport.Y > viewport.X
     
-            local minWScale = isPortrait and 0.78 or 0.42
-            local maxWScale = isPortrait and 0.96 or 0.82
-            local minHScale = isPortrait and 0.48 or 0.52
-            local maxHScale = 0.90
+            local minWScale = isPortrait and 0.72 or 0.26
+            local maxWScale = isPortrait and 0.96 or 0.68
+            local minHScale = isPortrait and 0.44 or 0.36
+            local maxHScale = 0.82
     
             PopupScale.W = math.clamp(PopupScale.W, minWScale, maxWScale)
             PopupScale.H = math.clamp(PopupScale.H, minHScale, maxHScale)
@@ -8460,18 +8501,18 @@ do
             local width = viewport.X * PopupScale.W
             local height = viewport.Y * PopupScale.H
     
-            local padX = width * 0.036
-            local padY = height * 0.03
-            local headerH = height * 0.08
-            local searchH = height * 0.085
-            local gap = height * 0.018
+            local padX = width * 0.028
+            local padY = height * 0.025
+            local headerH = math.clamp(height * 0.09, 34, 46)
+            local searchH = math.clamp(height * 0.09, 34, 42)
+            local gap = math.clamp(height * 0.016, 6, 10)
     
             local titleText = math.clamp(math.floor(height * 0.038), 13, 22)
             local inputText = math.clamp(math.floor(height * 0.031), 12, 18)
     
             -- ~10% smaller rows/buttons than previous
             local optionText = math.clamp(math.floor(height * 0.027), 12, 17)
-            local rowH = math.clamp(height * 0.078, 30, 52)
+            local rowH = math.clamp(height * 0.075, 34, 42)
     
             return {
                 width = width,
@@ -8526,10 +8567,10 @@ do
             local bulkGap = 6
 
     
-            local bulkH = math.max(24, math.floor(M.searchH * 0.66))
+            local bulkH = math.clamp(math.floor(M.searchH * 0.72), 26, 30)
 
     
-            local bulkW = math.max(46, math.floor(bulkH * 1.22))
+            local bulkW = math.clamp(math.floor(bulkH * 1.75), 48, 56)
 
     
             local bulkTotalW = hasBulk and ((bulkW * 2) + bulkGap) or 0
@@ -8643,8 +8684,8 @@ do
             local Stroke = Entry.Stroke or Entry.Button:FindFirstChild("SelectionStroke")
 
             Entry.Button.BackgroundColor3 = selected
-                and Library.Scheme.MainColor:Lerp(Library.Scheme.WhiteColor, 0.18)
-                or Library.Scheme.MainColor
+                and Color3.fromRGB(61, 61, 61)
+                or Color3.fromRGB(24, 24, 27)
             Entry.Button.BackgroundTransparency = 0
             Entry.Button.TextTransparency = Entry.Disabled and 0.8 or 0
             Entry.Button.Text = FormatZanjiDropdownValue(Entry.Value)
@@ -9148,7 +9189,7 @@ do
         end
     
         pcall(function()
-            Library:MakeDraggable(Popup, Header, false, true)
+            Library:MakeDraggable(Popup, Header, true, false)
         end)
     
         pcall(function()
@@ -9939,7 +9980,7 @@ do
         local Container = Groupbox.Container
 
         local CardHolder = New("Frame", {
-            BackgroundColor3 = "MainColor",
+            BackgroundColor3 = "CardColor",
             BorderColor3 = "OutlineColor",
             BorderSizePixel = 1,
             Size = UDim2.new(1, 0, 0, 0),
