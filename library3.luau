@@ -262,20 +262,20 @@ local Library = {
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        -- ZANJI soft-dark palette
-        -- Purple is kept for active/selected states instead of covering every surface.
-        BackgroundColor = Color3.fromRGB(14, 14, 16),
-        MainColor = Color3.fromRGB(24, 24, 27),
-        CardColor = Color3.fromRGB(31, 31, 34),
-        AccentColor = Color3.fromRGB(120, 82, 244),
-        AccentSoftColor = Color3.fromRGB(57, 42, 106),
-        OutlineColor = Color3.fromRGB(43, 43, 49),
-        FontColor = Color3.fromRGB(236, 236, 240),
-        MutedColor = Color3.fromRGB(150, 150, 160),
+        -- ZANJI clean purple
+        -- Mostly neutral charcoal. Purple appears only on active/selected controls.
+        BackgroundColor = Color3.fromRGB(13, 13, 15),
+        MainColor = Color3.fromRGB(22, 22, 25),
+        CardColor = Color3.fromRGB(28, 28, 32),
+        AccentColor = Color3.fromRGB(132, 96, 224),
+        AccentSoftColor = Color3.fromRGB(48, 40, 72),
+        OutlineColor = Color3.fromRGB(45, 45, 52),
+        FontColor = Color3.fromRGB(232, 232, 236),
+        MutedColor = Color3.fromRGB(146, 146, 156),
         Font = Font.fromEnum(Enum.Font.Code),
 
-        RedColor = Color3.fromRGB(248, 113, 113),
-        DestructiveColor = Color3.fromRGB(220, 72, 82),
+        RedColor = Color3.fromRGB(242, 112, 112),
+        DestructiveColor = Color3.fromRGB(211, 73, 83),
         DarkColor = Color3.fromRGB(7, 7, 9),
         WhiteColor = Color3.new(1, 1, 1),
 
@@ -7020,7 +7020,7 @@ do
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
             Thickness = 1.2,
             Transparency = 0.15,
-            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.10),
+            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.06),
             Parent = Popup,
         })
 
@@ -7440,15 +7440,15 @@ do
             local Stroke = Entry.Stroke or Entry.Button:FindFirstChild("SelectionStroke")
 
             Entry.Button.BackgroundColor3 = selected
-                and Color3.fromRGB(61, 61, 61)
-                or Color3.fromRGB(24, 24, 27)
+                and Color3.fromRGB(48, 46, 54)
+                or Color3.fromRGB(22, 22, 25)
             Entry.Button.BackgroundTransparency = 0
             Entry.Button.TextTransparency = Entry.Disabled and 0.8 or 0
             Entry.Button.Text = ZanjiColorDropdownValue(GetOptionText(Entry.Value))
 
             if Stroke then
                 Stroke.Color = Library.Scheme.AccentColor
-                Stroke.Transparency = selected and 0 or 1
+                Stroke.Transparency = selected and 0.12 or 1
             end
         end
 
@@ -8254,7 +8254,7 @@ do
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
             Thickness = 1.2,
             Transparency = 0.15,
-            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.10),
+            Color = Library.Scheme.OutlineColor:Lerp(Library.Scheme.AccentColor, 0.06),
             Parent = Popup,
         })
     
@@ -8684,15 +8684,15 @@ do
             local Stroke = Entry.Stroke or Entry.Button:FindFirstChild("SelectionStroke")
 
             Entry.Button.BackgroundColor3 = selected
-                and Color3.fromRGB(61, 61, 61)
-                or Color3.fromRGB(24, 24, 27)
+                and Color3.fromRGB(48, 46, 54)
+                or Color3.fromRGB(22, 22, 25)
             Entry.Button.BackgroundTransparency = 0
             Entry.Button.TextTransparency = Entry.Disabled and 0.8 or 0
             Entry.Button.Text = FormatZanjiDropdownValue(Entry.Value)
 
             if Stroke then
                 Stroke.Color = Library.Scheme.AccentColor
-                Stroke.Transparency = selected and 0 or 1
+                Stroke.Transparency = selected and 0.12 or 1
             end
         end
     
