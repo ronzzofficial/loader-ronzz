@@ -4944,8 +4944,8 @@ do
 
             New("Frame", {
                 AnchorPoint = Vector2.new(0, 0.5),
-                BackgroundColor3 = "MainColor",
-                BorderColor3 = "OutlineColor",
+                BackgroundColor3 = LayeredStyle.Separator,
+                BorderColor3 = LayeredStyle.Separator,
                 BorderSizePixel = 1,
                 Position = UDim2.fromScale(0, 0.5),
                 Size = UDim2.new(0.5, -SizeX, 0, 2),
@@ -4953,8 +4953,8 @@ do
             })
             New("Frame", {
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = "MainColor",
-                BorderColor3 = "OutlineColor",
+                BackgroundColor3 = LayeredStyle.Separator,
+                BorderColor3 = LayeredStyle.Separator,
                 BorderSizePixel = 1,
                 Position = UDim2.fromScale(1, 0.5),
                 Size = UDim2.new(0.5, -SizeX, 0, 2),
@@ -4963,8 +4963,8 @@ do
         else
             New("Frame", {
                 AnchorPoint = Vector2.new(0, 0.5),
-                BackgroundColor3 = "MainColor",
-                BorderColor3 = "OutlineColor",
+                BackgroundColor3 = LayeredStyle.Separator,
+                BorderColor3 = LayeredStyle.Separator,
                 BorderSizePixel = 1,
                 Position = UDim2.fromScale(0, 0.5),
                 Size = UDim2.new(1, 0, 0, 2),
@@ -5084,7 +5084,7 @@ do
             TextWrapped = Label.DoesWrap,
             TextTruncate = Label.DoesWrap and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd,
             TextXAlignment = Groupbox.IsKeyTab and Enum.TextXAlignment.Center or Enum.TextXAlignment.Left,
-            TextYAlignment = Label.DoesWrap and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
+            TextYAlignment = Enum.TextYAlignment.Center,
             Parent = Container,
         })
         New("UICorner", {
@@ -5120,7 +5120,7 @@ do
             end
 
             local _, Y = Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, Width)
-            TextLabel.Size = UDim2.new(1, 0, 0, math.max(30, Y + 12))
+            TextLabel.Size = UDim2.new(1, 0, 0, math.max(32, Y + 12))
         end
 
         function Label:SetVisible(Visible: boolean)
@@ -6539,7 +6539,7 @@ do
                 Text = Slider.Text,
                 TextColor3 = LayeredStyle.MainText,
                 TextSize = 14,
-                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextTruncate = Enum.TextTruncate.None,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 Parent = Holder,
@@ -7719,7 +7719,7 @@ local List = New("ScrollingFrame", {
                 TextColor3 = LayeredStyle.SecondaryText,
                 RichText = true,
                 TextSize = CurrentOptionTextSize,
-                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextTruncate = Enum.TextTruncate.None,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = 123,
@@ -8956,7 +8956,7 @@ local List = New("ScrollingFrame", {
                 TextColor3 = LayeredStyle.SecondaryText,
                 RichText = true,
                 TextSize = CurrentOptionTextSize,
-                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextTruncate = Enum.TextTruncate.None,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = 123,
@@ -12450,7 +12450,7 @@ function Library:CreateWindow(WindowInfo)
                     New("ImageLabel", {
                         AnchorPoint = Vector2.new(0, 0.5),
                         Image = BoxIcon.Url,
-                        ImageColor3 = LayeredStyle.MainText,
+                        ImageColor3 = "AccentColor",
                         ImageRectOffset = BoxIcon.ImageRectOffset,
                         ImageRectSize = BoxIcon.ImageRectSize,
                         Position = UDim2.fromScale(0, 0.5),
