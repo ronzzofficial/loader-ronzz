@@ -5077,7 +5077,7 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, 28),
+            Size = UDim2.new(1, 0, 0, 30),
             Text = Label.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Data.Size,
@@ -5098,8 +5098,10 @@ do
             Parent = TextLabel,
         })
         New("UIPadding", {
+            PaddingBottom = UDim.new(0, 1),
             PaddingLeft = UDim.new(0, 10),
             PaddingRight = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 1),
             Parent = TextLabel,
         })
 
@@ -5113,12 +5115,12 @@ do
                 -- The groupbox can report a tiny transient width while its tab
                 -- is mounting. Measuring long stock/farm text at that width
                 -- creates a huge label with the text far below the title.
-                TextLabel.Size = UDim2.new(1, 0, 0, 28)
+                TextLabel.Size = UDim2.new(1, 0, 0, 30)
                 return
             end
 
             local _, Y = Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, Width)
-            TextLabel.Size = UDim2.new(1, 0, 0, math.max(28, Y + 12))
+            TextLabel.Size = UDim2.new(1, 0, 0, math.max(30, Y + 12))
         end
 
         function Label:SetVisible(Visible: boolean)
@@ -5310,18 +5312,20 @@ do
         local function CreateButton(Button)
             local Base = New("TextButton", {
                 Active = not Button.Disabled,
-                BackgroundColor3 = LayeredStyle.ControlRow,
+                BackgroundColor3 = LayeredStyle.InputBox,
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
+                TextColor3 = LayeredStyle.MainText,
                 TextSize = 14,
-                TextTransparency = 0.4,
+                TextTransparency = 0.15,
+                TextYAlignment = Enum.TextYAlignment.Center,
                 Visible = Button.Visible,
                 Parent = Holder,
             })
 
             local Stroke = New("UIStroke", {
-                Color = LayeredStyle.Border,
-                Transparency = Button.Disabled and 0.5 or 0,
+                Color = Library.Scheme.AccentColor,
+                Transparency = Button.Disabled and 0.8 or 0.62,
                 Parent = Base,
             })
 
@@ -5353,7 +5357,7 @@ do
                 end
 
                 Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
-                    TextTransparency = 0.4,
+                    TextTransparency = 0.15,
                 })
                 Button.Tween:Play()
             end)
@@ -5426,13 +5430,15 @@ do
 
                 StopTween(SubButton.Tween)
 
-                SubButton.Base.BackgroundColor3 = SubButton.Disabled and Library.Scheme.BackgroundColor
-                    or Library.Scheme.MainColor
-                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.4
-                SubButton.Stroke.Transparency = SubButton.Disabled and 0.5 or 0
+                SubButton.Base.BackgroundColor3 = SubButton.Disabled and LayeredStyle.ControlRow
+                    or LayeredStyle.InputBox
+                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.15
+                SubButton.Stroke.Color = Library.Scheme.AccentColor
+                SubButton.Stroke.Transparency = SubButton.Disabled and 0.8 or 0.62
 
-                Library.Registry[SubButton.Base].BackgroundColor3 = SubButton.Disabled and "BackgroundColor"
-                    or "MainColor"
+                Library.Registry[SubButton.Base].BackgroundColor3 = function()
+                    return SubButton.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
+                end
             end
 
             function SubButton:SetDisabled(Disabled: boolean)
@@ -5515,12 +5521,15 @@ do
 
             StopTween(Button.Tween)
 
-            Button.Base.BackgroundColor3 = Button.Disabled and Library.Scheme.BackgroundColor
-                or Library.Scheme.MainColor
-            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.4
-            Button.Stroke.Transparency = Button.Disabled and 0.5 or 0
+            Button.Base.BackgroundColor3 = Button.Disabled and LayeredStyle.ControlRow
+                or LayeredStyle.InputBox
+            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.15
+            Button.Stroke.Color = Library.Scheme.AccentColor
+            Button.Stroke.Transparency = Button.Disabled and 0.8 or 0.62
 
-            Library.Registry[Button.Base].BackgroundColor3 = Button.Disabled and "BackgroundColor" or "MainColor"
+            Library.Registry[Button.Base].BackgroundColor3 = function()
+                return Button.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
+            end
         end
 
         function Button:SetDisabled(Disabled: boolean)
@@ -5669,9 +5678,12 @@ do
             Position = UDim2.fromOffset(36, 0),
             Size = UDim2.new(1, -46, 1, 0),
             Text = Toggle.Text,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
             TextTransparency = 0.4,
+            TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
+            TextYAlignment = Enum.TextYAlignment.Center,
             Parent = Button,
         })
 
@@ -5683,32 +5695,36 @@ do
         })
 
         local Checkbox = New("Frame", {
-            BackgroundColor3 = "MainColor",
-            Size = UDim2.fromScale(1, 1),
-            SizeConstraint = Enum.SizeConstraint.RelativeYY,
+            AnchorPoint = Vector2.new(0, 0.5),
+            BackgroundColor3 = LayeredStyle.InputBox,
+            Position = UDim2.new(0, 10, 0.5, 0),
+            Size = UDim2.fromOffset(18, 18),
             Parent = Button,
         })
         table.insert(
             Library.Corners,
             New("UICorner", {
-                CornerRadius = UDim.new(0, Library.CornerRadius / 2),
+                CornerRadius = UDim.new(0, math.max(2, Library.CornerRadius / 2)),
                 Parent = Checkbox,
             })
         )
 
         local CheckboxStroke = New("UIStroke", {
-            Color = "OutlineColor",
+            Color = LayeredStyle.Border,
+            Thickness = 1,
             Parent = Checkbox,
         })
 
         local CheckImage = New("ImageLabel", {
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundTransparency = 1,
             Image = CheckIcon and CheckIcon.Url or "",
-                ImageColor3 = "AccentColor",
+            ImageColor3 = "AccentColor",
             ImageRectOffset = CheckIcon and CheckIcon.ImageRectOffset or Vector2.zero,
             ImageRectSize = CheckIcon and CheckIcon.ImageRectSize or Vector2.zero,
             ImageTransparency = 1,
-            Position = UDim2.fromOffset(2, 2),
-            Size = UDim2.new(1, -4, 1, -4),
+            Position = UDim2.fromScale(0.5, 0.5),
+            Size = UDim2.fromOffset(12, 12),
             Parent = Checkbox,
         })
 
@@ -5727,8 +5743,12 @@ do
                 Label.TextTransparency = 0.8
                 CheckImage.ImageTransparency = Toggle.Value and 0.8 or 1
 
-                Checkbox.BackgroundColor3 = Library.Scheme.BackgroundColor
-                Library.Registry[Checkbox].BackgroundColor3 = "BackgroundColor"
+                Checkbox.BackgroundColor3 = LayeredStyle.InputBox
+                CheckboxStroke.Color = LayeredStyle.Border
+                CheckboxStroke.Transparency = 0.45
+                Library.Registry[Checkbox].BackgroundColor3 = function()
+                    return LayeredStyle.InputBox
+                end
 
                 return
             end
@@ -5740,8 +5760,14 @@ do
                 ImageTransparency = Toggle.Value and 0 or 1,
             }):Play()
 
-            Checkbox.BackgroundColor3 = Library.Scheme.MainColor
-            Library.Registry[Checkbox].BackgroundColor3 = "MainColor"
+            Checkbox.BackgroundColor3 = Toggle.Value and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.78)
+                or LayeredStyle.InputBox
+            CheckboxStroke.Color = Toggle.Value and Library.Scheme.AccentColor or LayeredStyle.Border
+            CheckboxStroke.Transparency = Toggle.Value and 0.08 or 0
+            Library.Registry[Checkbox].BackgroundColor3 = function()
+                return Toggle.Value and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.78)
+                    or LayeredStyle.InputBox
+            end
         end
 
         function Toggle:OnChanged(Func)
@@ -6225,7 +6251,7 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, 56),
+            Size = UDim2.new(1, 0, 0, 60),
             Visible = Input.Visible,
             Parent = Container,
         })
@@ -6242,14 +6268,15 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(10, 6),
-            Size = UDim2.new(1, -20, 0, 14),
+            Position = UDim2.fromOffset(10, 8),
+            Size = UDim2.new(1, -20, 0, 16),
             Text = Input.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
+            ZIndex = 2,
             Parent = Holder,
         })
 
@@ -6258,9 +6285,10 @@ do
             BackgroundColor3 = LayeredStyle.InputBox,
             ClearTextOnFocus = not Input.Disabled and Input.ClearTextOnFocus,
             PlaceholderText = Input.Placeholder,
-            Position = UDim2.new(0, 10, 1, -8),
-            Size = UDim2.new(1, -20, 0, 26),
+            Position = UDim2.new(0, 10, 1, -10),
+            Size = UDim2.new(1, -20, 0, 30),
             Text = Input.Value,
+            TextColor3 = LayeredStyle.MainText,
             TextEditable = not Input.Disabled,
             TextScaled = false,
             -- Smaller value text for compact numeric/text inputs.
@@ -7017,7 +7045,7 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Dropdown.Text and 64 or 40),
+            Size = UDim2.new(1, 0, 0, Dropdown.Text and 68 or 40),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
@@ -7034,7 +7062,7 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(10, 7),
+            Position = UDim2.fromOffset(10, 8),
             Size = UDim2.new(1, -20, 0, 16),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
@@ -7052,8 +7080,8 @@ do
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, 10, 1, -8),
-            Size = UDim2.new(1, -20, 0, 28),
+            Position = UDim2.new(0, 10, 1, -10),
+            Size = UDim2.new(1, -20, 0, 30),
             Text = "---",
             RichText = true,
             TextSize = 14,
@@ -7114,7 +7142,7 @@ do
             BackgroundColor3 = LayeredStyle.OuterBox,
             BorderSizePixel = 0,
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 460),
+            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 470),
             Visible = false,
             ZIndex = 120,
             Parent = Library.ScreenGui,
@@ -7176,6 +7204,8 @@ do
             BackgroundTransparency = 1,
             Text = Dropdown.Text or "Select",
             TextColor3 = LayeredStyle.MainText,
+            TextSize = 15,
+            TextYAlignment = Enum.TextYAlignment.Center,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex = 123,
             Parent = Header,
@@ -7183,9 +7213,11 @@ do
 
         local CloseButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
+            BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
             Text = Info.Multi and "Done" or "Close",
+            TextColor3 = LayeredStyle.MainText,
+            TextSize = 13,
             ZIndex = 123,
             Parent = Header,
         })
@@ -7197,8 +7229,9 @@ do
 
         local CloseButtonStroke = New("UIStroke", {
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = Library.Scheme.AccentColor,
             Thickness = 1,
-            Transparency = 0.25,
+            Transparency = 0.45,
             Parent = CloseButton,
         })
 
@@ -7207,6 +7240,8 @@ do
             BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             PlaceholderText = "Search items...",
+            TextColor3 = LayeredStyle.MainText,
+            TextSize = 13,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             Visible = Info.Searchable == true,
@@ -7234,10 +7269,10 @@ do
 
         local SelectAllButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
+            BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
             Text = "All",
-            TextColor3 = LayeredStyle.SecondaryText,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 124,
@@ -7251,10 +7286,10 @@ do
 
         local ClearButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
+            BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
             Text = "None",
-            TextColor3 = LayeredStyle.SecondaryText,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 124,
@@ -7289,7 +7324,7 @@ local List = New("ScrollingFrame", {
 
         local ListLayout = New("UIListLayout", {
             HorizontalAlignment = Enum.HorizontalAlignment.Center,
-            Padding = UDim.new(0, 6),
+            Padding = UDim.new(0, 8),
             Parent = List,
         })
 
@@ -7318,7 +7353,7 @@ local List = New("ScrollingFrame", {
         local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
         local CurrentRowHeight = 38
         local CurrentRowGap = 5
-        local CurrentOptionTextSize = 14
+        local CurrentOptionTextSize = 13
         local RenderVirtualRows
         local VirtualState = {
             Active = false,
@@ -7479,6 +7514,8 @@ local List = New("ScrollingFrame", {
             Title.Position = UDim2.fromOffset(0, 0)
             Title.Size = UDim2.new(1, -(closeW + 12), 1, 0)
             Title.TextSize = M.titleText
+            Title.TextYAlignment = Enum.TextYAlignment.Center
+            Title.TextYAlignment = Enum.TextYAlignment.Center
 
             CloseButton.Size = UDim2.fromOffset(closeW, closeH)
             CloseButton.Position = UDim2.new(1, -closeW, 0.5, -math.floor(closeH / 2))
@@ -7570,8 +7607,8 @@ local List = New("ScrollingFrame", {
             -- visually separated instead of blending into one flat list.
             Entry.Button.BackgroundColor3 =
                 selected
-                and Library.Scheme.AccentColor:Lerp(LayeredStyle.ControlRow, 0.78)
-                or LayeredStyle.ControlRow
+                and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.80)
+                or LayeredStyle.InputBox
             Entry.Button.BackgroundTransparency = 0
             Entry.Button.TextColor3 = selected and LayeredStyle.MainText or LayeredStyle.SecondaryText
             Entry.Button.TextTransparency = Entry.Disabled and 0.65 or 0
@@ -7672,7 +7709,7 @@ local List = New("ScrollingFrame", {
 
         local function CreateDropdownButton(LayoutOrder)
             local Button = New("TextButton", {
-                BackgroundColor3 = LayeredStyle.ControlRow,
+                BackgroundColor3 = LayeredStyle.InputBox,
                 BackgroundTransparency = 0,
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
@@ -8304,7 +8341,7 @@ local List = New("ScrollingFrame", {
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Dropdown.Text and 64 or 40),
+            Size = UDim2.new(1, 0, 0, Dropdown.Text and 68 or 40),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
@@ -8321,7 +8358,7 @@ local List = New("ScrollingFrame", {
     
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(10, 7),
+            Position = UDim2.fromOffset(10, 8),
             Size = UDim2.new(1, -20, 0, 16),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
@@ -8339,8 +8376,8 @@ local List = New("ScrollingFrame", {
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, 10, 1, -8),
-            Size = UDim2.new(1, -20, 0, 28),
+            Position = UDim2.new(0, 10, 1, -10),
+            Size = UDim2.new(1, -20, 0, 30),
             Text = "---",
             RichText = true,
             TextSize = 14,
@@ -8401,7 +8438,7 @@ local List = New("ScrollingFrame", {
             BackgroundColor3 = LayeredStyle.OuterBox,
             BorderSizePixel = 0,
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 460),
+            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 470),
             Visible = false,
             ZIndex = 120,
             Parent = Library.ScreenGui,
@@ -8463,6 +8500,8 @@ local List = New("ScrollingFrame", {
             BackgroundTransparency = 1,
             Text = Dropdown.Text or "Select",
             TextColor3 = LayeredStyle.MainText,
+            TextSize = 15,
+            TextYAlignment = Enum.TextYAlignment.Center,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex = 123,
             Parent = Header,
@@ -8470,9 +8509,11 @@ local List = New("ScrollingFrame", {
     
         local CloseButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
+            BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
             Text = Info.Multi and "Done" or "Close",
+            TextColor3 = LayeredStyle.MainText,
+            TextSize = 13,
             ZIndex = 123,
             Parent = Header,
         })
@@ -8484,8 +8525,9 @@ local List = New("ScrollingFrame", {
     
         local CloseButtonStroke = New("UIStroke", {
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = Library.Scheme.AccentColor,
             Thickness = 1,
-            Transparency = 0.25,
+            Transparency = 0.45,
             Parent = CloseButton,
         })
     
@@ -8494,6 +8536,8 @@ local List = New("ScrollingFrame", {
             BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
             PlaceholderText = "Search items...",
+            TextColor3 = LayeredStyle.MainText,
+            TextSize = 13,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             Visible = Info.Searchable == true,
@@ -8521,10 +8565,10 @@ local List = New("ScrollingFrame", {
 
         local SelectAllButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
+            BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
             Text = "All",
-            TextColor3 = LayeredStyle.SecondaryText,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 124,
@@ -8538,10 +8582,10 @@ local List = New("ScrollingFrame", {
 
         local ClearButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
+            BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
             Text = "None",
-            TextColor3 = LayeredStyle.SecondaryText,
+            TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 124,
@@ -8576,7 +8620,7 @@ local List = New("ScrollingFrame", {
     
         local ListLayout = New("UIListLayout", {
             HorizontalAlignment = Enum.HorizontalAlignment.Center,
-            Padding = UDim.new(0, 6),
+            Padding = UDim.new(0, 8),
             Parent = List,
         })
     
@@ -8605,7 +8649,7 @@ local List = New("ScrollingFrame", {
         local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
         local CurrentRowHeight = 38
         local CurrentRowGap = 5
-        local CurrentOptionTextSize = 14
+        local CurrentOptionTextSize = 13
         local RenderVirtualRows
         local VirtualState = {
             Active = false,
@@ -8803,8 +8847,8 @@ local List = New("ScrollingFrame", {
             -- visually separated instead of blending into one flat list.
             Entry.Button.BackgroundColor3 =
                 selected
-                and Library.Scheme.AccentColor:Lerp(LayeredStyle.ControlRow, 0.78)
-                or LayeredStyle.ControlRow
+                and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.80)
+                or LayeredStyle.InputBox
             Entry.Button.BackgroundTransparency = 0
             Entry.Button.TextColor3 = selected and LayeredStyle.MainText or LayeredStyle.SecondaryText
             Entry.Button.TextTransparency = Entry.Disabled and 0.65 or 0
@@ -8897,7 +8941,7 @@ local List = New("ScrollingFrame", {
     
         local function CreateDropdownButton(LayoutOrder)
             local Button = New("TextButton", {
-                BackgroundColor3 = LayeredStyle.ControlRow,
+                BackgroundColor3 = LayeredStyle.InputBox,
                 BackgroundTransparency = 0,
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
@@ -12101,7 +12145,7 @@ function Library:CreateWindow(WindowInfo)
                 if BoxIcon then
                     ButtonIcon = New("ImageLabel", {
                         Image = BoxIcon.Url,
-                        ImageColor3 = LayeredStyle.MainText,
+                        ImageColor3 = "AccentColor",
                         ImageRectOffset = BoxIcon.ImageRectOffset,
                         ImageRectSize = BoxIcon.ImageRectSize,
                         ImageTransparency = 0.5,
