@@ -6251,7 +6251,7 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, 60),
+            Size = UDim2.new(1, 0, 0, 68),
             Visible = Input.Visible,
             Parent = Container,
         })
@@ -6292,7 +6292,7 @@ do
             TextEditable = not Input.Disabled,
             TextScaled = false,
             -- Smaller value text for compact numeric/text inputs.
-            TextSize = tonumber(Info.InputTextSize) or 12,
+            TextSize = tonumber(Info.InputTextSize) or 14,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             Parent = Holder,
@@ -8094,11 +8094,16 @@ local List = New("ScrollingFrame", {
 
         function Dropdown:SetText(Text: string)
             Dropdown.Text = Text
-            Holder.Size = UDim2.new(1, 0, 0, (Text and 56 or 40) * Library.DPIScale)
+
+            -- Keep the layered label/input spacing even when counters/titles
+            -- are updated dynamically (for example Team [0/8]).
+            Holder.Size = UDim2.new(1, 0, 0, Text and 68 or 40)
 
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
             Title.Text = Text or "Select"
+
+            Groupbox:Resize()
         end
 
         -- function MenuState:Open_old()
@@ -9267,11 +9272,16 @@ local List = New("ScrollingFrame", {
     
         function Dropdown:SetText(Text: string)
             Dropdown.Text = Text
-            Holder.Size = UDim2.new(1, 0, 0, (Text and 56 or 40) * Library.DPIScale)
-    
+
+            -- Keep the layered label/input spacing even when counters/titles
+            -- are updated dynamically (for example Team [0/8]).
+            Holder.Size = UDim2.new(1, 0, 0, Text and 68 or 40)
+
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
             Title.Text = Text or "Select"
+
+            Groupbox:Resize()
         end
     
         -- function MenuState:Open_old()
@@ -12578,8 +12588,9 @@ function Library:CreateWindow(WindowInfo)
 
             local ResizeTween
             local CollapseArrowTween
+            local ResizeSettlePending = false
 
-            function Groupbox:Resize()
+            function Groupbox:Resize(SettledPass)
                 if ResizeTween then
                     StopTween(ResizeTween, true)
                     ResizeTween = nil
@@ -12615,6 +12626,20 @@ function Library:CreateWindow(WindowInfo)
                 else
                     GroupboxHolder.Size = TargetSize
                 end
+
+                -- UIListLayout can update one frame after many visibility
+                -- changes. A settled pass prevents clipped Pet Sell lists.
+                if SettledPass ~= true and ResizeSettlePending ~= true then
+                    ResizeSettlePending = true
+                    task.defer(function()
+                        RunService.Heartbeat:Wait()
+                        ResizeSettlePending = false
+
+                        if not Groupbox.Destroyed then
+                            Groupbox:Resize(true)
+                        end
+                    end)
+                end
             end
 
             -- Keep the layered inner container synced with its controls.
@@ -12630,6 +12655,12 @@ function Library:CreateWindow(WindowInfo)
                     task.defer(function()
                         if not Groupbox.Destroyed then
                             Groupbox:Resize()
+                        end
+                    end)
+
+                    task.delay(0.04, function()
+                        if not Groupbox.Destroyed then
+                            Groupbox:Resize(true)
                         end
                     end)
                 end)
