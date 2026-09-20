@@ -5735,6 +5735,14 @@ do
             Parent = Checkbox,
         })
 
+        -- Checkbox/Stroke use direct Color3 values, so New() does not create
+        -- theme-registry entries for them automatically. Pet Sell Rules uses
+        -- AddCheckbox for every "Override Weight" row; without these guards,
+        -- Toggle:Display() errors on the first checkbox and the egg-specific
+        -- pet list is only partially built.
+        Library.Registry[Checkbox] = Library.Registry[Checkbox] or {}
+        Library.Registry[CheckboxStroke] = Library.Registry[CheckboxStroke] or {}
+
         local CheckImage = New("ImageLabel", {
             AnchorPoint = Vector2.new(0.5, 0.5),
             BackgroundTransparency = 1,
@@ -5769,6 +5777,9 @@ do
                 Library.Registry[Checkbox].BackgroundColor3 = function()
                     return LayeredStyle.InputBox
                 end
+                Library.Registry[CheckboxStroke].Color = function()
+                    return LayeredStyle.Border
+                end
 
                 return
             end
@@ -5787,6 +5798,9 @@ do
             Library.Registry[Checkbox].BackgroundColor3 = function()
                 return Toggle.Value and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.78)
                     or LayeredStyle.InputBox
+            end
+            Library.Registry[CheckboxStroke].Color = function()
+                return Toggle.Value and Library.Scheme.AccentColor or LayeredStyle.Border
             end
         end
 
