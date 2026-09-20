@@ -4944,8 +4944,8 @@ do
 
             New("Frame", {
                 AnchorPoint = Vector2.new(0, 0.5),
-                BackgroundColor3 = LayeredStyle.Separator,
-                BorderColor3 = LayeredStyle.Separator,
+                BackgroundColor3 = "MainColor",
+                BorderColor3 = "OutlineColor",
                 BorderSizePixel = 1,
                 Position = UDim2.fromScale(0, 0.5),
                 Size = UDim2.new(0.5, -SizeX, 0, 2),
@@ -4953,8 +4953,8 @@ do
             })
             New("Frame", {
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = LayeredStyle.Separator,
-                BorderColor3 = LayeredStyle.Separator,
+                BackgroundColor3 = "MainColor",
+                BorderColor3 = "OutlineColor",
                 BorderSizePixel = 1,
                 Position = UDim2.fromScale(1, 0.5),
                 Size = UDim2.new(0.5, -SizeX, 0, 2),
@@ -4963,8 +4963,8 @@ do
         else
             New("Frame", {
                 AnchorPoint = Vector2.new(0, 0.5),
-                BackgroundColor3 = LayeredStyle.Separator,
-                BorderColor3 = LayeredStyle.Separator,
+                BackgroundColor3 = "MainColor",
+                BorderColor3 = "OutlineColor",
                 BorderSizePixel = 1,
                 Position = UDim2.fromScale(0, 0.5),
                 Size = UDim2.new(1, 0, 0, 2),
@@ -5065,6 +5065,7 @@ do
 
             Text = Data.Text,
             DoesWrap = Data.DoesWrap,
+            IsDivider = tostring(Data.Text or ""):match("^%s*[─━%-%_]+%s*$") ~= nil,
 
             Addons = Addons,
 
@@ -5074,11 +5075,11 @@ do
 
         local TextLabel = New("TextLabel", {
             BackgroundColor3 = LayeredStyle.ControlRow,
-            BackgroundTransparency = 0,
+            BackgroundTransparency = Label.IsDivider and 1 or 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, 30),
-            Text = Label.Text,
+            Size = UDim2.new(1, 0, 0, Label.IsDivider and 10 or 28),
+            Text = Label.IsDivider and "" or Label.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Data.Size,
             TextWrapped = Label.DoesWrap,
@@ -5091,12 +5092,24 @@ do
             CornerRadius = UDim.new(0, 3),
             Parent = TextLabel,
         })
-        New("UIStroke", {
+        local LabelStroke = New("UIStroke", {
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
             Color = LayeredStyle.Border,
             Thickness = 1,
+            Transparency = Label.IsDivider and 1 or 0,
             Parent = TextLabel,
         })
+
+        if Label.IsDivider then
+            New("Frame", {
+                AnchorPoint = Vector2.new(0, 0.5),
+                BackgroundColor3 = LayeredStyle.Separator,
+                BorderSizePixel = 0,
+                Position = UDim2.new(0, 4, 0.5, 0),
+                Size = UDim2.new(1, -8, 0, 1),
+                Parent = TextLabel,
+            })
+        end
         New("UIPadding", {
             PaddingBottom = UDim.new(0, 1),
             PaddingLeft = UDim.new(0, 10),
@@ -5106,7 +5119,13 @@ do
         })
 
         function Label:Display()
+            if Label.IsDivider then
+                TextLabel.Size = UDim2.new(1, 0, 0, 10)
+                return
+            end
+
             if not Label.DoesWrap then
+                TextLabel.Size = UDim2.new(1, 0, 0, 28)
                 return
             end
 
@@ -5115,12 +5134,12 @@ do
                 -- The groupbox can report a tiny transient width while its tab
                 -- is mounting. Measuring long stock/farm text at that width
                 -- creates a huge label with the text far below the title.
-                TextLabel.Size = UDim2.new(1, 0, 0, 30)
+                TextLabel.Size = UDim2.new(1, 0, 0, 28)
                 return
             end
 
             local _, Y = Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, Width)
-            TextLabel.Size = UDim2.new(1, 0, 0, math.max(32, Y + 12))
+            TextLabel.Size = UDim2.new(1, 0, 0, math.max(28, Y + 10))
         end
 
         function Label:SetVisible(Visible: boolean)
@@ -5133,7 +5152,8 @@ do
         function Label:SetText(Text: string)
             local DisplayText = FormatSemanticLabelText(Text)
             Label.Text = DisplayText
-            TextLabel.Text = DisplayText
+            TextLabel.Text = Label.IsDivider and "" or DisplayText
+            TextLabel.TextYAlignment = Enum.TextYAlignment.Center
 
             Label:Display()
             Groupbox:Resize()
@@ -5675,8 +5695,8 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(36, 0),
-            Size = UDim2.new(1, -46, 1, 0),
+            Position = UDim2.fromOffset(38, 0),
+            Size = UDim2.new(1, -48, 1, 0),
             Text = Toggle.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
@@ -6539,7 +6559,7 @@ do
                 Text = Slider.Text,
                 TextColor3 = LayeredStyle.MainText,
                 TextSize = 14,
-                TextTruncate = Enum.TextTruncate.None,
+                TextTruncate = Enum.TextTruncate.AtEnd,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 Parent = Holder,
@@ -7067,7 +7087,7 @@ do
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextTruncate = Enum.TextTruncate.None,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             Visible = not not Info.Text,
@@ -7085,7 +7105,7 @@ do
             Text = "---",
             RichText = true,
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextTruncate = Enum.TextTruncate.None,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 1,
@@ -8095,12 +8115,13 @@ local List = New("ScrollingFrame", {
         function Dropdown:SetText(Text: string)
             Dropdown.Text = Text
 
-            -- Keep the layered label/input spacing even when counters/titles
-            -- are updated dynamically (for example Team [0/8]).
+            -- Preserve the layered label/input spacing when titles are updated
+            -- dynamically (for example Egg Reduction Team [0/8]).
             Holder.Size = UDim2.new(1, 0, 0, Text and 68 or 40)
 
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
+            Label.TextYAlignment = Enum.TextYAlignment.Center
             Title.Text = Text or "Select"
 
             Groupbox:Resize()
@@ -8368,7 +8389,7 @@ local List = New("ScrollingFrame", {
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextTruncate = Enum.TextTruncate.None,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             Visible = not not Info.Text,
@@ -8386,7 +8407,7 @@ local List = New("ScrollingFrame", {
             Text = "---",
             RichText = true,
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextTruncate = Enum.TextTruncate.None,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 1,
@@ -9273,12 +9294,13 @@ local List = New("ScrollingFrame", {
         function Dropdown:SetText(Text: string)
             Dropdown.Text = Text
 
-            -- Keep the layered label/input spacing even when counters/titles
-            -- are updated dynamically (for example Team [0/8]).
+            -- Preserve the layered label/input spacing when titles are updated
+            -- dynamically (for example Egg Reduction Team [0/8]).
             Holder.Size = UDim2.new(1, 0, 0, Text and 68 or 40)
 
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
+            Label.TextYAlignment = Enum.TextYAlignment.Center
             Title.Text = Text or "Select"
 
             Groupbox:Resize()
@@ -12588,9 +12610,8 @@ function Library:CreateWindow(WindowInfo)
 
             local ResizeTween
             local CollapseArrowTween
-            local ResizeSettlePending = false
 
-            function Groupbox:Resize(SettledPass)
+            function Groupbox:Resize()
                 if ResizeTween then
                     StopTween(ResizeTween, true)
                     ResizeTween = nil
@@ -12626,20 +12647,6 @@ function Library:CreateWindow(WindowInfo)
                 else
                     GroupboxHolder.Size = TargetSize
                 end
-
-                -- UIListLayout can update one frame after many visibility
-                -- changes. A settled pass prevents clipped Pet Sell lists.
-                if SettledPass ~= true and ResizeSettlePending ~= true then
-                    ResizeSettlePending = true
-                    task.defer(function()
-                        RunService.Heartbeat:Wait()
-                        ResizeSettlePending = false
-
-                        if not Groupbox.Destroyed then
-                            Groupbox:Resize(true)
-                        end
-                    end)
-                end
             end
 
             -- Keep the layered inner container synced with its controls.
@@ -12655,12 +12662,6 @@ function Library:CreateWindow(WindowInfo)
                     task.defer(function()
                         if not Groupbox.Destroyed then
                             Groupbox:Resize()
-                        end
-                    end)
-
-                    task.delay(0.04, function()
-                        if not Groupbox.Destroyed then
-                            Groupbox:Resize(true)
                         end
                     end)
                 end)
