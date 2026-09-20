@@ -5076,13 +5076,11 @@ do
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
-            ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0, 28),
             Text = Label.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Data.Size,
             TextWrapped = Label.DoesWrap,
-            TextTruncate = Label.DoesWrap and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd,
             TextXAlignment = Groupbox.IsKeyTab and Enum.TextXAlignment.Center or Enum.TextXAlignment.Left,
             TextYAlignment = Label.DoesWrap and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
             Parent = Container,
@@ -5917,7 +5915,6 @@ do
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
-            ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0, 30),
             Text = "",
             Visible = Toggle.Visible,
@@ -5946,10 +5943,7 @@ do
             end,
             TextSize = 14,
             TextTransparency = 0.4,
-            TextTruncate = Enum.TextTruncate.AtEnd,
-            TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
             Parent = Button,
         })
 
@@ -6224,7 +6218,6 @@ do
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
-            ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0, 56),
             Visible = Input.Visible,
             Parent = Container,
@@ -6247,9 +6240,7 @@ do
             Text = Input.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
             Parent = Holder,
         })
 
@@ -6262,16 +6253,16 @@ do
             Size = UDim2.new(1, -20, 0, 26),
             Text = Input.Value,
             TextEditable = not Input.Disabled,
-            TextScaled = false,
-            TextSize = 14,
+            TextScaled = true,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
             Parent = Holder,
         })
 
         New("UIPadding", {
+            PaddingBottom = UDim.new(0, 3),
             PaddingLeft = UDim.new(0, 8),
             PaddingRight = UDim.new(0, 8),
+            PaddingTop = UDim.new(0, 4),
             Parent = Box,
         })
 
@@ -6485,7 +6476,6 @@ do
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
-            ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0, Info.Compact and 36 or 56),
             Visible = Slider.Visible,
             Parent = Container,
@@ -6510,9 +6500,7 @@ do
                 Text = Slider.Text,
                 TextColor3 = LayeredStyle.MainText,
                 TextSize = 14,
-                TextTruncate = Enum.TextTruncate.AtEnd,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                TextYAlignment = Enum.TextYAlignment.Center,
                 Parent = Holder,
             })
         end
@@ -6537,8 +6525,6 @@ do
             Size = UDim2.fromScale(1, 1),
             Text = "",
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.AtEnd,
-            TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = Bar.ZIndex + 2,
             Parent = Bar,
         })
@@ -6556,7 +6542,6 @@ do
                 Size = UDim2.fromScale(1, 1),
                 Text = "",
                 TextSize = 14,
-                TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = Bar.ZIndex + 3,
                 Visible = false,
                 ClearTextOnFocus = false,
@@ -7015,7 +7000,6 @@ do
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
-            ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0, Dropdown.Text and 56 or 40),
             Visible = Dropdown.Visible,
             Parent = Container,
@@ -7038,9 +7022,7 @@ do
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
             Visible = not not Info.Text,
             Parent = Holder,
         })
@@ -7057,7 +7039,6 @@ do
             TextSize = 14,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
             Parent = Holder,
         })
 
@@ -7068,8 +7049,7 @@ do
 
         New("UIPadding", {
             PaddingLeft = UDim.new(0, 8),
-            -- Keep long values clear of the chevron on the right.
-            PaddingRight = UDim.new(0, 28),
+            PaddingRight = UDim.new(0, 4),
             Parent = Display,
         })
 
@@ -7205,7 +7185,6 @@ do
             BorderSizePixel = 1,
             PlaceholderText = "Search items...",
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
             Visible = Info.Searchable == true,
             ZIndex = 123,
             Parent = PopupBody,
@@ -7236,7 +7215,6 @@ do
             Text = "All",
             TextColor3 = LayeredStyle.SecondaryText,
             TextSize = 12,
-            TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 124,
             Parent = BulkActions,
         })
@@ -7253,7 +7231,6 @@ do
             Text = "None",
             TextColor3 = LayeredStyle.SecondaryText,
             TextSize = 12,
-            TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 124,
             Parent = BulkActions,
         })
@@ -7268,7 +7245,6 @@ local List = New("ScrollingFrame", {
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
-            ClipsDescendants = true,
             BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             CanvasSize = UDim2.fromOffset(0, 0),
             ScrollBarImageColor3 = LayeredStyle.SecondaryText,
@@ -7284,8 +7260,6 @@ local List = New("ScrollingFrame", {
         })
 
         local ListLayout = New("UIListLayout", {
-            HorizontalAlignment = Enum.HorizontalAlignment.Center,
-            Padding = UDim.new(0, 6),
             Parent = List,
         })
 
@@ -7545,7 +7519,7 @@ local List = New("ScrollingFrame", {
 
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
-            ListLayout.Padding = UDim.new(0, 6)
+            ListLayout.Padding = UDim.new(0, math.max(4, math.floor(M.gap * 0.45)))
 
             for _, Entry in pairs(Buttons) do
                 Entry.Button.Size = UDim2.new(1, -8, 0, CurrentRowHeight)
@@ -7559,23 +7533,11 @@ local List = New("ScrollingFrame", {
 
         local function UpdateEntry(Entry)
             local selected = IsSelected(Entry.Value)
-            local rowStroke = Entry.Button:FindFirstChild("ZanjiDropdownRowStroke")
 
-            -- Each option has its own dark row so adjacent entries are
-            -- visually separated instead of blending into one flat list.
-            Entry.Button.BackgroundColor3 =
-                selected
-                and Library.Scheme.AccentColor:Lerp(LayeredStyle.ControlRow, 0.78)
-                or LayeredStyle.ControlRow
-            Entry.Button.BackgroundTransparency = 0
-            Entry.Button.TextColor3 = selected and LayeredStyle.MainText or LayeredStyle.SecondaryText
-            Entry.Button.TextTransparency = Entry.Disabled and 0.65 or 0
+            Entry.Button.BackgroundColor3 = Library.Scheme.MainColor:Lerp(Library.Scheme.AccentColor, 0.15)
+            Entry.Button.BackgroundTransparency = selected and 0.5 or 1 
+            Entry.Button.TextTransparency = Entry.Disabled and 0.8 or (selected and 0.04 or 0.45)
             Entry.Button.Text = tostring(GetOptionText(Entry.Value))
-
-            if rowStroke then
-                rowStroke.Color = selected and Library.Scheme.AccentColor or LayeredStyle.Border
-                rowStroke.Transparency = selected and 0.08 or 0.35
-            end
         end
 
         local function RefreshButtons()
@@ -7667,40 +7629,28 @@ local List = New("ScrollingFrame", {
 
         local function CreateDropdownButton(LayoutOrder)
             local Button = New("TextButton", {
-                BackgroundColor3 = LayeredStyle.ControlRow,
-                BackgroundTransparency = 0,
+                BackgroundColor3 = "MainColor",
+                RichText = true,
+                BackgroundTransparency = 1,
+                BorderColor3 = "OutlineColor",
                 BorderSizePixel = 0,
-                ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
                 Size = UDim2.new(1, -8, 0, CurrentRowHeight),
                 Text = "",
-                TextColor3 = LayeredStyle.SecondaryText,
-                RichText = true,
                 TextSize = CurrentOptionTextSize,
-                TextTruncate = Enum.TextTruncate.AtEnd,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = 123,
                 Parent = List,
             })
 
             New("UICorner", {
-                CornerRadius = UDim.new(0, math.max(1, Library.CornerRadius)),
-                Parent = Button,
-            })
-
-            New("UIStroke", {
-                Name = "ZanjiDropdownRowStroke",
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                Color = LayeredStyle.Border,
-                Thickness = 1,
-                Transparency = 0.35,
+                CornerRadius = UDim.new(0, Library.CornerRadius + 1),
                 Parent = Button,
             })
 
             New("UIPadding", {
                 PaddingLeft = UDim.new(0, 12),
-                PaddingRight = UDim.new(0, 12),
+                PaddingRight = UDim.new(0, 10),
                 Parent = Button,
             })
 
@@ -8294,7 +8244,6 @@ local List = New("ScrollingFrame", {
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
-            ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0, Dropdown.Text and 56 or 40),
             Visible = Dropdown.Visible,
             Parent = Container,
@@ -8317,9 +8266,7 @@ local List = New("ScrollingFrame", {
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
             Visible = not not Info.Text,
             Parent = Holder,
         })
@@ -8336,7 +8283,6 @@ local List = New("ScrollingFrame", {
             TextSize = 14,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
             Parent = Holder,
         })
     
@@ -8347,8 +8293,7 @@ local List = New("ScrollingFrame", {
     
         New("UIPadding", {
             PaddingLeft = UDim.new(0, 8),
-            -- Keep long values clear of the chevron on the right.
-            PaddingRight = UDim.new(0, 28),
+            PaddingRight = UDim.new(0, 4),
             Parent = Display,
         })
 
@@ -8484,7 +8429,6 @@ local List = New("ScrollingFrame", {
             BorderSizePixel = 1,
             PlaceholderText = "Search items...",
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
             Visible = Info.Searchable == true,
             ZIndex = 123,
             Parent = PopupBody,
@@ -8515,7 +8459,6 @@ local List = New("ScrollingFrame", {
             Text = "All",
             TextColor3 = LayeredStyle.SecondaryText,
             TextSize = 12,
-            TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 124,
             Parent = BulkActions,
         })
@@ -8532,7 +8475,6 @@ local List = New("ScrollingFrame", {
             Text = "None",
             TextColor3 = LayeredStyle.SecondaryText,
             TextSize = 12,
-            TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 124,
             Parent = BulkActions,
         })
@@ -8547,7 +8489,6 @@ local List = New("ScrollingFrame", {
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderColor3 = LayeredStyle.Border,
             BorderSizePixel = 1,
-            ClipsDescendants = true,
             BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             CanvasSize = UDim2.fromOffset(0, 0),
             ScrollBarImageColor3 = LayeredStyle.SecondaryText,
@@ -8563,8 +8504,6 @@ local List = New("ScrollingFrame", {
         })
     
         local ListLayout = New("UIListLayout", {
-            HorizontalAlignment = Enum.HorizontalAlignment.Center,
-            Padding = UDim.new(0, 6),
             Parent = List,
         })
     
@@ -8770,7 +8709,7 @@ local List = New("ScrollingFrame", {
 
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
-            ListLayout.Padding = UDim.new(0, 6)
+            ListLayout.Padding = UDim.new(0, math.max(4, math.floor(M.gap * 0.45)))
     
             for _, Entry in pairs(Buttons) do
                 Entry.Button.Size = UDim2.new(1, -8, 0, CurrentRowHeight)
@@ -8784,25 +8723,13 @@ local List = New("ScrollingFrame", {
     
         local function UpdateEntry(Entry)
             local selected = IsSelected(Entry.Value)
-            local rowStroke = Entry.Button:FindFirstChild("ZanjiDropdownRowStroke")
-
-            -- Each option has its own dark row so adjacent entries are
-            -- visually separated instead of blending into one flat list.
-            Entry.Button.BackgroundColor3 =
-                selected
-                and Library.Scheme.AccentColor:Lerp(LayeredStyle.ControlRow, 0.78)
-                or LayeredStyle.ControlRow
-            Entry.Button.BackgroundTransparency = 0
-            Entry.Button.TextColor3 = selected and LayeredStyle.MainText or LayeredStyle.SecondaryText
-            Entry.Button.TextTransparency = Entry.Disabled and 0.65 or 0
+    
+            Entry.Button.BackgroundColor3 = Library.Scheme.MainColor:Lerp(Library.Scheme.AccentColor, 0.15)
+            Entry.Button.BackgroundTransparency = selected and 0.5 or 1 
+            Entry.Button.TextTransparency = Entry.Disabled and 0.8 or (selected and 0.04 or 0.45)
             Entry.Button.Text = FormatZanjiDropdownValue(Entry.Value)
-
-            if rowStroke then
-                rowStroke.Color = selected and Library.Scheme.AccentColor or LayeredStyle.Border
-                rowStroke.Transparency = selected and 0.08 or 0.35
-            end
         end
-
+    
         local function RefreshButtons()
             for _, Entry in pairs(Buttons) do
                 UpdateEntry(Entry)
@@ -8884,40 +8811,28 @@ local List = New("ScrollingFrame", {
     
         local function CreateDropdownButton(LayoutOrder)
             local Button = New("TextButton", {
-                BackgroundColor3 = LayeredStyle.ControlRow,
-                BackgroundTransparency = 0,
+                BackgroundColor3 = "MainColor",
+                BackgroundTransparency = 1,
+                BorderColor3 = "OutlineColor",
                 BorderSizePixel = 0,
-                ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
                 Size = UDim2.new(1, -8, 0, CurrentRowHeight),
                 Text = "",
-                TextColor3 = LayeredStyle.SecondaryText,
                 RichText = true,
                 TextSize = CurrentOptionTextSize,
-                TextTruncate = Enum.TextTruncate.AtEnd,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = 123,
                 Parent = List,
             })
 
             New("UICorner", {
-                CornerRadius = UDim.new(0, math.max(1, Library.CornerRadius)),
-                Parent = Button,
-            })
-
-            New("UIStroke", {
-                Name = "ZanjiDropdownRowStroke",
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                Color = LayeredStyle.Border,
-                Thickness = 1,
-                Transparency = 0.35,
+                CornerRadius = UDim.new(0, Library.CornerRadius + 1),
                 Parent = Button,
             })
 
             New("UIPadding", {
                 PaddingLeft = UDim.new(0, 12),
-                PaddingRight = UDim.new(0, 12),
+                PaddingRight = UDim.new(0, 10),
                 Parent = Button,
             })
 
