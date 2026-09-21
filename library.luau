@@ -262,11 +262,11 @@ local Library = {
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(13, 15, 20),   -- #0D0F14
-        MainColor = Color3.fromRGB(21, 24, 33),         -- #151821
+        BackgroundColor = Color3.fromRGB(15, 15, 15),   -- #0F0F0F
+        MainColor = Color3.fromRGB(25, 25, 25),         -- #191919
         AccentColor = Color3.fromRGB(155, 124, 255),    -- #9B7CFF
-        OutlineColor = Color3.fromRGB(52, 57, 70),      -- #343946
-        FontColor = Color3.fromRGB(238, 240, 246),      -- #EEF0F6
+        OutlineColor = Color3.fromRGB(40, 40, 40),      -- #282828
+        FontColor = Color3.fromRGB(240, 240, 240),      -- #F0F0F0
         Font = Font.fromEnum(Enum.Font.Code),
 
         RedColor = Color3.fromRGB(235, 86, 98),         -- #EB5662
@@ -292,26 +292,27 @@ local Library = {
 --// ZANJI layered dark style \\--
 -- Global neutral hierarchy used by every standard groupbox/control.
 local LayeredStyle = {
-    -- ZANJI graphite + violet palette. Neutral surfaces keep large pages calm,
-    -- while violet is reserved for focus, selection and brand identity.
-    MainBackground = Color3.fromRGB(13, 15, 20),   -- #0D0F14
-    OuterBox = Color3.fromRGB(18, 21, 27),         -- #12151B
-    InnerBox = Color3.fromRGB(22, 25, 32),         -- #161920
-    ControlRow = Color3.fromRGB(27, 30, 38),       -- #1B1E26
-    InputBox = Color3.fromRGB(17, 20, 26),         -- #11141A
+    -- Neutral charcoal palette matched to the compact reference UI.
+    -- Large surfaces stay near-black; controls sit on #202020 with subtle
+    -- #282828 borders so sections are visible without looking neon-heavy.
+    MainBackground = Color3.fromRGB(15, 15, 15),    -- #0F0F0F
+    OuterBox = Color3.fromRGB(20, 20, 20),          -- #141414
+    InnerBox = Color3.fromRGB(25, 25, 25),          -- #191919
+    ControlRow = Color3.fromRGB(25, 25, 25),        -- #191919
+    InputBox = Color3.fromRGB(32, 32, 32),          -- #202020
 
-    DropdownRow = Color3.fromRGB(22, 25, 32),      -- #161920
-    DropdownHover = Color3.fromRGB(31, 35, 44),    -- #1F232C
-    DropdownSelected = Color3.fromRGB(43, 36, 62), -- #2B243E
-    DropdownHoverBorder = Color3.fromRGB(73, 78, 94), -- #494E5E
+    DropdownRow = Color3.fromRGB(32, 32, 32),       -- #202020
+    DropdownHover = Color3.fromRGB(38, 38, 38),     -- #262626
+    DropdownSelected = Color3.fromRGB(39, 35, 48),  -- subtle violet tint
+    DropdownHoverBorder = Color3.fromRGB(58, 58, 58),
 
-    TabHover = Color3.fromRGB(31, 29, 43),          -- #1F1D2B
-    TabSelected = Color3.fromRGB(47, 39, 72),       -- #2F2748
+    TabHover = Color3.fromRGB(27, 27, 27),
+    TabSelected = Color3.fromRGB(34, 31, 41),
 
-    Border = Color3.fromRGB(48, 53, 65),            -- #303541
-    Separator = Color3.fromRGB(38, 42, 52),         -- #262A34
-    MainText = Color3.fromRGB(238, 240, 246),       -- #EEF0F6
-    SecondaryText = Color3.fromRGB(157, 164, 180),  -- #9DA4B4
+    Border = Color3.fromRGB(40, 40, 40),             -- #282828
+    Separator = Color3.fromRGB(34, 34, 34),          -- #222222
+    MainText = Color3.fromRGB(240, 240, 240),        -- #F0F0F0
+    SecondaryText = Color3.fromRGB(145, 145, 145),   -- #919191
 }
 Library.LayeredStyle = LayeredStyle
 
@@ -7146,12 +7147,18 @@ do
             Type = "Dropdown",
         }
 
+        local CompactMobileDropdown = Library.IsMobile == true
+
         local Holder = New("Frame", {
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Dropdown.Text and 68 or 40),
+            Size = UDim2.new(1, 0, 0,
+                Dropdown.Text
+                    and (CompactMobileDropdown and 58 or 68)
+                    or (CompactMobileDropdown and 34 or 40)
+            ),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
@@ -7168,8 +7175,8 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(10, 8),
-            Size = UDim2.new(1, -20, 0, 16),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 5 or 8),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 14 or 16),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
@@ -7186,8 +7193,8 @@ do
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, 10, 1, -10),
-            Size = UDim2.new(1, -20, 0, 30),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -8 or -10),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 26 or 30),
             Text = "---",
             RichText = true,
             TextSize = 14,
@@ -7207,9 +7214,10 @@ do
         })
 
         New("UIPadding", {
-            PaddingLeft = UDim.new(0, 8),
-            -- Keep long values clear of the chevron on the right.
-            PaddingRight = UDim.new(0, 28),
+            PaddingLeft = UDim.new(0, CompactMobileDropdown and 7 or 8),
+            -- Reserve only the chevron footprint; the chevron itself is parented
+            -- to Holder so this padding never changes its physical position.
+            PaddingRight = UDim.new(0, CompactMobileDropdown and 22 or 26),
             Parent = Display,
         })
 
@@ -7229,7 +7237,7 @@ do
             -- Parent to Holder so Display's right text padding cannot push the
             -- chevron inward. This keeps every dropdown arrow at the same
             -- physical right edge regardless of title/value length.
-            Position = UDim2.new(1, -15, 1, -25),
+            Position = UDim2.new(1, -6, 1, CompactMobileDropdown and -21 or -25),
             Size = UDim2.fromOffset(16, 16),
             ZIndex = 3,
             Parent = Holder,
@@ -7255,7 +7263,10 @@ do
             BackgroundColor3 = LayeredStyle.OuterBox,
             BorderSizePixel = 0,
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 470),
+            Size = UDim2.fromOffset(
+                Library.IsMobile and 320 or (tonumber(Info.PopupWidth) or 560),
+                Library.IsMobile and 340 or (tonumber(Info.PopupHeight) or 470)
+            ),
             Visible = false,
             ZIndex = 120,
             Parent = Library.ScreenGui,
@@ -7613,6 +7624,32 @@ local List = New("ScrollingFrame", {
 
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
+
+            -- Phones use a deliberately compact popup instead of the desktop
+            -- 560x460 panel. Width/height follow the real viewport and rows are
+            -- shorter so the selector does not cover most of the screen.
+            if Library.IsMobile then
+                local width = math.max(270, math.floor(viewport.X * 0.90))
+                width = math.min(width, math.max(270, viewport.X - 16))
+
+                local height = math.max(260, math.floor(viewport.Y * 0.62))
+                height = math.min(height, math.max(260, viewport.Y - 20), 390)
+
+                return {
+                    width = width,
+                    height = height,
+                    padX = 8,
+                    padY = 7,
+                    headerH = 34,
+                    searchH = 31,
+                    actionH = 23,
+                    gap = 5,
+                    titleText = 15,
+                    inputText = 12,
+                    optionText = 12,
+                    rowH = 31,
+                }
+            end
 
             -- Auto-fit the popup width to the longest dropdown option.
             -- It only grows wider than PopupWidth when needed, and always stays
@@ -8618,12 +8655,18 @@ local List = New("ScrollingFrame", {
             return tostring(Value)
         end
     
+        local CompactMobileDropdown = Library.IsMobile == true
+
         local Holder = New("Frame", {
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Dropdown.Text and 68 or 40),
+            Size = UDim2.new(1, 0, 0,
+                Dropdown.Text
+                    and (CompactMobileDropdown and 58 or 68)
+                    or (CompactMobileDropdown and 34 or 40)
+            ),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
@@ -8640,8 +8683,8 @@ local List = New("ScrollingFrame", {
     
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(10, 8),
-            Size = UDim2.new(1, -20, 0, 16),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 5 or 8),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 14 or 16),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = 14,
@@ -8658,8 +8701,8 @@ local List = New("ScrollingFrame", {
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, 10, 1, -10),
-            Size = UDim2.new(1, -20, 0, 30),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -8 or -10),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 26 or 30),
             Text = "---",
             RichText = true,
             TextSize = 14,
@@ -8679,9 +8722,10 @@ local List = New("ScrollingFrame", {
         })
     
         New("UIPadding", {
-            PaddingLeft = UDim.new(0, 8),
-            -- Keep long values clear of the chevron on the right.
-            PaddingRight = UDim.new(0, 28),
+            PaddingLeft = UDim.new(0, CompactMobileDropdown and 7 or 8),
+            -- Reserve only the chevron footprint; the chevron itself is parented
+            -- to Holder so this padding never changes its physical position.
+            PaddingRight = UDim.new(0, CompactMobileDropdown and 22 or 26),
             Parent = Display,
         })
 
@@ -8700,7 +8744,7 @@ local List = New("ScrollingFrame", {
             ImageTransparency = 0.5,
             -- Same right-edge anchor as every other dropdown. Holder parenting
             -- avoids the Display UIPadding offset entirely.
-            Position = UDim2.new(1, -15, 1, -25),
+            Position = UDim2.new(1, -6, 1, CompactMobileDropdown and -21 or -25),
             Size = UDim2.fromOffset(16, 16),
             ZIndex = 3,
             Parent = Holder,
@@ -8726,7 +8770,10 @@ local List = New("ScrollingFrame", {
             BackgroundColor3 = LayeredStyle.OuterBox,
             BorderSizePixel = 0,
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromOffset(tonumber(Info.PopupWidth) or 560, tonumber(Info.PopupHeight) or 470),
+            Size = UDim2.fromOffset(
+                Library.IsMobile and 320 or (tonumber(Info.PopupWidth) or 560),
+                Library.IsMobile and 340 or (tonumber(Info.PopupHeight) or 470)
+            ),
             Visible = false,
             ZIndex = 120,
             Parent = Library.ScreenGui,
@@ -9030,6 +9077,32 @@ local List = New("ScrollingFrame", {
     
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
+
+            -- Phones use a deliberately compact popup instead of the desktop
+            -- 560x460 panel. Width/height follow the real viewport and rows are
+            -- shorter so the selector does not cover most of the screen.
+            if Library.IsMobile then
+                local width = math.max(270, math.floor(viewport.X * 0.90))
+                width = math.min(width, math.max(270, viewport.X - 16))
+
+                local height = math.max(260, math.floor(viewport.Y * 0.62))
+                height = math.min(height, math.max(260, viewport.Y - 20), 390)
+
+                return {
+                    width = width,
+                    height = height,
+                    padX = 8,
+                    padY = 7,
+                    headerH = 34,
+                    searchH = 31,
+                    actionH = 23,
+                    gap = 5,
+                    titleText = 15,
+                    inputText = 12,
+                    optionText = 12,
+                    rowH = 31,
+                }
+            end
 
             -- Auto-fit the popup width to the longest formatted dropdown option.
             -- Keep the normal width for short lists, grow for long labels, then
@@ -11667,7 +11740,7 @@ function Library:CreateWindow(WindowInfo)
 
         -- ZANJI brand header: no header logo. Keep the wordmark centered and
         -- split its color so ZANJI stays white while HUB follows AccentColor.
-        local BrandGap = 7
+        local BrandGap = 4
         local BrandTextSize = 22
 
         -- Brand text uses its own font. Obsidian's TextLabel template registers
@@ -14766,209 +14839,256 @@ function Library:CreateWindow(WindowInfo)
     end
 
     --==================================================
-    -- ZANJI BOXED TEXT TOGGLE
+    -- ZANJI UNIVERSAL LOGO TOGGLE
     --==================================================
-    -- Match Obsidian's native draggable text-button style instead of using
-    -- an image logo. ZANJI stays white and HUB follows AccentColor.
     do
-        if Library.ZanjiToggleButton and Library.ZanjiToggleButton.Destroy then
+        if Library.ZanjiToggleGui then
             pcall(function()
-                Library.ZanjiToggleButton:Destroy()
+                Library.ZanjiToggleGui:Destroy()
             end)
         end
 
-        local ToggleButton = Library:AddDraggableButton({
-            Text = "ZANJIHUB",
-            -- Gesture/toggle is handled below so the boxed button can use the
-            -- exact same press/bounce behavior as the old circular logo.
-            Callback = function() end,
-            ExcludeScaling = false,
-            ExcludeDragging = false,
-        })
+        local ToggleGui = Instance.new("ScreenGui")
+        ToggleGui.Name = "ZANJI_UI_TOGGLE"
+        ToggleGui.ResetOnSpawn = false
+        ToggleGui.IgnoreGuiInset = false
+        ToggleGui.DisplayOrder = 2147483647
+        ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+        ParentUI(ToggleGui)
+        SetAlwaysOnTop(ToggleGui, true)
+        Library.ZanjiToggleGui = ToggleGui
 
-        Library.ZanjiToggleButton = ToggleButton
+        local Holder = Instance.new("Frame")
+        Holder.Name = "LogoToggleHolder"
+        Holder.BackgroundTransparency = 1
+        Holder.BorderSizePixel = 0
+        Holder.Position = UDim2.fromOffset(6, 6)
+        Holder.Size = UDim2.fromOffset(58, 58)
+        Holder.Active = true
+        Holder.ZIndex = 1000000
+        Holder.Parent = ToggleGui
 
-        local Button = ToggleButton and ToggleButton.Button
-        if Button then
-            Button.Name = "ZanjiTextToggle"
-            -- Keep Roblox/Obsidian's native hover + pressed feedback.
-            Button.AutoButtonColor = true
-            Button.BackgroundColor3 = Library.Scheme.BackgroundColor
-            Button.BackgroundTransparency = 0
-            Button.BorderSizePixel = 0
-            Button.Text = ""
-            Button.RichText = false
-            -- Tight brand box: only a small amount of padding around ZANJIHUB.
-            local BrandTextWidth = select(1, Library:GetTextBounds(
-                "ZANJIHUB",
-                Enum.Font.GothamBlack,
-                18,
-                1000
-            ))
-            Button.Size = UDim2.fromOffset(math.ceil(BrandTextWidth) + 14, 34)
-            Button.ZIndex = 1000000
+        local Shadow = Instance.new("Frame")
+        Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+        Shadow.Position = UDim2.new(0.5, 2, 0.5, 3)
+        Shadow.Size = UDim2.fromScale(1, 1)
+        Shadow.BackgroundColor3 = Color3.new(0, 0, 0)
+        Shadow.BackgroundTransparency = 0.56
+        Shadow.BorderSizePixel = 0
+        Shadow.ZIndex = 999998
+        Shadow.Parent = Holder
 
-            local ExistingCorner = Button:FindFirstChildOfClass("UICorner")
-            if ExistingCorner then
-                ExistingCorner.CornerRadius = UDim.new(0, Library.CornerRadius)
-            end
+        local ShadowCorner = Instance.new("UICorner")
+        ShadowCorner.CornerRadius = UDim.new(1, 0)
+        ShadowCorner.Parent = Shadow
 
-            local ExistingStroke = Button:FindFirstChildOfClass("UIStroke")
-            if ExistingStroke then
-                ExistingStroke.Color = Library.Scheme.OutlineColor
-                ExistingStroke.Thickness = 1
-                ExistingStroke.Transparency = 0
-            else
-                local Stroke = Instance.new("UIStroke")
-                Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-                Stroke.Color = Library.Scheme.OutlineColor
-                Stroke.Thickness = 1
-                Stroke.Parent = Button
-            end
+        local Button = Instance.new("ImageButton")
+        Button.Name = "ZanjiLogoToggle"
+        -- Keep the original galaxy-style ZANJI artwork. A dark masking stroke
+        -- covers the cyan edge baked into that thumbnail, then a thin violet
+        -- overlay supplies the visible border.
+        Button.BackgroundColor3 = Color3.fromRGB(7, 8, 18)
+        Button.BackgroundTransparency = 0
+        Button.BorderSizePixel = 0
+        Button.Size = UDim2.fromScale(1, 1)
+        Button.Image = "rbxthumb://type=Asset&id=100735693340724&w=420&h=420"
+        Button.ImageColor3 = Color3.new(1, 1, 1)
+        Button.ImageTransparency = 0
+        Button.ScaleType = Enum.ScaleType.Fit
+        Button.AutoButtonColor = false
+        Button.Active = true
+        Button.Selectable = false
+        Button.ZIndex = 1000000
+        Button.Parent = Holder
 
-            local Brand = Instance.new("Frame")
-            Brand.Name = "Brand"
-            Brand.AnchorPoint = Vector2.new(0.5, 0.5)
-            Brand.BackgroundTransparency = 1
-            Brand.Position = UDim2.fromScale(0.5, 0.5)
-            Brand.Size = UDim2.new(1, -4, 1, 0)
-            Brand.ZIndex = Button.ZIndex + 1
-            Brand.Parent = Button
+        local ButtonCorner = Instance.new("UICorner")
+        ButtonCorner.CornerRadius = UDim.new(1, 0)
+        ButtonCorner.Parent = Button
 
-            local BrandLayout = Instance.new("UIListLayout")
-            BrandLayout.FillDirection = Enum.FillDirection.Horizontal
-            BrandLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-            BrandLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-            BrandLayout.Padding = UDim.new(0, 0)
-            BrandLayout.Parent = Brand
+        local Stroke = Instance.new("UIStroke")
+        Stroke.Name = "ZanjiLogoCyanMask"
+        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        Stroke.Color = Color3.fromRGB(7, 8, 18)
+        Stroke.Thickness = 4
+        Stroke.Transparency = 0
+        Stroke.Parent = Button
 
-            local Zanji = New("TextLabel", {
-                AutomaticSize = Enum.AutomaticSize.X,
-                BackgroundTransparency = 1,
-                Size = UDim2.new(0, 0, 1, 0),
-                Text = "ZANJI",
-                TextColor3 = "FontColor",
-                TextSize = 18,
-                TextXAlignment = Enum.TextXAlignment.Center,
-                TextYAlignment = Enum.TextYAlignment.Center,
-                ZIndex = Button.ZIndex + 2,
-                Parent = Brand,
-            })
-            if Library.Registry[Zanji] then
-                Library.Registry[Zanji].FontFace = nil
-            end
-            Zanji.FontFace = Font.fromEnum(Enum.Font.GothamBlack)
+        -- One thin visible ring. Do not stack another violet stroke on Button.
+        local VioletRing = Instance.new("Frame")
+        VioletRing.Name = "ZanjiLogoVioletRing"
+        VioletRing.AnchorPoint = Vector2.new(0.5, 0.5)
+        VioletRing.Position = UDim2.fromScale(0.5, 0.5)
+        VioletRing.Size = UDim2.new(1, -1, 1, -1)
+        VioletRing.BackgroundTransparency = 1
+        VioletRing.BorderSizePixel = 0
+        VioletRing.Active = false
+        VioletRing.ZIndex = 1000001
+        VioletRing.Parent = Holder
 
-            local Hub = New("TextLabel", {
-                AutomaticSize = Enum.AutomaticSize.X,
-                BackgroundTransparency = 1,
-                Size = UDim2.new(0, 0, 1, 0),
-                Text = "HUB",
-                TextColor3 = "AccentColor",
-                TextSize = 18,
-                TextXAlignment = Enum.TextXAlignment.Center,
-                TextYAlignment = Enum.TextYAlignment.Center,
-                ZIndex = Button.ZIndex + 2,
-                Parent = Brand,
-            })
-            if Library.Registry[Hub] then
-                Library.Registry[Hub].FontFace = nil
-            end
-            Hub.FontFace = Font.fromEnum(Enum.Font.GothamBlack)
+        local VioletRingCorner = Instance.new("UICorner")
+        VioletRingCorner.CornerRadius = UDim.new(1, 0)
+        VioletRingCorner.Parent = VioletRing
 
-            -- Same interaction used by the old circular ZANJI logo:
-            -- hover 1.04 -> press 0.92 -> click bounce 1.12 -> settle.
-            -- Dragging 5px+ only moves the button and does not toggle the UI.
-            local PressScale = Button:FindFirstChildOfClass("UIScale")
-            if not PressScale then
-                PressScale = Instance.new("UIScale")
-                PressScale.Scale = 1
-                PressScale.Parent = Button
-                table.insert(Library.Scales, PressScale)
-            end
+        local VioletRingStroke = Instance.new("UIStroke")
+        VioletRingStroke.Name = "ZanjiLogoVioletOverlayStroke"
+        VioletRingStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        VioletRingStroke.Color = Color3.fromRGB(168, 85, 247)
+        VioletRingStroke.Thickness = 1.25
+        VioletRingStroke.Transparency = 0
+        VioletRingStroke.Parent = VioletRing
 
-            local function tweenScale(value, duration, style)
-                if not Button.Parent then return end
-                TweenService:Create(
-                    PressScale,
-                    TweenInfo.new(
-                        duration or 0.10,
-                        style or Enum.EasingStyle.Quad,
-                        Enum.EasingDirection.Out
-                    ),
-                    { Scale = value }
-                ):Play()
-            end
+        local Scale = Instance.new("UIScale")
+        Scale.Scale = 1
+        Scale.Parent = Holder
 
-            local hovered = false
-            local pressing = false
-            local moved = false
-            local pressInput = nil
-            local pressStart = nil
-
-            local function isPress(input)
-                return input.UserInputType == Enum.UserInputType.MouseButton1
-                    or input.UserInputType == Enum.UserInputType.Touch
-            end
-
-            table.insert(ToggleButton.Connections, Button.MouseEnter:Connect(function()
-                -- Match the old circular button: desktop hover grows slightly.
-                hovered = not UserInputService.TouchEnabled
-                if hovered and not pressing then
-                    tweenScale(1.04, 0.10)
-                end
-            end))
-
-            table.insert(ToggleButton.Connections, Button.MouseLeave:Connect(function()
-                hovered = false
-                if not pressing then
-                    tweenScale(1, 0.10)
-                end
-            end))
-
-            table.insert(ToggleButton.Connections, Button.InputBegan:Connect(function(input)
-                if not isPress(input) then return end
-                pressing = true
-                moved = false
-                pressInput = input
-                pressStart = input.Position
-                tweenScale(0.92, 0.06)
-            end))
-
-            Library:GiveSignal(UserInputService.InputChanged:Connect(function(input)
-                if not pressing or not pressStart then return end
-                local movement =
-                    input == pressInput
-                    or input.UserInputType == Enum.UserInputType.MouseMovement
-                    or input.UserInputType == Enum.UserInputType.Touch
-                if not movement then return end
-
-                local delta = input.Position - pressStart
-                if delta.Magnitude >= 5 then
-                    moved = true
-                end
-            end))
-
-            Library:GiveSignal(UserInputService.InputEnded:Connect(function(input)
-                if not pressing or not isPress(input) then return end
-                pressing = false
-                pressInput = nil
-                pressStart = nil
-
-                if moved then
-                    tweenScale(hovered and 1.04 or 1, 0.12, Enum.EasingStyle.Back)
-                    return
-                end
-
-                Library:Toggle()
-                tweenScale(1.12, 0.10, Enum.EasingStyle.Back)
-                task.delay(0.10, function()
-                    if Button.Parent then
-                        tweenScale(hovered and 1.04 or 1, 0.14, Enum.EasingStyle.Back)
-                    end
-                end)
-            end))
+        local function tweenScale(value, duration, style)
+            if not Holder.Parent then return end
+            TweenService:Create(
+                Scale,
+                TweenInfo.new(
+                    duration or 0.10,
+                    style or Enum.EasingStyle.Quad,
+                    Enum.EasingDirection.Out
+                ),
+                { Scale = value }
+            ):Play()
         end
+
+        local function clampToViewport()
+            local camera = workspace.CurrentCamera
+            if not camera then return end
+            local viewport = camera.ViewportSize
+            local size = Holder.AbsoluteSize
+            local x = math.clamp(
+                Holder.Position.X.Offset,
+                4,
+                math.max(4, viewport.X - size.X - 4)
+            )
+            local y = math.clamp(
+                Holder.Position.Y.Offset,
+                4,
+                math.max(4, viewport.Y - size.Y - 4)
+            )
+            Holder.Position = UDim2.fromOffset(x, y)
+        end
+
+        local function updateSize()
+            local camera = workspace.CurrentCamera
+            local viewport = camera and camera.ViewportSize or Vector2.new(900, 600)
+            local shortest = math.max(1, math.min(viewport.X, viewport.Y))
+            local size = math.floor(math.clamp(shortest * 0.07, 48, 66) + 0.5)
+            Holder.Size = UDim2.fromOffset(size, size)
+            Stroke.Thickness = 4
+            VioletRingStroke.Thickness = 1.25
+            task.defer(clampToViewport)
+        end
+
+        local hovered = false
+        Button.MouseEnter:Connect(function()
+            -- Touch taps can fire MouseEnter without a matching MouseLeave.
+            -- Never use hover to alter the border, otherwise it stays thick
+            -- after opening the window on phones.
+            hovered = not UserInputService.TouchEnabled
+            if hovered then
+                tweenScale(1.04, 0.10)
+            end
+        end)
+
+        Button.MouseLeave:Connect(function()
+            hovered = false
+            Stroke.Thickness = 4
+            Stroke.Transparency = 0
+            VioletRingStroke.Thickness = 1.25
+            VioletRingStroke.Transparency = 0
+            tweenScale(1, 0.10)
+        end)
+
+        local dragging = false
+        local moved = false
+        local dragInput
+        local dragStart
+        local dragStartPosition
+
+        local function isPress(input)
+            return input.UserInputType == Enum.UserInputType.MouseButton1
+                or input.UserInputType == Enum.UserInputType.Touch
+        end
+
+        Button.InputBegan:Connect(function(input)
+            if not isPress(input) then return end
+            dragging = true
+            moved = false
+            dragInput = input
+            dragStart = input.Position
+            dragStartPosition = Holder.Position
+            tweenScale(0.92, 0.06)
+        end)
+
+        Library:GiveSignal(UserInputService.InputChanged:Connect(function(input)
+            if not dragging or not dragStart or not dragStartPosition then return end
+            local movement =
+                input == dragInput
+                or input.UserInputType == Enum.UserInputType.MouseMovement
+                or input.UserInputType == Enum.UserInputType.Touch
+            if not movement then return end
+
+            local delta = input.Position - dragStart
+            if delta.Magnitude >= 5 then
+                moved = true
+            end
+
+            Holder.Position = UDim2.new(
+                dragStartPosition.X.Scale,
+                dragStartPosition.X.Offset + delta.X,
+                dragStartPosition.Y.Scale,
+                dragStartPosition.Y.Offset + delta.Y
+            )
+            clampToViewport()
+        end))
+
+        Library:GiveSignal(UserInputService.InputEnded:Connect(function(input)
+            if not dragging or not isPress(input) then return end
+            dragging = false
+            dragInput = nil
+
+            if moved then
+                tweenScale(hovered and 1.04 or 1, 0.12, Enum.EasingStyle.Back)
+                return
+            end
+
+            Library:Toggle()
+
+            tweenScale(1.12, 0.10, Enum.EasingStyle.Back)
+            task.delay(0.10, function()
+                if Holder.Parent then
+                    Stroke.Thickness = 4
+                    VioletRingStroke.Thickness = 1.25
+                    tweenScale(hovered and 1.04 or 1, 0.14, Enum.EasingStyle.Back)
+                end
+            end)
+        end))
+
+        local function connectCamera(camera)
+            if not camera then return end
+            Library:GiveSignal(
+                camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateSize)
+            )
+        end
+
+        connectCamera(workspace.CurrentCamera)
+        Library:GiveSignal(
+            workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+                connectCamera(workspace.CurrentCamera)
+                updateSize()
+            end)
+        )
+
+        task.defer(function()
+            updateSize()
+            pcall(function()
+                game:GetService("ContentProvider"):PreloadAsync({ Button })
+            end)
+        end)
     end
 
     --// Execution \\--
