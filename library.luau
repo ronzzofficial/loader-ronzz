@@ -7159,13 +7159,17 @@ do
         local ArrowImage = New("ImageLabel", {
             AnchorPoint = Vector2.new(1, 0.5),
             Image = ArrowIcon and ArrowIcon.Url or "",
-                ImageColor3 = LayeredStyle.SecondaryText,
+            ImageColor3 = LayeredStyle.SecondaryText,
             ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
             ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
             ImageTransparency = 0.5,
-            Position = UDim2.new(1, -8, 0.5, 0),
+            -- Parent to Holder so Display's right text padding does not push the
+            -- chevron inward. The display itself ends 10 px from the holder edge,
+            -- so -18 keeps the icon 8 px inside the real dropdown edge.
+            Position = UDim2.new(1, -18, 1, -25),
             Size = UDim2.fromOffset(16, 16),
-            Parent = Display,
+            ZIndex = 3,
+            Parent = Holder,
         })
 
         local ClickBlocker = New("TextButton", {
@@ -10393,7 +10397,8 @@ local List = New("ScrollingFrame", {
             }
 
             if Boxed then
-                ContainerProps.BackgroundColor3 = "BackgroundColor"
+                -- Match the current layered graphite UI instead of the legacy theme colors.
+                ContainerProps.BackgroundColor3 = LayeredStyle.InnerBox
             end
 
             DepboxContainer = New("Frame", ContainerProps)
@@ -10406,7 +10411,13 @@ local List = New("ScrollingFrame", {
                         Parent = DepboxContainer,
                     })
                 )
-                Library:AddOutline(DepboxContainer)
+                -- Use the same neutral border as standard Zanji cards/controls.
+                New("UIStroke", {
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                    Color = LayeredStyle.Border,
+                    Thickness = 1,
+                    Parent = DepboxContainer,
+                })
                 New("UIPadding", {
                     PaddingBottom = UDim.new(0, 7),
                     PaddingLeft = UDim.new(0, 7),
