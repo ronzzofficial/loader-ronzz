@@ -297,6 +297,14 @@ local LayeredStyle = {
     InnerBox = Color3.fromRGB(27, 27, 27),         -- #1b1b1b
     ControlRow = Color3.fromRGB(32, 32, 32),       -- #202020
     InputBox = Color3.fromRGB(24, 24, 24),         -- #181818
+
+    -- Dropdown rows: normal -> hover -> selected.
+    -- Kept neutral/dark like the reference; purple is reserved for selection outline.
+    DropdownRow = Color3.fromRGB(27, 27, 29),      -- #1b1b1d
+    DropdownHover = Color3.fromRGB(36, 36, 41),    -- #242429
+    DropdownSelected = Color3.fromRGB(52, 52, 58), -- #34343a
+    DropdownHoverBorder = Color3.fromRGB(62, 62, 68),
+
     Border = Color3.fromRGB(41, 41, 41),           -- #292929
     Separator = Color3.fromRGB(37, 37, 37),        -- #252525
     MainText = Color3.fromRGB(238, 238, 238),       -- #eeeeee
@@ -7358,7 +7366,23 @@ local List = New("ScrollingFrame", {
 
         local ListLayout = New("UIListLayout", {
             HorizontalAlignment = Enum.HorizontalAlignment.Center,
-            Padding = UDim.new(0, 8),
+            Padding = UDim.new(0, 4),
+            Parent = List,
+        })
+
+        -- The reference keeps the first/last option away from the list border.
+        -- These transparent spacers plus the 4px list gap create ~8px top/bottom breathing room.
+        local ListTopSpacer = New("Frame", {
+            BackgroundTransparency = 1,
+            LayoutOrder = -1000000,
+            Size = UDim2.new(1, 0, 0, 4),
+            Parent = List,
+        })
+
+        local ListBottomSpacer = New("Frame", {
+            BackgroundTransparency = 1,
+            LayoutOrder = 1000000,
+            Size = UDim2.new(1, 0, 0, 4),
             Parent = List,
         })
 
@@ -7386,7 +7410,7 @@ local List = New("ScrollingFrame", {
         local PopupFixedWidth = tonumber(Info.PopupWidth) or 560
         local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
         local CurrentRowHeight = 38
-        local CurrentRowGap = 5
+        local CurrentRowGap = 4
         local CurrentOptionTextSize = 13
         local RenderVirtualRows
         local VirtualState = {
@@ -7624,7 +7648,7 @@ local List = New("ScrollingFrame", {
             ListLayout.Padding = UDim.new(0, CurrentRowGap)
 
             for _, Entry in pairs(Buttons) do
-                Entry.Button.Size = UDim2.new(1, -8, 0, CurrentRowHeight)
+                Entry.Button.Size = UDim2.new(1, -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
             end
 
@@ -7637,20 +7661,34 @@ local List = New("ScrollingFrame", {
             local selected = IsSelected(Entry.Value)
             local rowStroke = Entry.Button:FindFirstChild("ZanjiDropdownRowStroke")
 
-            -- Each option has its own dark row so adjacent entries are
-            -- visually separated instead of blending into one flat list.
-            Entry.Button.BackgroundColor3 =
-                selected
-                and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.80)
-                or LayeredStyle.InputBox
+            local hovered = Entry.Hovered == true and not Entry.Disabled and not Dropdown.Disabled
+
+            -- Reference behavior:
+            -- normal = dark row, hover = slightly lighter row, selected = gray row + purple outline.
+            if selected then
+                Entry.Button.BackgroundColor3 = LayeredStyle.DropdownSelected
+            elseif hovered then
+                Entry.Button.BackgroundColor3 = LayeredStyle.DropdownHover
+            else
+                Entry.Button.BackgroundColor3 = LayeredStyle.DropdownRow
+            end
+
             Entry.Button.BackgroundTransparency = 0
-            Entry.Button.TextColor3 = selected and LayeredStyle.MainText or LayeredStyle.SecondaryText
+            Entry.Button.TextColor3 = LayeredStyle.MainText
             Entry.Button.TextTransparency = Entry.Disabled and 0.65 or 0
             Entry.Button.Text = tostring(GetOptionText(Entry.Value))
 
             if rowStroke then
-                rowStroke.Color = selected and Library.Scheme.AccentColor or LayeredStyle.Border
-                rowStroke.Transparency = selected and 0.04 or 0.12
+                if selected then
+                    rowStroke.Color = Library.Scheme.AccentColor
+                    rowStroke.Transparency = 0
+                elseif hovered then
+                    rowStroke.Color = LayeredStyle.DropdownHoverBorder
+                    rowStroke.Transparency = 0.04
+                else
+                    rowStroke.Color = LayeredStyle.Border
+                    rowStroke.Transparency = 0.12
+                end
             end
         end
 
@@ -7743,14 +7781,14 @@ local List = New("ScrollingFrame", {
 
         local function CreateDropdownButton(LayoutOrder)
             local Button = New("TextButton", {
-                BackgroundColor3 = LayeredStyle.InputBox,
+                BackgroundColor3 = LayeredStyle.DropdownRow,
                 BackgroundTransparency = 0,
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
-                Size = UDim2.new(1, -8, 0, CurrentRowHeight),
+                Size = UDim2.new(1, -16, 0, CurrentRowHeight),
                 Text = "",
-                TextColor3 = LayeredStyle.SecondaryText,
+                TextColor3 = LayeredStyle.MainText,
                 RichText = true,
                 TextSize = CurrentOptionTextSize,
                 TextTruncate = Enum.TextTruncate.None,
@@ -7779,6 +7817,26 @@ local List = New("ScrollingFrame", {
                 PaddingRight = UDim.new(0, 12),
                 Parent = Button,
             })
+
+            Button.MouseEnter:Connect(function()
+                local Entry = Buttons[Button]
+                if not Entry then
+                    return
+                end
+
+                Entry.Hovered = true
+                UpdateEntry(Entry)
+            end)
+
+            Button.MouseLeave:Connect(function()
+                local Entry = Buttons[Button]
+                if not Entry then
+                    return
+                end
+
+                Entry.Hovered = false
+                UpdateEntry(Entry)
+            end)
 
             Button.MouseButton1Click:Connect(function()
                 local Entry = Buttons[Button]
@@ -7836,12 +7894,13 @@ local List = New("ScrollingFrame", {
                 local entry = Buttons[button] or { Button = button }
                 entry.Value = value
                 entry.Disabled = VirtualState.DisabledLookup[value] == true
+                entry.Hovered = false
                 Buttons[button] = entry
 
                 button.Visible = true
                 button.LayoutOrder = index
-                button.Position = UDim2.fromOffset(4, 4 + ((index - 1) * rowStep))
-                button.Size = UDim2.new(1, -8, 0, rowHeight)
+                button.Position = UDim2.fromOffset(8, 8 + ((index - 1) * rowStep))
+                button.Size = UDim2.new(1, -16, 0, rowHeight)
                 button.TextSize = CurrentOptionTextSize
 
                 UpdateEntry(entry)
@@ -7878,7 +7937,7 @@ local List = New("ScrollingFrame", {
                 ApplyPopupLayout()
                 List.CanvasSize = UDim2.fromOffset(
                     0,
-                    math.ceil(8 + (#orderedValues * (CurrentRowHeight + CurrentRowGap)))
+                    math.ceil(16 + (#orderedValues * CurrentRowHeight) + (math.max(0, #orderedValues - 1) * CurrentRowGap))
                 )
                 List.CanvasPosition = Vector2.zero
                 RenderVirtualRows(true)
@@ -7897,6 +7956,7 @@ local List = New("ScrollingFrame", {
                     Button = Button,
                     Value = Value,
                     Disabled = IsDisabled,
+                    Hovered = false,
                 }
 
                 Buttons[Button] = Entry
@@ -8660,7 +8720,23 @@ local List = New("ScrollingFrame", {
     
         local ListLayout = New("UIListLayout", {
             HorizontalAlignment = Enum.HorizontalAlignment.Center,
-            Padding = UDim.new(0, 8),
+            Padding = UDim.new(0, 4),
+            Parent = List,
+        })
+
+        -- The reference keeps the first/last option away from the list border.
+        -- These transparent spacers plus the 4px list gap create ~8px top/bottom breathing room.
+        local ListTopSpacer = New("Frame", {
+            BackgroundTransparency = 1,
+            LayoutOrder = -1000000,
+            Size = UDim2.new(1, 0, 0, 4),
+            Parent = List,
+        })
+
+        local ListBottomSpacer = New("Frame", {
+            BackgroundTransparency = 1,
+            LayoutOrder = 1000000,
+            Size = UDim2.new(1, 0, 0, 4),
             Parent = List,
         })
     
@@ -8688,7 +8764,7 @@ local List = New("ScrollingFrame", {
         local PopupFixedWidth = tonumber(Info.PopupWidth) or 560
         local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
         local CurrentRowHeight = 38
-        local CurrentRowGap = 5
+        local CurrentRowGap = 4
         local CurrentOptionTextSize = 13
         local RenderVirtualRows
         local VirtualState = {
@@ -8870,7 +8946,7 @@ local List = New("ScrollingFrame", {
             ListLayout.Padding = UDim.new(0, CurrentRowGap)
     
             for _, Entry in pairs(Buttons) do
-                Entry.Button.Size = UDim2.new(1, -8, 0, CurrentRowHeight)
+                Entry.Button.Size = UDim2.new(1, -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
             end
 
@@ -8883,20 +8959,34 @@ local List = New("ScrollingFrame", {
             local selected = IsSelected(Entry.Value)
             local rowStroke = Entry.Button:FindFirstChild("ZanjiDropdownRowStroke")
 
-            -- Each option has its own dark row so adjacent entries are
-            -- visually separated instead of blending into one flat list.
-            Entry.Button.BackgroundColor3 =
-                selected
-                and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.80)
-                or LayeredStyle.InputBox
+            local hovered = Entry.Hovered == true and not Entry.Disabled and not Dropdown.Disabled
+
+            -- Reference behavior:
+            -- normal = dark row, hover = slightly lighter row, selected = gray row + purple outline.
+            if selected then
+                Entry.Button.BackgroundColor3 = LayeredStyle.DropdownSelected
+            elseif hovered then
+                Entry.Button.BackgroundColor3 = LayeredStyle.DropdownHover
+            else
+                Entry.Button.BackgroundColor3 = LayeredStyle.DropdownRow
+            end
+
             Entry.Button.BackgroundTransparency = 0
-            Entry.Button.TextColor3 = selected and LayeredStyle.MainText or LayeredStyle.SecondaryText
+            Entry.Button.TextColor3 = LayeredStyle.MainText
             Entry.Button.TextTransparency = Entry.Disabled and 0.65 or 0
             Entry.Button.Text = FormatZanjiDropdownValue(Entry.Value)
 
             if rowStroke then
-                rowStroke.Color = selected and Library.Scheme.AccentColor or LayeredStyle.Border
-                rowStroke.Transparency = selected and 0.04 or 0.12
+                if selected then
+                    rowStroke.Color = Library.Scheme.AccentColor
+                    rowStroke.Transparency = 0
+                elseif hovered then
+                    rowStroke.Color = LayeredStyle.DropdownHoverBorder
+                    rowStroke.Transparency = 0.04
+                else
+                    rowStroke.Color = LayeredStyle.Border
+                    rowStroke.Transparency = 0.12
+                end
             end
         end
 
@@ -8981,14 +9071,14 @@ local List = New("ScrollingFrame", {
     
         local function CreateDropdownButton(LayoutOrder)
             local Button = New("TextButton", {
-                BackgroundColor3 = LayeredStyle.InputBox,
+                BackgroundColor3 = LayeredStyle.DropdownRow,
                 BackgroundTransparency = 0,
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
-                Size = UDim2.new(1, -8, 0, CurrentRowHeight),
+                Size = UDim2.new(1, -16, 0, CurrentRowHeight),
                 Text = "",
-                TextColor3 = LayeredStyle.SecondaryText,
+                TextColor3 = LayeredStyle.MainText,
                 RichText = true,
                 TextSize = CurrentOptionTextSize,
                 TextTruncate = Enum.TextTruncate.None,
@@ -9017,6 +9107,26 @@ local List = New("ScrollingFrame", {
                 PaddingRight = UDim.new(0, 12),
                 Parent = Button,
             })
+
+            Button.MouseEnter:Connect(function()
+                local Entry = Buttons[Button]
+                if not Entry then
+                    return
+                end
+
+                Entry.Hovered = true
+                UpdateEntry(Entry)
+            end)
+
+            Button.MouseLeave:Connect(function()
+                local Entry = Buttons[Button]
+                if not Entry then
+                    return
+                end
+
+                Entry.Hovered = false
+                UpdateEntry(Entry)
+            end)
 
             Button.MouseButton1Click:Connect(function()
                 local Entry = Buttons[Button]
@@ -9074,12 +9184,13 @@ local List = New("ScrollingFrame", {
                 local entry = Buttons[button] or { Button = button }
                 entry.Value = value
                 entry.Disabled = VirtualState.DisabledLookup[value] == true
+                entry.Hovered = false
                 Buttons[button] = entry
 
                 button.Visible = true
                 button.LayoutOrder = index
-                button.Position = UDim2.fromOffset(4, 4 + ((index - 1) * rowStep))
-                button.Size = UDim2.new(1, -8, 0, rowHeight)
+                button.Position = UDim2.fromOffset(8, 8 + ((index - 1) * rowStep))
+                button.Size = UDim2.new(1, -16, 0, rowHeight)
                 button.TextSize = CurrentOptionTextSize
 
                 UpdateEntry(entry)
@@ -9116,7 +9227,7 @@ local List = New("ScrollingFrame", {
                 ApplyPopupLayout()
                 List.CanvasSize = UDim2.fromOffset(
                     0,
-                    math.ceil(8 + (#orderedValues * (CurrentRowHeight + CurrentRowGap)))
+                    math.ceil(16 + (#orderedValues * CurrentRowHeight) + (math.max(0, #orderedValues - 1) * CurrentRowGap))
                 )
                 List.CanvasPosition = Vector2.zero
                 RenderVirtualRows(true)
@@ -9135,6 +9246,7 @@ local List = New("ScrollingFrame", {
                     Button = Button,
                     Value = Value,
                     Disabled = IsDisabled,
+                    Hovered = false,
                 }
     
                 Buttons[Button] = Entry
