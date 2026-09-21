@@ -7226,11 +7226,13 @@ do
             ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
             ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
             ImageTransparency = 0.5,
-            -- Pin the arrow to the field itself, never to label/title width.
-            Position = UDim2.new(1, -8, 0.5, 0),
+            -- Parent to Holder so Display's right text padding cannot push the
+            -- chevron inward. This keeps every dropdown arrow at the same
+            -- physical right edge regardless of title/value length.
+            Position = UDim2.new(1, -15, 1, -25),
             Size = UDim2.fromOffset(16, 16),
             ZIndex = 3,
-            Parent = Display,
+            Parent = Holder,
         })
 
         local ClickBlocker = New("TextButton", {
@@ -8692,13 +8694,16 @@ local List = New("ScrollingFrame", {
         local ArrowImage = New("ImageLabel", {
             AnchorPoint = Vector2.new(1, 0.5),
             Image = ArrowIcon and ArrowIcon.Url or "",
-                ImageColor3 = LayeredStyle.SecondaryText,
+            ImageColor3 = LayeredStyle.SecondaryText,
             ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
             ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
             ImageTransparency = 0.5,
-            Position = UDim2.new(1, -8, 0.5, 0),
+            -- Same right-edge anchor as every other dropdown. Holder parenting
+            -- avoids the Display UIPadding offset entirely.
+            Position = UDim2.new(1, -15, 1, -25),
             Size = UDim2.fromOffset(16, 16),
-            Parent = Display,
+            ZIndex = 3,
+            Parent = Holder,
         })
     
         local ClickBlocker = New("TextButton", {
@@ -14769,13 +14774,15 @@ function Library:CreateWindow(WindowInfo)
         local Button = ToggleButton and ToggleButton.Button
         if Button then
             Button.Name = "ZanjiTextToggle"
-            Button.AutoButtonColor = false
+            -- Keep Roblox/Obsidian's native hover + pressed feedback.
+            Button.AutoButtonColor = true
             Button.BackgroundColor3 = Library.Scheme.BackgroundColor
             Button.BackgroundTransparency = 0
             Button.BorderSizePixel = 0
             Button.Text = ""
             Button.RichText = false
-            Button.Size = UDim2.fromOffset(112, 34)
+            -- Tighter box: less dead space on both sides of the brand text.
+            Button.Size = UDim2.fromOffset(104, 34)
             Button.ZIndex = 1000000
 
             local ExistingCorner = Button:FindFirstChildOfClass("UICorner")
@@ -14801,7 +14808,7 @@ function Library:CreateWindow(WindowInfo)
             Brand.AnchorPoint = Vector2.new(0.5, 0.5)
             Brand.BackgroundTransparency = 1
             Brand.Position = UDim2.fromScale(0.5, 0.5)
-            Brand.Size = UDim2.new(1, -18, 1, 0)
+            Brand.Size = UDim2.new(1, -6, 1, 0)
             Brand.ZIndex = Button.ZIndex + 1
             Brand.Parent = Button
 
@@ -14818,7 +14825,7 @@ function Library:CreateWindow(WindowInfo)
                 Size = UDim2.new(0, 0, 1, 0),
                 Text = "ZANJI",
                 TextColor3 = "FontColor",
-                TextSize = 14,
+                TextSize = 16,
                 TextXAlignment = Enum.TextXAlignment.Center,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = Button.ZIndex + 2,
@@ -14832,7 +14839,7 @@ function Library:CreateWindow(WindowInfo)
                 Size = UDim2.new(0, 0, 1, 0),
                 Text = "HUB",
                 TextColor3 = "AccentColor",
-                TextSize = 14,
+                TextSize = 16,
                 TextXAlignment = Enum.TextXAlignment.Center,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = Button.ZIndex + 2,
