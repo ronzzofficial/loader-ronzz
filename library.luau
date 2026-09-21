@@ -296,7 +296,7 @@ local LayeredStyle = {
     -- Large surfaces stay near-black; controls sit on #202020 with subtle
     -- #282828 borders so sections are visible without looking neon-heavy.
     MainBackground = Color3.fromRGB(15, 15, 15),    -- #0F0F0F
-    OuterBox = Color3.fromRGB(20, 20, 20),          -- #141414
+    OuterBox = Color3.fromRGB(25, 25, 25),          -- #191919
     InnerBox = Color3.fromRGB(25, 25, 25),          -- #191919
     ControlRow = Color3.fromRGB(25, 25, 25),        -- #191919
     InputBox = Color3.fromRGB(32, 32, 32),          -- #202020
@@ -7237,8 +7237,8 @@ do
             -- Parent to Holder so Display's right text padding cannot push the
             -- chevron inward. This keeps every dropdown arrow at the same
             -- physical right edge regardless of title/value length.
-            Position = UDim2.new(1, -6, 1, CompactMobileDropdown and -21 or -25),
-            Size = UDim2.fromOffset(16, 16),
+            Position = UDim2.new(1, CompactMobileDropdown and -16 or -18, 1, CompactMobileDropdown and -21 or -25),
+            Size = UDim2.fromOffset(14, 14),
             ZIndex = 3,
             Parent = Holder,
         })
@@ -8744,8 +8744,8 @@ local List = New("ScrollingFrame", {
             ImageTransparency = 0.5,
             -- Same right-edge anchor as every other dropdown. Holder parenting
             -- avoids the Display UIPadding offset entirely.
-            Position = UDim2.new(1, -6, 1, CompactMobileDropdown and -21 or -25),
-            Size = UDim2.fromOffset(16, 16),
+            Position = UDim2.new(1, CompactMobileDropdown and -16 or -18, 1, CompactMobileDropdown and -21 or -25),
+            Size = UDim2.fromOffset(14, 14),
             ZIndex = 3,
             Parent = Holder,
         })
@@ -11777,10 +11777,23 @@ function Library:CreateWindow(WindowInfo)
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Size = UDim2.new(0, X, 1, 0),
             Text = WindowInfo.Title,
-            TextColor3 = "AccentColor",
+            -- Keep a white base so the premium UIGradient remains visible even
+            -- after ThemeManager reapplies the active theme.
+            TextColor3 = "WhiteColor",
             TextSize = BrandTextSize,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = TitleHolder,
+        })
+
+        local ZanjiTitleGradient = New("UIGradient", {
+            Name = "ZanjiPremiumGradient",
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(216, 180, 254)),
+                ColorSequenceKeypoint.new(0.48, Color3.fromRGB(167, 139, 250)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(139, 92, 246)),
+            }),
+            Rotation = 0,
+            Parent = WindowTitle,
         })
 
         UpdateBrandLayout = function()
