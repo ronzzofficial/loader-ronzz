@@ -7076,6 +7076,7 @@ do
 
             Callback = Info.Callback,
             Changed = Info.Changed,
+            RefreshFunc = Info.RefreshFunc or Info.RefreshValues,
 
             Disabled = Info.Disabled,
             Visible = Info.Visible,
@@ -7312,7 +7313,8 @@ do
 
                 local BulkActions = New("Frame", {
             BackgroundTransparency = 1,
-            Visible = Info.Multi == true and Info.ShowBulkActions ~= false,
+            Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
+                or type(Dropdown.RefreshFunc) == "function",
             ZIndex = 123,
             Parent = PopupBody,
         })
@@ -7321,7 +7323,7 @@ do
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
-            Text = "All",
+            Text = "Select All",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -7338,7 +7340,7 @@ do
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
-            Text = "None",
+            Text = "Clear",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -7349,6 +7351,24 @@ do
         New("UICorner", {
             CornerRadius = UDim.new(0, math.max(1, Library.CornerRadius)),
             Parent = ClearButton,
+        })
+
+        local RefreshButton = New("TextButton", {
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = Library.Scheme.AccentColor,
+            BorderSizePixel = 1,
+            Text = "Refresh ↻",
+            TextColor3 = LayeredStyle.MainText,
+            TextSize = 12,
+            TextYAlignment = Enum.TextYAlignment.Center,
+            Visible = type(Dropdown.RefreshFunc) == "function",
+            ZIndex = 124,
+            Parent = BulkActions,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(0, math.max(1, Library.CornerRadius)),
+            Parent = RefreshButton,
         })
 
 local List = New("ScrollingFrame", {
@@ -7635,14 +7655,27 @@ local List = New("ScrollingFrame", {
             -- If bulk actions are hidden (for example a single-select dropdown),
             -- the search box expands all the way to the right with no dead gap.
             local hasSearch = SearchInput.Visible
+            local showSelectionActions = Info.Multi == true and Info.ShowBulkActions ~= false
+            local showRefreshAction = type(Dropdown.RefreshFunc) == "function"
+            BulkActions.Visible = showSelectionActions or showRefreshAction
             local hasBulkActions = BulkActions.Visible
 
             if hasSearch or hasBulkActions then
-                local allWidth = 42
-                local noneWidth = 50
+                local selectAllWidth = 78
+                local clearWidth = 52
+                local refreshWidth = 76
                 local actionGap = 6
                 local toolbarGap = 8
-                local bulkWidth = allWidth + actionGap + noneWidth
+                local bulkWidth = 0
+
+                if showSelectionActions then
+                    bulkWidth += selectAllWidth + actionGap + clearWidth
+                end
+                if showRefreshAction then
+                    if bulkWidth > 0 then bulkWidth += actionGap end
+                    bulkWidth += refreshWidth
+                end
+
                 local toolbarHeight = math.max(M.searchH, M.actionH)
 
                 if hasSearch then
@@ -7665,13 +7698,29 @@ local List = New("ScrollingFrame", {
                     BulkActions.Position = UDim2.new(1, -(innerPadX + bulkWidth), 0, listTop)
                     BulkActions.Size = UDim2.fromOffset(bulkWidth, M.searchH)
 
-                    SelectAllButton.Size = UDim2.fromOffset(allWidth, M.searchH)
-                    SelectAllButton.Position = UDim2.fromOffset(0, 0)
-                    SelectAllButton.TextSize = 12
+                    local x = 0
+                    SelectAllButton.Visible = showSelectionActions
+                    ClearButton.Visible = showSelectionActions
+                    RefreshButton.Visible = showRefreshAction
 
-                    ClearButton.Size = UDim2.fromOffset(noneWidth, M.searchH)
-                    ClearButton.Position = UDim2.new(1, -noneWidth, 0, 0)
-                    ClearButton.TextSize = 12
+                    if showSelectionActions then
+                        SelectAllButton.Size = UDim2.fromOffset(selectAllWidth, M.searchH)
+                        SelectAllButton.Position = UDim2.fromOffset(x, 0)
+                        SelectAllButton.TextSize = 12
+                        x += selectAllWidth + actionGap
+
+                        ClearButton.Size = UDim2.fromOffset(clearWidth, M.searchH)
+                        ClearButton.Position = UDim2.fromOffset(x, 0)
+                        ClearButton.TextSize = 12
+                        x += clearWidth
+                    end
+
+                    if showRefreshAction then
+                        if x > 0 then x += actionGap end
+                        RefreshButton.Size = UDim2.fromOffset(refreshWidth, M.searchH)
+                        RefreshButton.Position = UDim2.fromOffset(x, 0)
+                        RefreshButton.TextSize = 12
+                    end
                 end
 
                 listTop += toolbarHeight + M.gap
@@ -8069,6 +8118,35 @@ local List = New("ScrollingFrame", {
             Dropdown.Changed = Func
         end
 
+        function Dropdown:SetRefreshFunc(Func)
+            Dropdown.RefreshFunc = type(Func) == "function" and Func or nil
+            RefreshButton.Visible = type(Dropdown.RefreshFunc) == "function"
+            BulkActions.Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
+                or RefreshButton.Visible
+            ApplyPopupLayout()
+        end
+
+        function Dropdown:RefreshValues()
+            if Dropdown.Disabled or type(Dropdown.RefreshFunc) ~= "function" then
+                return false
+            end
+
+            local ok, result = pcall(Dropdown.RefreshFunc, Dropdown)
+            if not ok then
+                warn("[Dropdown Refresh] " .. tostring(result))
+                return false
+            end
+
+            if type(result) == "table" then
+                Dropdown:SetValues(result)
+            else
+                Dropdown:BuildDropdownList(MenuState.Active)
+            end
+
+            ApplyPopupLayout()
+            return true
+        end
+
         function Dropdown:RunChanged()
             Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
             Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
@@ -8326,6 +8404,10 @@ local List = New("ScrollingFrame", {
             Dropdown:SetValue({})
         end)
 
+        RefreshButton.MouseButton1Click:Connect(function()
+            Dropdown:RefreshValues()
+        end)
+
         Library:GiveSignal(List:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
             if VirtualState.Active and RenderVirtualRows then
                 RenderVirtualRows(false)
@@ -8442,6 +8524,7 @@ local List = New("ScrollingFrame", {
     
             Callback = Info.Callback,
             Changed = Info.Changed,
+            RefreshFunc = Info.RefreshFunc or Info.RefreshValues,
     
             Disabled = Info.Disabled,
             Visible = Info.Visible,
@@ -8698,7 +8781,8 @@ local List = New("ScrollingFrame", {
     
         local BulkActions = New("Frame", {
             BackgroundTransparency = 1,
-            Visible = Info.Multi == true and Info.ShowBulkActions ~= false,
+            Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
+                or type(Dropdown.RefreshFunc) == "function",
             ZIndex = 123,
             Parent = PopupBody,
         })
@@ -8707,7 +8791,7 @@ local List = New("ScrollingFrame", {
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
-            Text = "All",
+            Text = "Select All",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -8724,7 +8808,7 @@ local List = New("ScrollingFrame", {
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderColor3 = Library.Scheme.AccentColor,
             BorderSizePixel = 1,
-            Text = "None",
+            Text = "Clear",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -8735,6 +8819,24 @@ local List = New("ScrollingFrame", {
         New("UICorner", {
             CornerRadius = UDim.new(0, math.max(1, Library.CornerRadius)),
             Parent = ClearButton,
+        })
+
+        local RefreshButton = New("TextButton", {
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderColor3 = Library.Scheme.AccentColor,
+            BorderSizePixel = 1,
+            Text = "Refresh ↻",
+            TextColor3 = LayeredStyle.MainText,
+            TextSize = 12,
+            TextYAlignment = Enum.TextYAlignment.Center,
+            Visible = type(Dropdown.RefreshFunc) == "function",
+            ZIndex = 124,
+            Parent = BulkActions,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(0, math.max(1, Library.CornerRadius)),
+            Parent = RefreshButton,
         })
 
         local List = New("ScrollingFrame", {
@@ -8966,14 +9068,27 @@ local List = New("ScrollingFrame", {
             -- If bulk actions are hidden (for example a single-select dropdown),
             -- the search box expands all the way to the right with no dead gap.
             local hasSearch = SearchInput.Visible
+            local showSelectionActions = Info.Multi == true and Info.ShowBulkActions ~= false
+            local showRefreshAction = type(Dropdown.RefreshFunc) == "function"
+            BulkActions.Visible = showSelectionActions or showRefreshAction
             local hasBulkActions = BulkActions.Visible
 
             if hasSearch or hasBulkActions then
-                local allWidth = 42
-                local noneWidth = 50
+                local selectAllWidth = 78
+                local clearWidth = 52
+                local refreshWidth = 76
                 local actionGap = 6
                 local toolbarGap = 8
-                local bulkWidth = allWidth + actionGap + noneWidth
+                local bulkWidth = 0
+
+                if showSelectionActions then
+                    bulkWidth += selectAllWidth + actionGap + clearWidth
+                end
+                if showRefreshAction then
+                    if bulkWidth > 0 then bulkWidth += actionGap end
+                    bulkWidth += refreshWidth
+                end
+
                 local toolbarHeight = math.max(M.searchH, M.actionH)
 
                 if hasSearch then
@@ -8996,13 +9111,29 @@ local List = New("ScrollingFrame", {
                     BulkActions.Position = UDim2.new(1, -(innerPadX + bulkWidth), 0, listTop)
                     BulkActions.Size = UDim2.fromOffset(bulkWidth, M.searchH)
 
-                    SelectAllButton.Size = UDim2.fromOffset(allWidth, M.searchH)
-                    SelectAllButton.Position = UDim2.fromOffset(0, 0)
-                    SelectAllButton.TextSize = 12
+                    local x = 0
+                    SelectAllButton.Visible = showSelectionActions
+                    ClearButton.Visible = showSelectionActions
+                    RefreshButton.Visible = showRefreshAction
 
-                    ClearButton.Size = UDim2.fromOffset(noneWidth, M.searchH)
-                    ClearButton.Position = UDim2.new(1, -noneWidth, 0, 0)
-                    ClearButton.TextSize = 12
+                    if showSelectionActions then
+                        SelectAllButton.Size = UDim2.fromOffset(selectAllWidth, M.searchH)
+                        SelectAllButton.Position = UDim2.fromOffset(x, 0)
+                        SelectAllButton.TextSize = 12
+                        x += selectAllWidth + actionGap
+
+                        ClearButton.Size = UDim2.fromOffset(clearWidth, M.searchH)
+                        ClearButton.Position = UDim2.fromOffset(x, 0)
+                        ClearButton.TextSize = 12
+                        x += clearWidth
+                    end
+
+                    if showRefreshAction then
+                        if x > 0 then x += actionGap end
+                        RefreshButton.Size = UDim2.fromOffset(refreshWidth, M.searchH)
+                        RefreshButton.Position = UDim2.fromOffset(x, 0)
+                        RefreshButton.TextSize = 12
+                    end
                 end
 
                 listTop += toolbarHeight + M.gap
@@ -9385,6 +9516,35 @@ local List = New("ScrollingFrame", {
             Dropdown.Changed = Func
         end
 
+        function Dropdown:SetRefreshFunc(Func)
+            Dropdown.RefreshFunc = type(Func) == "function" and Func or nil
+            RefreshButton.Visible = type(Dropdown.RefreshFunc) == "function"
+            BulkActions.Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
+                or RefreshButton.Visible
+            ApplyPopupLayout()
+        end
+
+        function Dropdown:RefreshValues()
+            if Dropdown.Disabled or type(Dropdown.RefreshFunc) ~= "function" then
+                return false
+            end
+
+            local ok, result = pcall(Dropdown.RefreshFunc, Dropdown)
+            if not ok then
+                warn("[Dropdown Refresh] " .. tostring(result))
+                return false
+            end
+
+            if type(result) == "table" then
+                Dropdown:SetValues(result)
+            else
+                Dropdown:BuildDropdownList(MenuState.Active)
+            end
+
+            ApplyPopupLayout()
+            return true
+        end
+
         function Dropdown:RunChanged()
             Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
             Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
@@ -9588,6 +9748,10 @@ local List = New("ScrollingFrame", {
             end
 
             Dropdown:SetValue({})
+        end)
+
+        RefreshButton.MouseButton1Click:Connect(function()
+            Dropdown:RefreshValues()
         end)
     
         Library:GiveSignal(List:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
