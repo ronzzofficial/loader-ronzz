@@ -263,7 +263,7 @@ local Library = {
     IsLightTheme = false,
     Scheme = {
         BackgroundColor = Color3.fromRGB(15, 15, 15),   -- #0F0F0F
-        MainColor = Color3.fromRGB(25, 25, 25),         -- #191919
+        MainColor = Color3.fromRGB(32, 32, 32),         -- #202020
         AccentColor = Color3.fromRGB(155, 124, 255),    -- #9B7CFF
         OutlineColor = Color3.fromRGB(40, 40, 40),      -- #282828
         FontColor = Color3.fromRGB(240, 240, 240),      -- #F0F0F0
@@ -296,9 +296,9 @@ local LayeredStyle = {
     -- Large surfaces stay near-black; controls sit on #202020 with subtle
     -- #282828 borders so sections are visible without looking neon-heavy.
     MainBackground = Color3.fromRGB(15, 15, 15),    -- #0F0F0F
-    OuterBox = Color3.fromRGB(25, 25, 25),          -- #191919
-    InnerBox = Color3.fromRGB(25, 25, 25),          -- #191919
-    ControlRow = Color3.fromRGB(25, 25, 25),        -- #191919
+    OuterBox = Color3.fromRGB(15, 15, 15),          -- #0F0F0F
+    InnerBox = Color3.fromRGB(15, 15, 15),          -- #0F0F0F
+    ControlRow = Color3.fromRGB(32, 32, 32),        -- #202020
     InputBox = Color3.fromRGB(32, 32, 32),          -- #202020
 
     DropdownRow = Color3.fromRGB(32, 32, 32),       -- #202020
@@ -7217,7 +7217,7 @@ do
             PaddingLeft = UDim.new(0, CompactMobileDropdown and 7 or 8),
             -- Reserve only the chevron footprint; the chevron itself is parented
             -- to Holder so this padding never changes its physical position.
-            PaddingRight = UDim.new(0, CompactMobileDropdown and 22 or 26),
+            PaddingRight = UDim.new(0, CompactMobileDropdown and 28 or 32),
             Parent = Display,
         })
 
@@ -7237,7 +7237,7 @@ do
             -- Parent to Holder so Display's right text padding cannot push the
             -- chevron inward. This keeps every dropdown arrow at the same
             -- physical right edge regardless of title/value length.
-            Position = UDim2.new(1, CompactMobileDropdown and -16 or -18, 1, CompactMobileDropdown and -21 or -25),
+            Position = UDim2.new(1, CompactMobileDropdown and -21 or -24, 1, CompactMobileDropdown and -21 or -25),
             Size = UDim2.fromOffset(14, 14),
             ZIndex = 3,
             Parent = Holder,
@@ -7264,8 +7264,8 @@ do
             BorderSizePixel = 0,
             Position = UDim2.fromScale(0.5, 0.5),
             Size = UDim2.fromOffset(
-                Library.IsMobile and 320 or (tonumber(Info.PopupWidth) or 560),
-                Library.IsMobile and 340 or (tonumber(Info.PopupHeight) or 470)
+                Library.IsMobile and 250 or (tonumber(Info.PopupWidth) or 560),
+                Library.IsMobile and 220 or (tonumber(Info.PopupHeight) or 470)
             ),
             Visible = false,
             ZIndex = 120,
@@ -7625,29 +7625,47 @@ local List = New("ScrollingFrame", {
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
 
-            -- Phones use a deliberately compact popup instead of the desktop
-            -- 560x460 panel. Width/height follow the real viewport and rows are
-            -- shorter so the selector does not cover most of the screen.
+            -- Mobile popup scales from the real phone viewport AND the number
+            -- of choices. Small phones get a much smaller selector instead of a
+            -- fixed 320x340 panel that covers most of the screen.
             if Library.IsMobile then
-                local width = math.max(270, math.floor(viewport.X * 0.90))
-                width = math.min(width, math.max(270, viewport.X - 16))
+                local vw = math.max(240, tonumber(viewport.X) or 360)
+                local vh = math.max(360, tonumber(viewport.Y) or 640)
+                local narrow = vw < 390
+                local optionCount = math.max(1, #(Dropdown.Values or {}))
+                local visibleRows = math.clamp(optionCount, 2, narrow and 5 or 6)
 
-                local height = math.max(260, math.floor(viewport.Y * 0.62))
-                height = math.min(height, math.max(260, viewport.Y - 20), 390)
+                local rowH = narrow and 25 or 27
+                local headerH = narrow and 29 or 31
+                local searchH = narrow and 27 or 29
+                local actionH = narrow and 21 or 23
+                local gap = 4
+                local padX = narrow and 6 or 7
+                local padY = 6
+
+                local widthRatio = narrow and 0.82 or 0.78
+                local width = math.floor(vw * widthRatio)
+                width = math.clamp(width, 215, math.max(215, vw - 28))
+
+                local toolbarH = searchH + gap
+                local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * 4
+                local desiredH = padY * 2 + headerH + gap + toolbarH + rowsH + 20
+                local maxH = math.max(170, math.floor(vh * (narrow and 0.43 or 0.46)))
+                local height = math.clamp(desiredH, 165, maxH)
 
                 return {
                     width = width,
                     height = height,
-                    padX = 8,
-                    padY = 7,
-                    headerH = 34,
-                    searchH = 31,
-                    actionH = 23,
-                    gap = 5,
-                    titleText = 15,
-                    inputText = 12,
-                    optionText = 12,
-                    rowH = 31,
+                    padX = padX,
+                    padY = padY,
+                    headerH = headerH,
+                    searchH = searchH,
+                    actionH = actionH,
+                    gap = gap,
+                    titleText = narrow and 13 or 14,
+                    inputText = 11,
+                    optionText = narrow and 11 or 12,
+                    rowH = rowH,
                 }
             end
 
@@ -7717,7 +7735,9 @@ local List = New("ScrollingFrame", {
         local function ApplyPopupLayout()
             local M = GetPopupMetrics()
             local closeH = math.floor(M.headerH * 0.72)
-            local closeW = math.max(78, math.floor(closeH * 2.05))
+            local closeW = Library.IsMobile
+                and math.max(56, math.floor(closeH * 1.72))
+                or math.max(78, math.floor(closeH * 2.05))
             local bodyTop, innerPadX, innerPadY, listTop
 
             Popup.Size = UDim2.fromOffset(M.width, M.height)
@@ -7760,11 +7780,11 @@ local List = New("ScrollingFrame", {
             local hasBulkActions = BulkActions.Visible
 
             if hasSearch or hasBulkActions then
-                local selectAllWidth = 78
-                local clearWidth = 52
-                local refreshWidth = 76
-                local actionGap = 6
-                local toolbarGap = 8
+                local selectAllWidth = Library.IsMobile and 58 or 78
+                local clearWidth = Library.IsMobile and 42 or 52
+                local refreshWidth = Library.IsMobile and 58 or 76
+                local actionGap = Library.IsMobile and 4 or 6
+                local toolbarGap = Library.IsMobile and 5 or 8
                 local bulkWidth = 0
 
                 if showSelectionActions then
@@ -8725,7 +8745,7 @@ local List = New("ScrollingFrame", {
             PaddingLeft = UDim.new(0, CompactMobileDropdown and 7 or 8),
             -- Reserve only the chevron footprint; the chevron itself is parented
             -- to Holder so this padding never changes its physical position.
-            PaddingRight = UDim.new(0, CompactMobileDropdown and 22 or 26),
+            PaddingRight = UDim.new(0, CompactMobileDropdown and 28 or 32),
             Parent = Display,
         })
 
@@ -8744,7 +8764,7 @@ local List = New("ScrollingFrame", {
             ImageTransparency = 0.5,
             -- Same right-edge anchor as every other dropdown. Holder parenting
             -- avoids the Display UIPadding offset entirely.
-            Position = UDim2.new(1, CompactMobileDropdown and -16 or -18, 1, CompactMobileDropdown and -21 or -25),
+            Position = UDim2.new(1, CompactMobileDropdown and -21 or -24, 1, CompactMobileDropdown and -21 or -25),
             Size = UDim2.fromOffset(14, 14),
             ZIndex = 3,
             Parent = Holder,
@@ -8771,8 +8791,8 @@ local List = New("ScrollingFrame", {
             BorderSizePixel = 0,
             Position = UDim2.fromScale(0.5, 0.5),
             Size = UDim2.fromOffset(
-                Library.IsMobile and 320 or (tonumber(Info.PopupWidth) or 560),
-                Library.IsMobile and 340 or (tonumber(Info.PopupHeight) or 470)
+                Library.IsMobile and 250 or (tonumber(Info.PopupWidth) or 560),
+                Library.IsMobile and 220 or (tonumber(Info.PopupHeight) or 470)
             ),
             Visible = false,
             ZIndex = 120,
@@ -9078,29 +9098,47 @@ local List = New("ScrollingFrame", {
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
 
-            -- Phones use a deliberately compact popup instead of the desktop
-            -- 560x460 panel. Width/height follow the real viewport and rows are
-            -- shorter so the selector does not cover most of the screen.
+            -- Mobile popup scales from the real phone viewport AND the number
+            -- of choices. Small phones get a much smaller selector instead of a
+            -- fixed 320x340 panel that covers most of the screen.
             if Library.IsMobile then
-                local width = math.max(270, math.floor(viewport.X * 0.90))
-                width = math.min(width, math.max(270, viewport.X - 16))
+                local vw = math.max(240, tonumber(viewport.X) or 360)
+                local vh = math.max(360, tonumber(viewport.Y) or 640)
+                local narrow = vw < 390
+                local optionCount = math.max(1, #(Dropdown.Values or {}))
+                local visibleRows = math.clamp(optionCount, 2, narrow and 5 or 6)
 
-                local height = math.max(260, math.floor(viewport.Y * 0.62))
-                height = math.min(height, math.max(260, viewport.Y - 20), 390)
+                local rowH = narrow and 25 or 27
+                local headerH = narrow and 29 or 31
+                local searchH = narrow and 27 or 29
+                local actionH = narrow and 21 or 23
+                local gap = 4
+                local padX = narrow and 6 or 7
+                local padY = 6
+
+                local widthRatio = narrow and 0.82 or 0.78
+                local width = math.floor(vw * widthRatio)
+                width = math.clamp(width, 215, math.max(215, vw - 28))
+
+                local toolbarH = searchH + gap
+                local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * 4
+                local desiredH = padY * 2 + headerH + gap + toolbarH + rowsH + 20
+                local maxH = math.max(170, math.floor(vh * (narrow and 0.43 or 0.46)))
+                local height = math.clamp(desiredH, 165, maxH)
 
                 return {
                     width = width,
                     height = height,
-                    padX = 8,
-                    padY = 7,
-                    headerH = 34,
-                    searchH = 31,
-                    actionH = 23,
-                    gap = 5,
-                    titleText = 15,
-                    inputText = 12,
-                    optionText = 12,
-                    rowH = 31,
+                    padX = padX,
+                    padY = padY,
+                    headerH = headerH,
+                    searchH = searchH,
+                    actionH = actionH,
+                    gap = gap,
+                    titleText = narrow and 13 or 14,
+                    inputText = 11,
+                    optionText = narrow and 11 or 12,
+                    rowH = rowH,
                 }
             end
 
@@ -9171,7 +9209,9 @@ local List = New("ScrollingFrame", {
         local function ApplyPopupLayout()
             local M = GetPopupMetrics()
             local closeH = math.floor(M.headerH * 0.72)
-            local closeW = math.max(78, math.floor(closeH * 2.05))
+            local closeW = Library.IsMobile
+                and math.max(56, math.floor(closeH * 1.72))
+                or math.max(78, math.floor(closeH * 2.05))
             local bodyTop, innerPadX, innerPadY, listTop
     
             Popup.Size = UDim2.fromOffset(M.width, M.height)
@@ -9212,11 +9252,11 @@ local List = New("ScrollingFrame", {
             local hasBulkActions = BulkActions.Visible
 
             if hasSearch or hasBulkActions then
-                local selectAllWidth = 78
-                local clearWidth = 52
-                local refreshWidth = 76
-                local actionGap = 6
-                local toolbarGap = 8
+                local selectAllWidth = Library.IsMobile and 58 or 78
+                local clearWidth = Library.IsMobile and 42 or 52
+                local refreshWidth = Library.IsMobile and 58 or 76
+                local actionGap = Library.IsMobile and 4 or 6
+                local toolbarGap = Library.IsMobile and 5 or 8
                 local bulkWidth = 0
 
                 if showSelectionActions then
@@ -11788,13 +11828,21 @@ function Library:CreateWindow(WindowInfo)
         local ZanjiTitleGradient = New("UIGradient", {
             Name = "ZanjiPremiumGradient",
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(216, 180, 254)),
-                ColorSequenceKeypoint.new(0.48, Color3.fromRGB(167, 139, 250)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(139, 92, 246)),
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(245, 208, 254)),
+                ColorSequenceKeypoint.new(0.34, Color3.fromRGB(192, 132, 252)),
+                ColorSequenceKeypoint.new(0.68, Color3.fromRGB(139, 92, 246)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(96, 165, 250)),
             }),
+            Transparency = NumberSequence.new(0),
             Rotation = 0,
+            Enabled = true,
             Parent = WindowTitle,
         })
+        -- Brand title is intentionally not theme-registered. ThemeManager may
+        -- recolor registered text after startup, which flattens the gradient.
+        WindowTitle.TextColor3 = Color3.new(1, 1, 1)
+        WindowTitle.FontFace = Library.Scheme.Font
+        Library.Registry[WindowTitle] = nil
 
         UpdateBrandLayout = function()
             if not TitleHolder or not WindowTitle or not WindowIcon then return end
