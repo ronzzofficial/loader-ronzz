@@ -10545,10 +10545,6 @@ local List = New("ScrollingFrame", {
 
         Params = typeof(Params) == "table" and Params or {}
         local Boxed = Params.Boxed == true
-        -- AnchorElement turns a dependency box into an expandable control.
-        -- The anchor keeps its normal appearance while collapsed. When the
-        -- dependency matches, the same row expands into a bordered container
-        -- with the dependent controls directly underneath it.
         local AnchorElement = typeof(Params.AnchorElement) == "table" and Params.AnchorElement or nil
         local Anchored = AnchorElement ~= nil and typeof(AnchorElement.Holder) == "Instance"
 
@@ -10559,26 +10555,35 @@ local List = New("ScrollingFrame", {
         local DepboxList
         local DepboxStroke
         local DepboxPadding
+        local AnchorStroke
 
         do
             local ContainerProps = {
                 BackgroundTransparency = (Boxed and not Anchored) and 0 or 1,
+                BorderSizePixel = 0,
+                ClipsDescendants = Anchored,
                 Size = UDim2.fromScale(1, 1),
                 Visible = Anchored,
                 Parent = Container,
             }
 
-            if Boxed then
+            if Anchored then
+                -- Expanded dependencies should look like the original parent
+                -- row itself grew downward. The wrapper therefore uses the same
+                -- background/border as a normal control row and the anchor's own
+                -- border is disabled only while expanded.
+                ContainerProps.BackgroundColor3 = LayeredStyle.ControlRow
+            elseif Boxed then
                 ContainerProps.BackgroundColor3 = LayeredStyle.InnerBox
             end
 
             DepboxContainer = New("Frame", ContainerProps)
 
-            if Boxed then
+            if Anchored or Boxed then
                 table.insert(
                     Library.Corners,
                     New("UICorner", {
-                        CornerRadius = UDim.new(0, Library.CornerRadius),
+                        CornerRadius = UDim.new(0, Anchored and 3 or Library.CornerRadius),
                         Parent = DepboxContainer,
                     })
                 )
@@ -10589,24 +10594,29 @@ local List = New("ScrollingFrame", {
                     Enabled = not Anchored,
                     Parent = DepboxContainer,
                 })
+            end
+
+            if Boxed and not Anchored then
                 DepboxPadding = New("UIPadding", {
-                    PaddingBottom = UDim.new(0, Anchored and 0 or 7),
-                    PaddingLeft = UDim.new(0, Anchored and 0 or 7),
-                    PaddingRight = UDim.new(0, Anchored and 0 or 7),
-                    PaddingTop = UDim.new(0, Anchored and 0 or 7),
+                    PaddingBottom = UDim.new(0, 7),
+                    PaddingLeft = UDim.new(0, 7),
+                    PaddingRight = UDim.new(0, 7),
+                    PaddingTop = UDim.new(0, 7),
                     Parent = DepboxContainer,
                 })
             end
 
             DepboxList = New("UIListLayout", {
+                HorizontalAlignment = Anchored and Enum.HorizontalAlignment.Center or Enum.HorizontalAlignment.Left,
                 Padding = UDim.new(0, Anchored and 0 or 8),
                 Parent = DepboxContainer,
             })
 
             if Anchored then
-                -- Move the already-built row into this wrapper. Since the wrapper
-                -- is created immediately after the anchor, it keeps the same slot
-                -- in the parent UIListLayout but can grow when enabled.
+                AnchorStroke = AnchorElement.Holder:FindFirstChildOfClass("UIStroke")
+                -- Wrapper takes the exact slot where the parent used to live.
+                -- The original parent row stays intact inside it, so its text,
+                -- switch/arrow and interaction never move when children appear.
                 AnchorElement.Holder.Parent = DepboxContainer
             end
         end
@@ -10627,29 +10637,51 @@ local List = New("ScrollingFrame", {
             DependencyBoxes = {}
         }
 
+        local function SizeAnchoredChildren()
+            if not Anchored then return end
+
+            local anchorHolder = AnchorElement and AnchorElement.Holder
+            if anchorHolder then
+                local y = anchorHolder.Size.Y
+                anchorHolder.Size = UDim2.new(1, 0, y.Scale, y.Offset)
+            end
+
+            for _, Element in Depbox.Elements do
+                if Element and Element.Holder then
+                    local y = Element.Holder.Size.Y
+                    Element.Holder.Size = UDim2.new(1, -20, y.Scale, y.Offset)
+                end
+            end
+
+            for _, SubDepbox in Depbox.DependencyBoxes do
+                if SubDepbox and SubDepbox.Holder then
+                    local y = SubDepbox.Holder.Size.Y
+                    SubDepbox.Holder.Size = UDim2.new(1, -20, y.Scale, y.Offset)
+                end
+            end
+        end
+
         local function SetAnchoredExpanded(Expanded)
             Depbox.Active = Expanded == true
             Depbox.Visible = true
             DepboxContainer.Visible = true
 
-            if Boxed then
-                DepboxContainer.BackgroundTransparency = Expanded and 0 or 1
-                if DepboxStroke then
-                    DepboxStroke.Enabled = Expanded
-                end
-                if DepboxPadding then
-                    local inset = Expanded and 7 or 0
-                    DepboxPadding.PaddingBottom = UDim.new(0, inset)
-                    DepboxPadding.PaddingLeft = UDim.new(0, inset)
-                    DepboxPadding.PaddingRight = UDim.new(0, inset)
-                    DepboxPadding.PaddingTop = UDim.new(0, inset)
-                end
+            DepboxContainer.BackgroundTransparency = Expanded and 0 or 1
+            if DepboxStroke then
+                DepboxStroke.Enabled = Expanded
+            end
+            if AnchorStroke then
+                AnchorStroke.Enabled = not Expanded
             end
 
             DepboxList.Padding = UDim.new(0, Expanded and 8 or 0)
 
-            -- Only the dependent children collapse. The anchor row itself stays
-            -- visible, so OFF/non-matching state looks exactly like a normal row.
+            -- Only child controls collapse. The original parent control always
+            -- remains visible at the top of the same expandable box.
+            if AnchorElement and AnchorElement.Holder then
+                AnchorElement.Holder.Visible = AnchorElement.Visible ~= false
+            end
+
             for _, Element in Depbox.Elements do
                 if Element and Element.Holder then
                     Element.Holder.Visible = Expanded and Element.Visible ~= false
@@ -10664,11 +10696,29 @@ local List = New("ScrollingFrame", {
                     end
                 end
             end
+
+            SizeAnchoredChildren()
         end
 
         function Depbox:Resize()
-            local ExtraHeight = (Boxed and (not Anchored or Depbox.Active)) and 14 or 0
-            DepboxContainer.Size = UDim2.new(1, 0, 0, (DepboxList.AbsoluteContentSize.Y / Library.DPIScale) + ExtraHeight)
+            if Anchored then
+                SizeAnchoredChildren()
+                local bottomPadding = Depbox.Active and 10 or 0
+                DepboxContainer.Size = UDim2.new(
+                    1,
+                    0,
+                    0,
+                    (DepboxList.AbsoluteContentSize.Y / Library.DPIScale) + bottomPadding
+                )
+            else
+                local ExtraHeight = Boxed and 14 or 0
+                DepboxContainer.Size = UDim2.new(
+                    1,
+                    0,
+                    0,
+                    (DepboxList.AbsoluteContentSize.Y / Library.DPIScale) + ExtraHeight
+                )
+            end
             Groupbox:Resize()
         end
 
@@ -10730,7 +10780,6 @@ local List = New("ScrollingFrame", {
             if not Depbox.Visible then
                 return
             end
-
             Depbox:Resize()
         end)
 
@@ -10775,6 +10824,13 @@ local List = New("ScrollingFrame", {
                 end
             end
 
+            if Anchored and AnchorElement and AnchorElement.Holder and AnchorElement.Holder.Parent == DepboxContainer then
+                AnchorElement.Holder.Parent = Groupbox.Container
+                if AnchorStroke then
+                    AnchorStroke.Enabled = true
+                end
+            end
+
             if DepboxContainer then
                 DepboxContainer:Destroy()
             end
@@ -10790,8 +10846,6 @@ local List = New("ScrollingFrame", {
             end
         end
 
-        -- Children added before SetupDependencies should start hidden for an
-        -- anchored expandable box until its dependency is evaluated.
         if Anchored then
             task.defer(function()
                 if not Depbox.Destroyed then
