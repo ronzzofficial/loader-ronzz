@@ -10372,8 +10372,11 @@ local List = New("ScrollingFrame", {
         return Passthrough
     end
 
-    function Funcs:AddDependencyBox()
+    function Funcs:AddDependencyBox(Params)
         if self.Destroyed then return nil end
+
+        Params = typeof(Params) == "table" and Params or {}
+        local Boxed = Params.Boxed == true
 
         local Groupbox = self
         local Container = Groupbox.Container
@@ -10382,12 +10385,36 @@ local List = New("ScrollingFrame", {
         local DepboxList
 
         do
-            DepboxContainer = New("Frame", {
-                BackgroundTransparency = 1,
+            local ContainerProps = {
+                BackgroundTransparency = Boxed and 0 or 1,
                 Size = UDim2.fromScale(1, 1),
                 Visible = false,
                 Parent = Container,
-            })
+            }
+
+            if Boxed then
+                ContainerProps.BackgroundColor3 = "BackgroundColor"
+            end
+
+            DepboxContainer = New("Frame", ContainerProps)
+
+            if Boxed then
+                table.insert(
+                    Library.Corners,
+                    New("UICorner", {
+                        CornerRadius = UDim.new(0, Library.CornerRadius),
+                        Parent = DepboxContainer,
+                    })
+                )
+                Library:AddOutline(DepboxContainer)
+                New("UIPadding", {
+                    PaddingBottom = UDim.new(0, 7),
+                    PaddingLeft = UDim.new(0, 7),
+                    PaddingRight = UDim.new(0, 7),
+                    PaddingTop = UDim.new(0, 7),
+                    Parent = DepboxContainer,
+                })
+            end
 
             DepboxList = New("UIListLayout", {
                 Padding = UDim.new(0, 8),
@@ -10410,7 +10437,8 @@ local List = New("ScrollingFrame", {
         }
 
         function Depbox:Resize()
-            DepboxContainer.Size = UDim2.new(1, 0, 0, DepboxList.AbsoluteContentSize.Y / Library.DPIScale)
+            local ExtraHeight = Boxed and 14 or 0
+            DepboxContainer.Size = UDim2.new(1, 0, 0, (DepboxList.AbsoluteContentSize.Y / Library.DPIScale) + ExtraHeight)
             Groupbox:Resize()
         end
 
