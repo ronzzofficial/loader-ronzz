@@ -257,16 +257,16 @@ local Library = {
     OriginalMinSize = Vector2.new(480, 360),
     MinSize = Vector2.new(480, 360),
     DPIScale = 1,
-    CornerRadius = 6,
+    CornerRadius = 8,
 
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(11, 13, 18),   -- #0B0D12
-        MainColor = Color3.fromRGB(18, 21, 29),         -- #12151D
-        AccentColor = Color3.fromRGB(139, 124, 255),    -- #8B7CFF
-        OutlineColor = Color3.fromRGB(46, 52, 66),      -- #2E3442
-        FontColor = Color3.fromRGB(242, 244, 248),      -- #F2F4F8
+        BackgroundColor = Color3.fromRGB(9, 11, 16),     -- #090B10
+        MainColor = Color3.fromRGB(15, 18, 25),          -- #0F1219
+        AccentColor = Color3.fromRGB(126, 103, 255),     -- #7E67FF
+        OutlineColor = Color3.fromRGB(56, 62, 78),       -- #383E4E
+        FontColor = Color3.fromRGB(248, 249, 252),       -- #F8F9FC
         Font = Font.fromEnum(Enum.Font.Code),
 
         RedColor = Color3.fromRGB(235, 86, 98),         -- #EB5662
@@ -294,24 +294,24 @@ local Library = {
 local LayeredStyle = {
     -- ZANJI graphite + violet palette. Neutral surfaces keep large pages calm,
     -- while violet is reserved for focus, selection and brand identity.
-    MainBackground = Color3.fromRGB(11, 13, 18),   -- #0B0D12
-    OuterBox = Color3.fromRGB(16, 19, 26),         -- #10131A
-    InnerBox = Color3.fromRGB(20, 23, 31),         -- #14171F
-    ControlRow = Color3.fromRGB(24, 28, 38),       -- #181C26
-    InputBox = Color3.fromRGB(14, 17, 24),         -- #0E1118
+    MainBackground = Color3.fromRGB(9, 11, 16),     -- #090B10
+    OuterBox = Color3.fromRGB(15, 18, 25),          -- #0F1219
+    InnerBox = Color3.fromRGB(19, 23, 31),          -- #13171F
+    ControlRow = Color3.fromRGB(25, 30, 40),        -- #191E28
+    InputBox = Color3.fromRGB(12, 15, 21),          -- #0C0F15
 
-    DropdownRow = Color3.fromRGB(20, 23, 31),      -- #14171F
-    DropdownHover = Color3.fromRGB(28, 33, 44),    -- #1C212C
-    DropdownSelected = Color3.fromRGB(40, 34, 59), -- #28223B
-    DropdownHoverBorder = Color3.fromRGB(76, 80, 100), -- #4C5064
+    DropdownRow = Color3.fromRGB(19, 23, 31),       -- #13171F
+    DropdownHover = Color3.fromRGB(31, 37, 49),     -- #1F2531
+    DropdownSelected = Color3.fromRGB(45, 38, 71),  -- #2D2647
+    DropdownHoverBorder = Color3.fromRGB(89, 96, 118), -- #596076
 
-    TabHover = Color3.fromRGB(28, 26, 39),          -- #1C1A27
-    TabSelected = Color3.fromRGB(43, 36, 66),       -- #2B2442
+    TabHover = Color3.fromRGB(24, 28, 38),          -- #181C26
+    TabSelected = Color3.fromRGB(42, 35, 68),       -- #2A2344
 
-    Border = Color3.fromRGB(43, 49, 62),            -- #2B313E
-    Separator = Color3.fromRGB(34, 39, 49),         -- #222731
-    MainText = Color3.fromRGB(242, 244, 248),       -- #F2F4F8
-    SecondaryText = Color3.fromRGB(156, 164, 181),  -- #9CA4B5
+    Border = Color3.fromRGB(56, 62, 78),             -- #383E4E
+    Separator = Color3.fromRGB(32, 37, 48),          -- #202530
+    MainText = Color3.fromRGB(248, 249, 252),        -- #F8F9FC
+    SecondaryText = Color3.fromRGB(164, 172, 191),   -- #A4ACBF
 }
 Library.LayeredStyle = LayeredStyle
 
@@ -385,7 +385,7 @@ local Templates = {
 
         Position = UDim2.fromOffset(6, 6),
         Size = UDim2.fromOffset(720, 600),
-        IconSize = UDim2.fromOffset(30, 30),
+        IconSize = UDim2.fromOffset(29, 29),
 
         AutoShow = true,
         Center = true,
@@ -395,7 +395,7 @@ local Templates = {
         SearchbarSize = UDim2.fromScale(1, 1),
         GlobalSearch = false,
 
-        CornerRadius = 2,
+        CornerRadius = 8,
         NotifySide = "Right",
         ShowCustomCursor = true,
 
@@ -447,7 +447,7 @@ local Templates = {
     Loading = {
         Title = "mspaint",
         Icon = 95816097006870,
-        IconSize = UDim2.fromOffset(30, 30),
+        IconSize = UDim2.fromOffset(29, 29),
 
         LoadingIcon = CustomImageManager.GetAsset("LoadingIcon"),
         LoadingIconColor = nil,
@@ -5329,7 +5329,7 @@ do
 
         local Holder = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 30),
+            Size = UDim2.new(1, 0, 0, 34),
             Parent = Container,
         })
 
@@ -5343,12 +5343,13 @@ do
         local function CreateButton(Button)
             local Base = New("TextButton", {
                 Active = not Button.Disabled,
-                BackgroundColor3 = LayeredStyle.InputBox,
+                BackgroundColor3 = LayeredStyle.ControlRow,
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
                 TextColor3 = LayeredStyle.MainText,
                 TextSize = 14,
-                TextTransparency = 0.05,
+                FontFace = Font.fromEnum(Enum.Font.GothamMedium),
+                TextTransparency = 0.02,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 Visible = Button.Visible,
                 Parent = Holder,
@@ -5358,7 +5359,7 @@ do
                 ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
                 Color = LayeredStyle.Border,
                 Thickness = 1,
-                Transparency = Button.Disabled and 0.62 or 0.08,
+                Transparency = Button.Disabled and 0.70 or 0.02,
                 Parent = Base,
             })
 
@@ -5380,13 +5381,13 @@ do
                 end
 
                 Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
-                    BackgroundColor3 = LayeredStyle.DropdownHover,
+                    BackgroundColor3 = Library.Scheme.AccentColor:Lerp(LayeredStyle.ControlRow, 0.84),
                     TextTransparency = 0,
                 })
                 Button.Tween:Play()
                 TweenService:Create(Button.Stroke, Library.TweenInfo, {
                     Color = Library.Scheme.AccentColor,
-                    Transparency = 0.12,
+                    Transparency = 0.05,
                 }):Play()
             end)
             Button.Base.MouseLeave:Connect(function()
@@ -5395,13 +5396,13 @@ do
                 end
 
                 Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
-                    BackgroundColor3 = LayeredStyle.InputBox,
-                    TextTransparency = 0.05,
+                    BackgroundColor3 = LayeredStyle.ControlRow,
+                    TextTransparency = 0.02,
                 })
                 Button.Tween:Play()
                 TweenService:Create(Button.Stroke, Library.TweenInfo, {
                     Color = LayeredStyle.Border,
-                    Transparency = 0.08,
+                    Transparency = 0.02,
                 }):Play()
             end)
 
@@ -5473,14 +5474,14 @@ do
 
                 StopTween(SubButton.Tween)
 
-                SubButton.Base.BackgroundColor3 = SubButton.Disabled and LayeredStyle.ControlRow
-                    or LayeredStyle.InputBox
-                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.05
+                SubButton.Base.BackgroundColor3 = SubButton.Disabled and LayeredStyle.InputBox
+                    or LayeredStyle.ControlRow
+                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.02
                 SubButton.Stroke.Color = LayeredStyle.Border
-                SubButton.Stroke.Transparency = SubButton.Disabled and 0.62 or 0.08
+                SubButton.Stroke.Transparency = SubButton.Disabled and 0.70 or 0.02
 
                 Library.Registry[SubButton.Base].BackgroundColor3 = function()
-                    return SubButton.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
+                    return SubButton.Disabled and LayeredStyle.InputBox or LayeredStyle.ControlRow
                 end
             end
 
@@ -5564,14 +5565,14 @@ do
 
             StopTween(Button.Tween)
 
-            Button.Base.BackgroundColor3 = Button.Disabled and LayeredStyle.ControlRow
-                or LayeredStyle.InputBox
-            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.05
+            Button.Base.BackgroundColor3 = Button.Disabled and LayeredStyle.InputBox
+                or LayeredStyle.ControlRow
+            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.02
             Button.Stroke.Color = LayeredStyle.Border
-            Button.Stroke.Transparency = Button.Disabled and 0.62 or 0.08
+            Button.Stroke.Transparency = Button.Disabled and 0.70 or 0.02
 
             Library.Registry[Button.Base].BackgroundColor3 = function()
-                return Button.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
+                return Button.Disabled and LayeredStyle.InputBox or LayeredStyle.ControlRow
             end
         end
 
@@ -11601,7 +11602,8 @@ function Library:CreateWindow(WindowInfo)
 
         --// Top Bar \\-
         TopBar = New("Frame", {
-            BackgroundTransparency = 1,
+            BackgroundColor3 = LayeredStyle.OuterBox,
+            BackgroundTransparency = 0,
             Size = UDim2.new(1, 0, 0, 48),
             Parent = MainFrame,
         })
@@ -11615,8 +11617,8 @@ function Library:CreateWindow(WindowInfo)
         })
 
         -- Logo + title are treated as one centered brand unit.
-        local BrandGap = 2
-        local BrandTextSize = 20
+        local BrandGap = 1
+        local BrandTextSize = 21
 
         if WindowInfo.Icon then
             local Icon = Library:GetCustomIcon(WindowInfo.Icon)
@@ -13046,7 +13048,8 @@ function Library:CreateWindow(WindowInfo)
                 New("UIStroke", {
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
                     Color = LayeredStyle.Border,
-                    Thickness = 1,
+                    Thickness = 1.15,
+                    Transparency = 0.05,
                     Parent = GroupboxHolder,
                 })
 
@@ -13103,6 +13106,7 @@ function Library:CreateWindow(WindowInfo)
                     Text = Info.Name,
                     TextColor3 = LayeredStyle.MainText,
                     TextSize = 15,
+                    FontFace = Font.fromEnum(Enum.Font.GothamSemibold),
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Parent = TextsFrame,
@@ -13469,7 +13473,7 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundTransparency = 0,
             }):Play()
             TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = 0.35,
+                Transparency = 0.08,
             }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextColor3 = LayeredStyle.MainText,
@@ -13860,7 +13864,7 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundTransparency = 0,
             }):Play()
             TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = 0.35,
+                Transparency = 0.08,
             }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextColor3 = LayeredStyle.MainText,
@@ -15730,7 +15734,7 @@ function Library:Unload()
 end
 
 getgenv().Library = Library
-Library.ZanjiBuild = "2026-09-20-inline-actions-v4"
+Library.ZanjiBuild = "2026-09-21-professional-ui-v2"
 pcall(function() print("[ZANJI UI] Library build: 2026-09-20-inline-actions-v4") end)
 
 return Library
