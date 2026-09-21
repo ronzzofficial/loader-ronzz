@@ -7525,10 +7525,39 @@ local List = New("ScrollingFrame", {
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
 
-            -- Fixed desktop size, only clamp when the viewport is smaller.
-            local maxWidth = math.max(320, viewport.X - 24)
+            -- Auto-fit the popup width to the longest dropdown option.
+            -- It only grows wider than PopupWidth when needed, and always stays
+            -- inside the current viewport so long labels are not clipped.
+            local maxWidth = math.max(320, viewport.X - 32)
             local maxHeight = math.max(300, viewport.Y - 24)
-            local width = math.min(PopupFixedWidth, maxWidth)
+            local desiredWidth = PopupFixedWidth
+            local measureTextSize = 14
+
+            for _, Value in pairs(Dropdown.Values or {}) do
+                local displayText = StripRichText(GetOptionText(Value))
+                local textWidth = Library:GetTextBounds(
+                    displayText,
+                    Library.Scheme.Font,
+                    measureTextSize,
+                    100000
+                )
+
+                -- Covers popup/body/list margins, row padding and scrollbar.
+                desiredWidth = math.max(desiredWidth, math.ceil(textWidth + 150))
+            end
+
+            if Dropdown.Text and Dropdown.Text ~= "" then
+                local titleWidth = Library:GetTextBounds(
+                    StripRichText(Dropdown.Text),
+                    Library.Scheme.Font,
+                    18,
+                    100000
+                )
+                -- Extra room for the Done/Close button on the right.
+                desiredWidth = math.max(desiredWidth, math.ceil(titleWidth + 165))
+            end
+
+            local width = math.min(desiredWidth, maxWidth)
             local height = math.min(PopupFixedHeight, maxHeight)
 
             local padX = math.max(12, math.floor(width * 0.028))
@@ -8825,10 +8854,40 @@ local List = New("ScrollingFrame", {
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
 
-            -- Fixed desktop size, only clamp when the viewport is smaller.
-            local maxWidth = math.max(320, viewport.X - 24)
+            -- Auto-fit the popup width to the longest formatted dropdown option.
+            -- Keep the normal width for short lists, grow for long labels, then
+            -- clamp to the viewport so the popup never goes off-screen.
+            local maxWidth = math.max(320, viewport.X - 32)
             local maxHeight = math.max(300, viewport.Y - 24)
-            local width = math.min(PopupFixedWidth, maxWidth)
+            local desiredWidth = PopupFixedWidth
+            local measureTextSize = 14
+
+            for _, Value in pairs(Dropdown.Values or {}) do
+                local displayText = tostring(FormatZanjiDropdownValue(Value) or ""):gsub("<[^<>]->", "")
+                local textWidth = Library:GetTextBounds(
+                    displayText,
+                    Library.Scheme.Font,
+                    measureTextSize,
+                    100000
+                )
+
+                -- Covers popup/body/list margins, row padding and scrollbar.
+                desiredWidth = math.max(desiredWidth, math.ceil(textWidth + 150))
+            end
+
+            if Dropdown.Text and Dropdown.Text ~= "" then
+                local titleText = tostring(Dropdown.Text):gsub("<[^<>]->", "")
+                local titleWidth = Library:GetTextBounds(
+                    titleText,
+                    Library.Scheme.Font,
+                    18,
+                    100000
+                )
+                -- Extra room for the Done/Close button on the right.
+                desiredWidth = math.max(desiredWidth, math.ceil(titleWidth + 165))
+            end
+
+            local width = math.min(desiredWidth, maxWidth)
             local height = math.min(PopupFixedHeight, maxHeight)
 
             local padX = math.max(12, math.floor(width * 0.028))
