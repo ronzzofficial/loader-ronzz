@@ -312,6 +312,14 @@ local LayeredStyle = {
     Separator = Color3.fromRGB(38, 42, 52),         -- #262A34
     MainText = Color3.fromRGB(238, 240, 246),       -- #EEF0F6
     SecondaryText = Color3.fromRGB(157, 164, 180),  -- #9DA4B4
+
+    -- Paired automation actions: restrained tinted fills with clear semantics.
+    StartButton = Color3.fromRGB(22, 61, 42),
+    StartButtonBorder = Color3.fromRGB(68, 196, 116),
+    StartButtonText = Color3.fromRGB(180, 244, 204),
+    StopButton = Color3.fromRGB(66, 29, 36),
+    StopButtonBorder = Color3.fromRGB(235, 86, 98),
+    StopButtonText = Color3.fromRGB(255, 198, 205),
 }
 Library.LayeredStyle = LayeredStyle
 
@@ -5340,13 +5348,25 @@ do
             Parent = Holder,
         })
 
+        local function ResolveActionButtonStyle(Button)
+            local text = tostring(Button and Button.Text or ""):upper():gsub("^%s+", ""):gsub("%s+$", "")
+            if text == "START" then
+                return LayeredStyle.StartButton, LayeredStyle.StartButtonBorder, LayeredStyle.StartButtonText
+            elseif text == "STOP" then
+                return LayeredStyle.StopButton, LayeredStyle.StopButtonBorder, LayeredStyle.StopButtonText
+            end
+            return LayeredStyle.InputBox, Library.Scheme.AccentColor,
+                (Button and Button.Risky) and Library.Scheme.RedColor or LayeredStyle.MainText
+        end
+
         local function CreateButton(Button)
+            local actionBg, actionStroke, actionText = ResolveActionButtonStyle(Button)
             local Base = New("TextButton", {
                 Active = not Button.Disabled,
-                BackgroundColor3 = LayeredStyle.InputBox,
+                BackgroundColor3 = actionBg,
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
-                TextColor3 = LayeredStyle.MainText,
+                TextColor3 = actionText,
                 TextSize = 14,
                 TextTransparency = 0.15,
                 TextYAlignment = Enum.TextYAlignment.Center,
@@ -5355,8 +5375,8 @@ do
             })
 
             local Stroke = New("UIStroke", {
-                Color = Library.Scheme.AccentColor,
-                Transparency = Button.Disabled and 0.8 or 0.62,
+                Color = actionStroke,
+                Transparency = Button.Disabled and 0.8 or 0.28,
                 Parent = Base,
             })
 
@@ -5461,14 +5481,16 @@ do
 
                 StopTween(SubButton.Tween)
 
-                SubButton.Base.BackgroundColor3 = SubButton.Disabled and LayeredStyle.ControlRow
-                    or LayeredStyle.InputBox
-                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.15
-                SubButton.Stroke.Color = Library.Scheme.AccentColor
-                SubButton.Stroke.Transparency = SubButton.Disabled and 0.8 or 0.62
+                local actionBg, actionStroke, actionText = ResolveActionButtonStyle(SubButton)
+                SubButton.Base.BackgroundColor3 = SubButton.Disabled and LayeredStyle.ControlRow or actionBg
+                SubButton.Base.TextColor3 = actionText
+                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.05
+                SubButton.Stroke.Color = actionStroke
+                SubButton.Stroke.Transparency = SubButton.Disabled and 0.8 or 0.28
 
                 Library.Registry[SubButton.Base].BackgroundColor3 = function()
-                    return SubButton.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
+                    local bg = select(1, ResolveActionButtonStyle(SubButton))
+                    return SubButton.Disabled and LayeredStyle.ControlRow or bg
                 end
             end
 
@@ -5552,14 +5574,16 @@ do
 
             StopTween(Button.Tween)
 
-            Button.Base.BackgroundColor3 = Button.Disabled and LayeredStyle.ControlRow
-                or LayeredStyle.InputBox
-            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.15
-            Button.Stroke.Color = Library.Scheme.AccentColor
-            Button.Stroke.Transparency = Button.Disabled and 0.8 or 0.62
+            local actionBg, actionStroke, actionText = ResolveActionButtonStyle(Button)
+            Button.Base.BackgroundColor3 = Button.Disabled and LayeredStyle.ControlRow or actionBg
+            Button.Base.TextColor3 = actionText
+            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.05
+            Button.Stroke.Color = actionStroke
+            Button.Stroke.Transparency = Button.Disabled and 0.8 or 0.28
 
             Library.Registry[Button.Base].BackgroundColor3 = function()
-                return Button.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
+                local bg = select(1, ResolveActionButtonStyle(Button))
+                return Button.Disabled and LayeredStyle.ControlRow or bg
             end
         end
 
@@ -10669,11 +10693,16 @@ local List = New("ScrollingFrame", {
             DepboxContainer.Visible = true
 
             DepboxContainer.BackgroundTransparency = Expanded and 0 or 1
+            -- The expandable wrapper owns the one continuous outer border in
+            -- both states. Collapsed: it is the same size as the parent row.
+            -- Expanded: that exact border grows downward around the children.
+            -- Keep the anchor's own stroke disabled to avoid a second inner
+            -- outline around the parent control.
             if DepboxStroke then
-                DepboxStroke.Enabled = Expanded
+                DepboxStroke.Enabled = true
             end
             if AnchorStroke then
-                AnchorStroke.Enabled = not Expanded
+                AnchorStroke.Enabled = false
             end
 
             DepboxList.Padding = UDim.new(0, Expanded and 8 or 0)
