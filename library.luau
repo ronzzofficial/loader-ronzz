@@ -262,17 +262,20 @@ local Library = {
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(15, 15, 15),   -- #0F0F0F
-        MainColor = Color3.fromRGB(32, 32, 32),         -- #202020
-        AccentColor = Color3.fromRGB(155, 124, 255),    -- #9B7CFF
-        OutlineColor = Color3.fromRGB(40, 40, 40),      -- #282828
-        FontColor = Color3.fromRGB(240, 240, 240),      -- #F0F0F0
-        Font = Font.fromEnum(Enum.Font.Code),
+        -- ZANJI PRO: neutral graphite base + restrained violet accent.
+        -- Higher contrast is reserved for interaction/focus states so the UI
+        -- stays clean instead of looking neon-heavy.
+        BackgroundColor = Color3.fromRGB(10, 12, 17),   -- #0A0C11
+        MainColor = Color3.fromRGB(16, 19, 26),         -- #10131A
+        AccentColor = Color3.fromRGB(151, 129, 255),    -- #9781FF
+        OutlineColor = Color3.fromRGB(39, 45, 58),      -- #272D3A
+        FontColor = Color3.fromRGB(242, 244, 248),      -- #F2F4F8
+        Font = Font.fromEnum(Enum.Font.GothamMedium),
 
-        RedColor = Color3.fromRGB(235, 86, 98),         -- #EB5662
-        DestructiveColor = Color3.fromRGB(207, 65, 78), -- #CF414E
-        DarkColor = Color3.fromRGB(7, 8, 10),           -- #07080A
-        WhiteColor = Color3.fromRGB(248, 249, 252),     -- #F8F9FC
+        RedColor = Color3.fromRGB(244, 96, 112),        -- #F46070
+        DestructiveColor = Color3.fromRGB(216, 71, 88), -- #D84758
+        DarkColor = Color3.fromRGB(5, 7, 11),           -- #05070B
+        WhiteColor = Color3.fromRGB(250, 251, 253),     -- #FAFBFD
 
         BackgroundImage = ""
     },
@@ -292,27 +295,36 @@ local Library = {
 --// ZANJI layered dark style \\--
 -- Global neutral hierarchy used by every standard groupbox/control.
 local LayeredStyle = {
-    -- Neutral charcoal palette matched to the compact reference UI.
-    -- Large surfaces stay near-black; controls sit on #202020 with subtle
-    -- #282828 borders so sections are visible without looking neon-heavy.
-    MainBackground = Color3.fromRGB(15, 15, 15),    -- #0F0F0F
-    OuterBox = Color3.fromRGB(15, 15, 15),          -- #0F0F0F
-    InnerBox = Color3.fromRGB(15, 15, 15),          -- #0F0F0F
-    ControlRow = Color3.fromRGB(32, 32, 32),        -- #202020
-    InputBox = Color3.fromRGB(32, 32, 32),          -- #202020
+    -- ZANJI PRO surface hierarchy. Inspired by current desktop/mobile
+    -- dashboard patterns: low-noise graphite layers, soft borders, one accent.
+    MainBackground = Color3.fromRGB(10, 12, 17),     -- #0A0C11
+    Sidebar = Color3.fromRGB(12, 15, 21),            -- #0C0F15
+    TopBar = Color3.fromRGB(13, 16, 22),             -- #0D1016
 
-    DropdownRow = Color3.fromRGB(32, 32, 32),       -- #202020
-    DropdownHover = Color3.fromRGB(38, 38, 38),     -- #262626
-    DropdownSelected = Color3.fromRGB(39, 35, 48),  -- subtle violet tint
-    DropdownHoverBorder = Color3.fromRGB(58, 58, 58),
+    OuterBox = Color3.fromRGB(16, 19, 26),           -- #10131A
+    InnerBox = Color3.fromRGB(12, 15, 21),           -- #0C0F15
+    Elevated = Color3.fromRGB(20, 24, 33),           -- #141821
 
-    TabHover = Color3.fromRGB(27, 27, 27),
-    TabSelected = Color3.fromRGB(34, 31, 41),
+    ControlRow = Color3.fromRGB(18, 22, 30),         -- #12161E
+    ControlHover = Color3.fromRGB(23, 28, 38),       -- #171C26
+    InputBox = Color3.fromRGB(15, 19, 27),           -- #0F131B
+    InputHover = Color3.fromRGB(20, 25, 35),         -- #141923
 
-    Border = Color3.fromRGB(40, 40, 40),             -- #282828
-    Separator = Color3.fromRGB(34, 34, 34),          -- #222222
-    MainText = Color3.fromRGB(240, 240, 240),        -- #F0F0F0
-    SecondaryText = Color3.fromRGB(145, 145, 145),   -- #919191
+    DropdownRow = Color3.fromRGB(17, 21, 29),        -- #11151D
+    DropdownHover = Color3.fromRGB(24, 29, 40),      -- #181D28
+    DropdownSelected = Color3.fromRGB(35, 31, 55),   -- subtle violet tint
+    DropdownHoverBorder = Color3.fromRGB(70, 65, 96),
+
+    TabHover = Color3.fromRGB(18, 22, 30),
+    TabSelected = Color3.fromRGB(29, 27, 43),
+
+    Border = Color3.fromRGB(39, 45, 58),             -- #272D3A
+    BorderStrong = Color3.fromRGB(55, 63, 80),       -- #373F50
+    Separator = Color3.fromRGB(29, 34, 44),          -- #1D222C
+
+    MainText = Color3.fromRGB(242, 244, 248),        -- #F2F4F8
+    SecondaryText = Color3.fromRGB(151, 159, 174),   -- #979FAE
+    MutedText = Color3.fromRGB(105, 113, 128),       -- #697180
 }
 Library.LayeredStyle = LayeredStyle
 
@@ -1886,7 +1898,8 @@ function Library:AddOutline(Frame: GuiObject)
     })
     local ShadowStroke = New("UIStroke", {
         Color = "DarkColor",
-        Thickness = 1.5,
+        Thickness = 1,
+        Transparency = 0.3,
         ZIndex = 1,
         Parent = Frame,
     })
@@ -5101,7 +5114,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 3),
+            CornerRadius = UDim.new(0, 7),
             Parent = TextLabel,
         })
         local LabelStroke = New("UIStroke", {
@@ -5330,7 +5343,7 @@ do
 
         local Holder = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 30),
+            Size = UDim2.new(1, 0, 0, 32),
             Parent = Container,
         })
 
@@ -5344,20 +5357,22 @@ do
         local function CreateButton(Button)
             local Base = New("TextButton", {
                 Active = not Button.Disabled,
+                AutoButtonColor = false,
                 BackgroundColor3 = LayeredStyle.InputBox,
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
                 TextColor3 = LayeredStyle.MainText,
-                TextSize = 14,
-                TextTransparency = 0.15,
+                TextSize = 13,
+                TextTransparency = 0.04,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 Visible = Button.Visible,
                 Parent = Holder,
             })
 
             local Stroke = New("UIStroke", {
-                Color = Library.Scheme.AccentColor,
-                Transparency = Button.Disabled and 0.8 or 0.62,
+                Color = Button.Disabled and LayeredStyle.Border or LayeredStyle.Border,
+                Transparency = Button.Disabled and 0.5 or 0,
+                Thickness = 1,
                 Parent = Base,
             })
 
@@ -5378,20 +5393,39 @@ do
                     return
                 end
 
+                StopTween(Button.Tween)
                 Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
+                    BackgroundColor3 = LayeredStyle.ControlHover,
                     TextTransparency = 0,
                 })
                 Button.Tween:Play()
+                TweenService:Create(Button.Stroke, Library.TweenInfo, {
+                    Color = Library.Scheme.AccentColor,
+                    Transparency = 0.35,
+                }):Play()
             end)
             Button.Base.MouseLeave:Connect(function()
                 if Button.Disabled then
                     return
                 end
 
+                StopTween(Button.Tween)
                 Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
-                    TextTransparency = 0.15,
+                    BackgroundColor3 = LayeredStyle.InputBox,
+                    TextTransparency = 0.04,
                 })
                 Button.Tween:Play()
+                TweenService:Create(Button.Stroke, Library.TweenInfo, {
+                    Color = LayeredStyle.Border,
+                    Transparency = 0,
+                }):Play()
+            end)
+
+            Button.Base.MouseButton1Down:Connect(function()
+                if Button.Disabled then return end
+                TweenService:Create(Button.Base, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.78),
+                }):Play()
             end)
 
             Button.Base.MouseButton1Click:Connect(function()
@@ -5464,9 +5498,9 @@ do
 
                 SubButton.Base.BackgroundColor3 = SubButton.Disabled and LayeredStyle.ControlRow
                     or LayeredStyle.InputBox
-                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.15
-                SubButton.Stroke.Color = Library.Scheme.AccentColor
-                SubButton.Stroke.Transparency = SubButton.Disabled and 0.8 or 0.62
+                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.04
+                SubButton.Stroke.Color = LayeredStyle.Border
+                SubButton.Stroke.Transparency = SubButton.Disabled and 0.5 or 0
 
                 Library.Registry[SubButton.Base].BackgroundColor3 = function()
                     return SubButton.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
@@ -5555,9 +5589,9 @@ do
 
             Button.Base.BackgroundColor3 = Button.Disabled and LayeredStyle.ControlRow
                 or LayeredStyle.InputBox
-            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.15
-            Button.Stroke.Color = Library.Scheme.AccentColor
-            Button.Stroke.Transparency = Button.Disabled and 0.8 or 0.62
+            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.04
+            Button.Stroke.Color = LayeredStyle.Border
+            Button.Stroke.Transparency = Button.Disabled and 0.5 or 0
 
             Library.Registry[Button.Base].BackgroundColor3 = function()
                 return Button.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
@@ -5686,16 +5720,17 @@ do
 
         local Button = New("TextButton", {
             Active = not Toggle.Disabled,
+            AutoButtonColor = false,
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
-            Size = UDim2.new(1, 0, 0, 30),
+            Size = UDim2.new(1, 0, 0, 32),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 3),
+            CornerRadius = UDim.new(0, 7),
             Parent = Button,
         })
         New("UIStroke", {
@@ -5707,12 +5742,12 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(38, 0),
-            Size = UDim2.new(1, -48, 1, 0),
+            Position = UDim2.fromOffset(36, 0),
+            Size = UDim2.new(1, -46, 1, 0),
             Text = Toggle.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = 14,
-            TextTransparency = 0.4,
+            TextSize = 13,
+            TextTransparency = 0.16,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -5730,7 +5765,7 @@ do
             AnchorPoint = Vector2.new(0, 0.5),
             BackgroundColor3 = LayeredStyle.InputBox,
             Position = UDim2.new(0, 10, 0.5, 0),
-            Size = UDim2.fromOffset(18, 18),
+            Size = UDim2.fromOffset(16, 16),
             Parent = Button,
         })
         table.insert(
@@ -5876,6 +5911,19 @@ do
             Label.Text = Text
         end
 
+        table.insert(Toggle.Connections, Button.MouseEnter:Connect(function()
+            if Toggle.Disabled then return end
+            TweenService:Create(Button, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.ControlHover,
+            }):Play()
+        end))
+        table.insert(Toggle.Connections, Button.MouseLeave:Connect(function()
+            if Toggle.Disabled then return end
+            TweenService:Create(Button, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.ControlRow,
+            }):Play()
+        end))
+
         table.insert(Toggle.Connections, Button.MouseButton1Click:Connect(function()
             if Toggle.Disabled then
                 return
@@ -5986,17 +6034,18 @@ do
 
         local Button = New("TextButton", {
             Active = not Toggle.Disabled,
+            AutoButtonColor = false,
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, 30),
+            Size = UDim2.new(1, 0, 0, 32),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 3),
+            CornerRadius = UDim.new(0, 7),
             Parent = Button,
         })
         New("UIStroke", {
@@ -6008,8 +6057,8 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(10, 0),
-            Size = UDim2.new(1, -60, 1, 0),
+            Position = UDim2.fromOffset(11, 0),
+            Size = UDim2.new(1, -64, 1, 0),
             Text = Toggle.Text,
             -- Use a function so New() registers this property. Some toggle
             -- states later update Library.Registry[Label].TextColor3.
@@ -6040,11 +6089,11 @@ do
                 return LayeredStyle.InputBox
             end,
             Position = UDim2.new(1, -10, 0.5, 0),
-            Size = UDim2.fromOffset(32, 18),
+            Size = UDim2.fromOffset(34, 19),
             Parent = Button,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 6),
+            CornerRadius = UDim.new(1, 0),
             Parent = Switch,
         })
         New("UIPadding", {
@@ -6069,7 +6118,7 @@ do
             Parent = Switch,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 6),
+            CornerRadius = UDim.new(1, 0),
             Parent = Ball,
         })
 
@@ -6180,6 +6229,19 @@ do
             Toggle.Text = Text
             Label.Text = Text
         end
+
+        table.insert(Toggle.Connections, Button.MouseEnter:Connect(function()
+            if Toggle.Disabled then return end
+            TweenService:Create(Button, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.ControlHover,
+            }):Play()
+        end))
+        table.insert(Toggle.Connections, Button.MouseLeave:Connect(function()
+            if Toggle.Disabled then return end
+            TweenService:Create(Button, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.ControlRow,
+            }):Play()
+        end))
 
         table.insert(Toggle.Connections, Button.MouseButton1Click:Connect(function()
             if Toggle.Disabled then
@@ -6297,12 +6359,12 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, 68),
+            Size = UDim2.new(1, 0, 0, Library.IsMobile and 56 or 62),
             Visible = Input.Visible,
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 3),
+            CornerRadius = UDim.new(0, 7),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -6314,11 +6376,11 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(10, 8),
-            Size = UDim2.new(1, -20, 0, 16),
+            Position = UDim2.fromOffset(10, Library.IsMobile and 6 or 7),
+            Size = UDim2.new(1, -20, 0, 15),
             Text = Input.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = 14,
+            TextSize = 12,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -6335,8 +6397,8 @@ do
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Position = UDim2.new(0, 10, 1, -10),
-            Size = UDim2.new(1, -20, 0, 30),
+            Position = UDim2.new(0, 10, 1, Library.IsMobile and -7 or -8),
+            Size = UDim2.new(1, -20, 0, Library.IsMobile and 27 or 30),
             Parent = Holder,
         })
 
@@ -6348,7 +6410,7 @@ do
             Size = UDim2.new(1, -18, 1, 0),
             Text = tostring(Input.Value or ""),
             TextColor3 = LayeredStyle.MainText,
-            TextSize = tonumber(Info.InputTextSize) or 13,
+            TextSize = tonumber(Info.InputTextSize) or (Library.IsMobile and 12 or 13),
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -6371,7 +6433,7 @@ do
             TextEditable = not Input.Disabled,
             TextScaled = false,
             TextWrapped = false,
-            TextSize = tonumber(Info.InputTextSize) or 13,
+            TextSize = tonumber(Info.InputTextSize) or (Library.IsMobile and 12 or 13),
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 2,
@@ -6403,6 +6465,7 @@ do
             Thickness = 1,
             Parent = BoxClip,
         })
+        Library.Registry[BoxStroke] = Library.Registry[BoxStroke] or {}
 
         table.insert(
             Library.Corners,
@@ -6509,16 +6572,26 @@ do
             end
 
             Library.Registry[BoxStroke].Color = "AccentColor"
+            TweenService:Create(BoxClip, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputHover,
+            }):Play()
             TweenService:Create(BoxStroke, Library.TweenInfo, {
                 Color = Library.Scheme.AccentColor,
+                Thickness = 1.15,
             }):Play()
         end))
 
         table.insert(Input.Connections, Box.FocusLost:Connect(function()
             RefreshPreview()
-            Library.Registry[BoxStroke].Color = "OutlineColor"
+            Library.Registry[BoxStroke].Color = function()
+                return LayeredStyle.Border
+            end
+            TweenService:Create(BoxClip, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputBox,
+            }):Play()
             TweenService:Create(BoxStroke, Library.TweenInfo, {
-                Color = Library.Scheme.OutlineColor,
+                Color = LayeredStyle.Border,
+                Thickness = 1,
             }):Play()
         end))
 
@@ -6621,12 +6694,12 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Info.Compact and 36 or 56),
+            Size = UDim2.new(1, 0, 0, Info.Compact and 34 or 52),
             Visible = Slider.Visible,
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 3),
+            CornerRadius = UDim.new(0, 7),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -6644,7 +6717,7 @@ do
                 Size = UDim2.new(1, -20, 0, 14),
                 Text = Slider.Text,
                 TextColor3 = LayeredStyle.MainText,
-                TextSize = 14,
+                TextSize = 12,
                 TextTruncate = Enum.TextTruncate.AtEnd,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
@@ -6657,7 +6730,7 @@ do
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             Position = UDim2.new(0, 10, 1, -8),
-            Size = UDim2.new(1, -20, 0, 18),
+            Size = UDim2.new(1, -20, 0, 16),
             Text = "",
             Parent = Holder,
         })
@@ -6671,7 +6744,7 @@ do
             BackgroundTransparency = 1,
             Size = UDim2.fromScale(1, 1),
             Text = "",
-            TextSize = 14,
+            TextSize = 12,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = Bar.ZIndex + 2,
@@ -6690,7 +6763,7 @@ do
                 BackgroundTransparency = 1,
                 Size = UDim2.fromScale(1, 1),
                 Text = "",
-                TextSize = 14,
+                TextSize = 12,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = Bar.ZIndex + 3,
                 Visible = false,
@@ -7156,14 +7229,14 @@ do
             ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0,
                 Dropdown.Text
-                    and (CompactMobileDropdown and 58 or 68)
-                    or (CompactMobileDropdown and 34 or 40)
+                    and (CompactMobileDropdown and 54 or 62)
+                    or (CompactMobileDropdown and 30 or 34)
             ),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 3),
+            CornerRadius = UDim.new(0, 7),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -7175,11 +7248,11 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 5 or 8),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 14 or 16),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 5 or 7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 13 or 15),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = 14,
+            TextSize = Library.IsMobile and 12 or 13,
             TextTruncate = Enum.TextTruncate.None,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -7193,11 +7266,11 @@ do
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -8 or -10),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 26 or 30),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -7 or -8),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 28),
             Text = "---",
             RichText = true,
-            TextSize = 14,
+            TextSize = Library.IsMobile and 12 or 13,
             -- Closed dropdowns can contain long rich pet/item names.
             -- Truncate only the compact field; the popup still shows full text.
             TextTruncate = Enum.TextTruncate.AtEnd,
@@ -7237,17 +7310,38 @@ do
             -- Parent to Holder so Display's right text padding cannot push the
             -- chevron inward. This keeps every dropdown arrow at the same
             -- physical right edge regardless of title/value length.
-            Position = UDim2.new(1, CompactMobileDropdown and -21 or -24, 1, CompactMobileDropdown and -21 or -25),
-            Size = UDim2.fromOffset(14, 14),
+            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -19 or -22),
+            Size = UDim2.fromOffset(13, 13),
             ZIndex = 3,
             Parent = Holder,
         })
+
+        Display.MouseEnter:Connect(function()
+            if Dropdown.Disabled then return end
+            TweenService:Create(Display, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputHover,
+            }):Play()
+            TweenService:Create(ArrowImage, Library.TweenInfo, {
+                ImageColor3 = Library.Scheme.AccentColor,
+                ImageTransparency = 0.08,
+            }):Play()
+        end)
+        Display.MouseLeave:Connect(function()
+            if Dropdown.Disabled then return end
+            TweenService:Create(Display, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputBox,
+            }):Play()
+            TweenService:Create(ArrowImage, Library.TweenInfo, {
+                ImageColor3 = LayeredStyle.SecondaryText,
+                ImageTransparency = 0.35,
+            }):Play()
+        end)
 
         local ClickBlocker = New("TextButton", {
             Active = true,
             AutoButtonColor = false,
             BackgroundColor3 = "DarkColor",
-            BackgroundTransparency = 0.5, -- 50% dim
+            BackgroundTransparency = 0.62, -- subtle focus dim
             BorderSizePixel = 0,
             Modal = true,
             Size = UDim2.fromScale(1, 1),
@@ -7306,14 +7400,20 @@ do
 
         local PopupBody = New("Frame", {
             BackgroundColor3 = LayeredStyle.InnerBox,
-            BorderColor3 = LayeredStyle.Border,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             ZIndex = 121,
             Parent = Popup,
         })
 
         New("UICorner", {
             CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            Parent = PopupBody,
+        })
+        New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Transparency = 0.15,
             Parent = PopupBody,
         })
 
@@ -7337,8 +7437,7 @@ do
 
         local CloseButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = Library.Scheme.AccentColor,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = Info.Multi and "Done" or "Close",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 13,
@@ -7361,8 +7460,7 @@ do
 
         local SearchInput = New("TextBox", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             PlaceholderText = "Search items...",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 13,
@@ -7374,7 +7472,13 @@ do
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
+            Parent = SearchInput,
+        })
+        local SearchInputStroke = New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
             Parent = SearchInput,
         })
 
@@ -7384,7 +7488,26 @@ do
             Parent = SearchInput,
         })
 
-                local BulkActions = New("Frame", {
+        SearchInput.Focused:Connect(function()
+            TweenService:Create(SearchInput, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputHover,
+            }):Play()
+            TweenService:Create(SearchInputStroke, Library.TweenInfo, {
+                Color = Library.Scheme.AccentColor,
+                Transparency = 0.18,
+            }):Play()
+        end)
+        SearchInput.FocusLost:Connect(function()
+            TweenService:Create(SearchInput, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputBox,
+            }):Play()
+            TweenService:Create(SearchInputStroke, Library.TweenInfo, {
+                Color = LayeredStyle.Border,
+                Transparency = 0,
+            }):Play()
+        end)
+
+        local BulkActions = New("Frame", {
             BackgroundTransparency = 1,
             Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
                 or type(Dropdown.RefreshFunc) == "function",
@@ -7394,8 +7517,7 @@ do
 
         local SelectAllButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = Library.Scheme.AccentColor,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = "Select All",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
@@ -7411,8 +7533,7 @@ do
 
         local ClearButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = Library.Scheme.AccentColor,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = "Clear",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
@@ -7428,8 +7549,7 @@ do
 
         local RefreshButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = Library.Scheme.AccentColor,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = "Refresh ↻",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
@@ -7491,8 +7611,7 @@ local List = New("ScrollingFrame", {
             AnchorPoint = Vector2.new(1, 1),
             AutoButtonColor = false,
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Position = UDim2.fromScale(1, 1),
             Size = UDim2.fromOffset(18, 18),
             Text = "",
@@ -7630,28 +7749,36 @@ local List = New("ScrollingFrame", {
             -- fixed 320x340 panel that covers most of the screen.
             if Library.IsMobile then
                 local vw = math.max(240, tonumber(viewport.X) or 360)
-                local vh = math.max(360, tonumber(viewport.Y) or 640)
-                local narrow = vw < 390
+                local vh = math.max(300, tonumber(viewport.Y) or 640)
+                local shortSide = math.min(vw, vh)
+                local compact = shortSide < 375 or vh < 560
                 local optionCount = math.max(1, #(Dropdown.Values or {}))
-                local visibleRows = math.clamp(optionCount, 2, narrow and 5 or 6)
 
-                local rowH = narrow and 25 or 27
-                local headerH = narrow and 29 or 31
-                local searchH = narrow and 27 or 29
-                local actionH = narrow and 21 or 23
-                local gap = 4
-                local padX = narrow and 6 or 7
-                local padY = 6
+                -- Density follows the actual device instead of using one phone
+                -- preset. Small/landscape phones stay intentionally compact.
+                local density = math.clamp(shortSide / 430, 0.82, 1)
+                local rowH = math.floor((compact and 27 or 30) * density)
+                local headerH = math.floor((compact and 31 or 34) * density)
+                local searchH = math.floor((compact and 27 or 30) * density)
+                local actionH = math.floor((compact and 23 or 25) * density)
+                local gap = math.max(3, math.floor(5 * density))
+                local padX = math.max(6, math.floor(8 * density))
+                local padY = math.max(5, math.floor(7 * density))
 
-                local widthRatio = narrow and 0.82 or 0.78
-                local width = math.floor(vw * widthRatio)
-                width = math.clamp(width, 215, math.max(215, vw - 28))
+                -- Width is constrained by both viewport and a desktop-like max.
+                -- This keeps tablet/large-phone dropdowns from becoming huge.
+                local horizontalMargin = math.clamp(math.floor(vw * 0.055), 10, 22)
+                local width = math.min(360, vw - horizontalMargin * 2)
+                width = math.max(math.min(220, vw - 16), width)
 
-                local toolbarH = searchH + gap
+                local chrome = padY * 2 + headerH + gap + searchH + gap + 18
+                local maxH = math.max(150, math.min(340, math.floor(vh * (compact and 0.42 or 0.48))))
+                local roomForRows = math.max(rowH * 2, maxH - chrome)
+                local maxRows = math.max(2, math.floor(roomForRows / math.max(1, rowH + 4)))
+                local visibleRows = math.clamp(optionCount, 2, math.min(maxRows, compact and 5 or 7))
                 local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * 4
-                local desiredH = padY * 2 + headerH + gap + toolbarH + rowsH + 20
-                local maxH = math.max(170, math.floor(vh * (narrow and 0.43 or 0.46)))
-                local height = math.clamp(desiredH, 165, maxH)
+                local desiredH = chrome + rowsH
+                local height = math.clamp(desiredH, 150, maxH)
 
                 return {
                     width = width,
@@ -7662,9 +7789,9 @@ local List = New("ScrollingFrame", {
                     searchH = searchH,
                     actionH = actionH,
                     gap = gap,
-                    titleText = narrow and 13 or 14,
-                    inputText = 11,
-                    optionText = narrow and 11 or 12,
+                    titleText = compact and 12 or 13,
+                    inputText = compact and 11 or 12,
+                    optionText = compact and 11 or 12,
                     rowH = rowH,
                 }
             end
@@ -7704,17 +7831,17 @@ local List = New("ScrollingFrame", {
             local width = math.min(desiredWidth, maxWidth)
             local height = math.min(PopupFixedHeight, maxHeight)
 
-            local padX = math.max(12, math.floor(width * 0.028))
-            local padY = math.max(10, math.floor(height * 0.024))
-            local headerH = 42
-            local searchH = 40
-            local actionH = 26
-            local gap = 8
+            local padX = math.max(11, math.floor(width * 0.024))
+            local padY = math.max(9, math.floor(height * 0.02))
+            local headerH = 38
+            local searchH = 34
+            local actionH = 24
+            local gap = 7
 
-            local titleText = 18
-            local inputText = 14
-            local optionText = 14
-            local rowH = 40
+            local titleText = 16
+            local inputText = 13
+            local optionText = 13
+            local rowH = 34
 
             return {
                 width = width,
@@ -8684,14 +8811,14 @@ local List = New("ScrollingFrame", {
             ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0,
                 Dropdown.Text
-                    and (CompactMobileDropdown and 58 or 68)
-                    or (CompactMobileDropdown and 34 or 40)
+                    and (CompactMobileDropdown and 54 or 62)
+                    or (CompactMobileDropdown and 30 or 34)
             ),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 3),
+            CornerRadius = UDim.new(0, 7),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -8703,11 +8830,11 @@ local List = New("ScrollingFrame", {
     
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 5 or 8),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 14 or 16),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 5 or 7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 13 or 15),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = 14,
+            TextSize = Library.IsMobile and 12 or 13,
             TextTruncate = Enum.TextTruncate.None,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -8721,11 +8848,11 @@ local List = New("ScrollingFrame", {
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -8 or -10),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 26 or 30),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -7 or -8),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 28),
             Text = "---",
             RichText = true,
-            TextSize = 14,
+            TextSize = Library.IsMobile and 12 or 13,
             -- Closed dropdowns can contain long rich pet/item names.
             -- Truncate only the compact field; the popup still shows full text.
             TextTruncate = Enum.TextTruncate.AtEnd,
@@ -8764,17 +8891,38 @@ local List = New("ScrollingFrame", {
             ImageTransparency = 0.5,
             -- Same right-edge anchor as every other dropdown. Holder parenting
             -- avoids the Display UIPadding offset entirely.
-            Position = UDim2.new(1, CompactMobileDropdown and -21 or -24, 1, CompactMobileDropdown and -21 or -25),
-            Size = UDim2.fromOffset(14, 14),
+            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -19 or -22),
+            Size = UDim2.fromOffset(13, 13),
             ZIndex = 3,
             Parent = Holder,
         })
     
+        Display.MouseEnter:Connect(function()
+            if Dropdown.Disabled then return end
+            TweenService:Create(Display, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputHover,
+            }):Play()
+            TweenService:Create(ArrowImage, Library.TweenInfo, {
+                ImageColor3 = Library.Scheme.AccentColor,
+                ImageTransparency = 0.08,
+            }):Play()
+        end)
+        Display.MouseLeave:Connect(function()
+            if Dropdown.Disabled then return end
+            TweenService:Create(Display, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputBox,
+            }):Play()
+            TweenService:Create(ArrowImage, Library.TweenInfo, {
+                ImageColor3 = LayeredStyle.SecondaryText,
+                ImageTransparency = 0.35,
+            }):Play()
+        end)
+
         local ClickBlocker = New("TextButton", {
             Active = true,
             AutoButtonColor = false,
             BackgroundColor3 = "DarkColor",
-            BackgroundTransparency = 0.5, -- 50% dim
+            BackgroundTransparency = 0.62, -- subtle focus dim
             BorderSizePixel = 0,
             Modal = true,
             Size = UDim2.fromScale(1, 1),
@@ -8833,8 +8981,7 @@ local List = New("ScrollingFrame", {
     
         local PopupBody = New("Frame", {
             BackgroundColor3 = LayeredStyle.InnerBox,
-            BorderColor3 = LayeredStyle.Border,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             ZIndex = 121,
             Parent = Popup,
         })
@@ -8844,6 +8991,14 @@ local List = New("ScrollingFrame", {
             Parent = PopupBody,
         })
     
+        New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Transparency = 0.15,
+            Parent = PopupBody,
+        })
+
         local Header = New("Frame", {
             Active = true,
             BackgroundTransparency = 1,
@@ -8864,8 +9019,7 @@ local List = New("ScrollingFrame", {
     
         local CloseButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = Library.Scheme.AccentColor,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = Info.Multi and "Done" or "Close",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 13,
@@ -8888,8 +9042,7 @@ local List = New("ScrollingFrame", {
     
         local SearchInput = New("TextBox", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             PlaceholderText = "Search items...",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 13,
@@ -8901,16 +9054,42 @@ local List = New("ScrollingFrame", {
         })
     
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius + 1),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = SearchInput,
         })
     
+        local SearchInputStroke = New("UIStroke", {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Color = LayeredStyle.Border,
+            Thickness = 1,
+            Parent = SearchInput,
+        })
+
         New("UIPadding", {
             PaddingLeft = UDim.new(0, 10),
             PaddingRight = UDim.new(0, 8),
             Parent = SearchInput,
         })
     
+        SearchInput.Focused:Connect(function()
+            TweenService:Create(SearchInput, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputHover,
+            }):Play()
+            TweenService:Create(SearchInputStroke, Library.TweenInfo, {
+                Color = Library.Scheme.AccentColor,
+                Transparency = 0.18,
+            }):Play()
+        end)
+        SearchInput.FocusLost:Connect(function()
+            TweenService:Create(SearchInput, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputBox,
+            }):Play()
+            TweenService:Create(SearchInputStroke, Library.TweenInfo, {
+                Color = LayeredStyle.Border,
+                Transparency = 0,
+            }):Play()
+        end)
+
         local BulkActions = New("Frame", {
             BackgroundTransparency = 1,
             Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
@@ -8921,8 +9100,7 @@ local List = New("ScrollingFrame", {
 
         local SelectAllButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = Library.Scheme.AccentColor,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = "Select All",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
@@ -8938,8 +9116,7 @@ local List = New("ScrollingFrame", {
 
         local ClearButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = Library.Scheme.AccentColor,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = "Clear",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
@@ -8955,8 +9132,7 @@ local List = New("ScrollingFrame", {
 
         local RefreshButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = Library.Scheme.AccentColor,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Text = "Refresh ↻",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
@@ -9018,8 +9194,7 @@ local List = New("ScrollingFrame", {
             AnchorPoint = Vector2.new(1, 1),
             AutoButtonColor = false,
             BackgroundColor3 = LayeredStyle.InputBox,
-            BorderColor3 = LayeredStyle.Border,
-            BorderSizePixel = 1,
+            BorderSizePixel = 0,
             Position = UDim2.fromScale(1, 1),
             Size = UDim2.fromOffset(18, 18),
             Text = "",
@@ -9103,28 +9278,36 @@ local List = New("ScrollingFrame", {
             -- fixed 320x340 panel that covers most of the screen.
             if Library.IsMobile then
                 local vw = math.max(240, tonumber(viewport.X) or 360)
-                local vh = math.max(360, tonumber(viewport.Y) or 640)
-                local narrow = vw < 390
+                local vh = math.max(300, tonumber(viewport.Y) or 640)
+                local shortSide = math.min(vw, vh)
+                local compact = shortSide < 375 or vh < 560
                 local optionCount = math.max(1, #(Dropdown.Values or {}))
-                local visibleRows = math.clamp(optionCount, 2, narrow and 5 or 6)
 
-                local rowH = narrow and 25 or 27
-                local headerH = narrow and 29 or 31
-                local searchH = narrow and 27 or 29
-                local actionH = narrow and 21 or 23
-                local gap = 4
-                local padX = narrow and 6 or 7
-                local padY = 6
+                -- Density follows the actual device instead of using one phone
+                -- preset. Small/landscape phones stay intentionally compact.
+                local density = math.clamp(shortSide / 430, 0.82, 1)
+                local rowH = math.floor((compact and 27 or 30) * density)
+                local headerH = math.floor((compact and 31 or 34) * density)
+                local searchH = math.floor((compact and 27 or 30) * density)
+                local actionH = math.floor((compact and 23 or 25) * density)
+                local gap = math.max(3, math.floor(5 * density))
+                local padX = math.max(6, math.floor(8 * density))
+                local padY = math.max(5, math.floor(7 * density))
 
-                local widthRatio = narrow and 0.82 or 0.78
-                local width = math.floor(vw * widthRatio)
-                width = math.clamp(width, 215, math.max(215, vw - 28))
+                -- Width is constrained by both viewport and a desktop-like max.
+                -- This keeps tablet/large-phone dropdowns from becoming huge.
+                local horizontalMargin = math.clamp(math.floor(vw * 0.055), 10, 22)
+                local width = math.min(360, vw - horizontalMargin * 2)
+                width = math.max(math.min(220, vw - 16), width)
 
-                local toolbarH = searchH + gap
+                local chrome = padY * 2 + headerH + gap + searchH + gap + 18
+                local maxH = math.max(150, math.min(340, math.floor(vh * (compact and 0.42 or 0.48))))
+                local roomForRows = math.max(rowH * 2, maxH - chrome)
+                local maxRows = math.max(2, math.floor(roomForRows / math.max(1, rowH + 4)))
+                local visibleRows = math.clamp(optionCount, 2, math.min(maxRows, compact and 5 or 7))
                 local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * 4
-                local desiredH = padY * 2 + headerH + gap + toolbarH + rowsH + 20
-                local maxH = math.max(170, math.floor(vh * (narrow and 0.43 or 0.46)))
-                local height = math.clamp(desiredH, 165, maxH)
+                local desiredH = chrome + rowsH
+                local height = math.clamp(desiredH, 150, maxH)
 
                 return {
                     width = width,
@@ -9135,9 +9318,9 @@ local List = New("ScrollingFrame", {
                     searchH = searchH,
                     actionH = actionH,
                     gap = gap,
-                    titleText = narrow and 13 or 14,
-                    inputText = 11,
-                    optionText = narrow and 11 or 12,
+                    titleText = compact and 12 or 13,
+                    inputText = compact and 11 or 12,
+                    optionText = compact and 11 or 12,
                     rowH = rowH,
                 }
             end
@@ -9178,17 +9361,17 @@ local List = New("ScrollingFrame", {
             local width = math.min(desiredWidth, maxWidth)
             local height = math.min(PopupFixedHeight, maxHeight)
 
-            local padX = math.max(12, math.floor(width * 0.028))
-            local padY = math.max(10, math.floor(height * 0.024))
-            local headerH = 42
-            local searchH = 40
-            local actionH = 26
-            local gap = 8
+            local padX = math.max(11, math.floor(width * 0.024))
+            local padY = math.max(9, math.floor(height * 0.02))
+            local headerH = 38
+            local searchH = 34
+            local actionH = 24
+            local gap = 7
 
-            local titleText = 18
-            local inputText = 14
-            local optionText = 14
-            local rowH = 40
+            local titleText = 16
+            local inputText = 13
+            local optionText = 13
+            local rowH = 34
 
             return {
                 width = width,
@@ -11765,7 +11948,9 @@ function Library:CreateWindow(WindowInfo)
 
         --// Top Bar \\-
         TopBar = New("Frame", {
-            BackgroundTransparency = 1,
+            BackgroundColor3 = LayeredStyle.TopBar,
+            BackgroundTransparency = 0,
+            BorderSizePixel = 0,
             Size = UDim2.new(1, 0, 0, 48),
             Parent = MainFrame,
         })
@@ -11781,7 +11966,7 @@ function Library:CreateWindow(WindowInfo)
         -- ZANJI brand header: restore the original logo + title layout.
         -- The Garden runtime applies the final gradient styling to the title.
         local BrandGap = 4
-        local BrandTextSize = 20
+        local BrandTextSize = 21
 
         if WindowInfo.Icon then
             local Icon = Library:GetCustomIcon(WindowInfo.Icon)
@@ -11828,10 +12013,10 @@ function Library:CreateWindow(WindowInfo)
         local ZanjiTitleGradient = New("UIGradient", {
             Name = "ZanjiPremiumGradient",
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(245, 208, 254)),
-                ColorSequenceKeypoint.new(0.34, Color3.fromRGB(192, 132, 252)),
-                ColorSequenceKeypoint.new(0.68, Color3.fromRGB(139, 92, 246)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(96, 165, 250)),
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
+                ColorSequenceKeypoint.new(0.28, Color3.fromRGB(226, 216, 255)),
+                ColorSequenceKeypoint.new(0.58, Color3.fromRGB(177, 150, 255)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(124, 101, 255)),
             }),
             Transparency = NumberSequence.new(0),
             Rotation = 0,
@@ -11841,7 +12026,7 @@ function Library:CreateWindow(WindowInfo)
         -- Brand title is intentionally not theme-registered. ThemeManager may
         -- recolor registered text after startup, which flattens the gradient.
         WindowTitle.TextColor3 = Color3.new(1, 1, 1)
-        WindowTitle.FontFace = Library.Scheme.Font
+        WindowTitle.FontFace = Font.fromEnum(Enum.Font.Code)
         Library.Registry[WindowTitle] = nil
 
         UpdateBrandLayout = function()
@@ -11948,8 +12133,12 @@ function Library:CreateWindow(WindowInfo)
         SearchBox = New("TextBox", {
             BackgroundColor3 = LayeredStyle.InputBox,
             PlaceholderText = "Search",
+            PlaceholderColor3 = LayeredStyle.SecondaryText,
             Size = WindowInfo.SearchbarSize,
-            TextScaled = true,
+            TextScaled = false,
+            TextSize = Library.IsMobile and 12 or 13,
+            TextColor3 = LayeredStyle.MainText,
+            TextXAlignment = Enum.TextXAlignment.Left,
             Visible = not (WindowInfo.DisableSearch or false),
             Parent = RightWrapper,
         })
@@ -11965,27 +12154,49 @@ function Library:CreateWindow(WindowInfo)
             })
         )
         New("UIPadding", {
-            PaddingBottom = UDim.new(0, 8),
-            PaddingLeft = UDim.new(0, 8),
-            PaddingRight = UDim.new(0, 8),
-            PaddingTop = UDim.new(0, 8),
+            PaddingBottom = UDim.new(0, 6),
+            PaddingLeft = UDim.new(0, 11),
+            PaddingRight = UDim.new(0, 30),
+            PaddingTop = UDim.new(0, 6),
             Parent = SearchBox,
         })
-        New("UIStroke", {
+        local SearchStroke = New("UIStroke", {
             Color = LayeredStyle.Border,
+            Thickness = 1,
             Parent = SearchBox,
         })
+
+        SearchBox.Focused:Connect(function()
+            TweenService:Create(SearchBox, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputHover,
+            }):Play()
+            TweenService:Create(SearchStroke, Library.TweenInfo, {
+                Color = Library.Scheme.AccentColor,
+                Transparency = 0.18,
+            }):Play()
+        end)
+        SearchBox.FocusLost:Connect(function()
+            TweenService:Create(SearchBox, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.InputBox,
+            }):Play()
+            TweenService:Create(SearchStroke, Library.TweenInfo, {
+                Color = LayeredStyle.Border,
+                Transparency = 0,
+            }):Play()
+        end)
 
         local SearchIcon = Library:GetIcon("search")
         if SearchIcon then
             New("ImageLabel", {
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundTransparency = 1,
                 Image = SearchIcon.Url,
                 ImageColor3 = "AccentColor",
                 ImageRectOffset = SearchIcon.ImageRectOffset,
                 ImageRectSize = SearchIcon.ImageRectSize,
-                ImageTransparency = 0.5,
-                Size = UDim2.fromScale(1, 1),
-                SizeConstraint = Enum.SizeConstraint.RelativeYY,
+                ImageTransparency = 0.18,
+                Position = UDim2.new(1, -9, 0.5, 0),
+                Size = UDim2.fromOffset(15, 15),
                 Parent = SearchBox,
             })
         end
@@ -12076,7 +12287,7 @@ function Library:CreateWindow(WindowInfo)
         --// Tabs \\--
         Tabs = New("ScrollingFrame", {
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            BackgroundColor3 = LayeredStyle.MainBackground,
+            BackgroundColor3 = LayeredStyle.Sidebar,
             CanvasSize = UDim2.fromScale(0, 0),
             Position = UDim2.fromOffset(0, 49),
             ScrollBarThickness = 0,
@@ -12448,6 +12659,7 @@ function Library:CreateWindow(WindowInfo)
         local TabLabel
         local TabIcon
         local TabStroke
+        local TabRail
 
         local TabContainer
         local TabCanvas
@@ -12461,18 +12673,31 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundColor3 = LayeredStyle.TabHover,
                 BackgroundTransparency = 1,
                 BorderSizePixel = 0,
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 38),
                 Text = "",
                 LayoutOrder = Order,
                 Parent = Tabs,
             })
-            New("UICorner", { CornerRadius = UDim.new(0, 5), Parent = TabButton })
+            New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = TabButton })
             TabStroke = New("UIStroke", {
                 ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
                 Color = "AccentColor",
                 Thickness = 1,
                 Transparency = 1,
                 Parent = TabButton,
+            })
+            TabRail = New("Frame", {
+                AnchorPoint = Vector2.new(0, 0.5),
+                BackgroundColor3 = "AccentColor",
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                Position = UDim2.new(0, 3, 0.5, 0),
+                Size = UDim2.fromOffset(3, 18),
+                Parent = TabButton,
+            })
+            New("UICorner", {
+                CornerRadius = UDim.new(1, 0),
+                Parent = TabRail,
             })
             local ButtonPadding = New("UIPadding", {
                 PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
@@ -12488,8 +12713,8 @@ function Library:CreateWindow(WindowInfo)
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
                 TextColor3 = LayeredStyle.SecondaryText,
-                TextSize = 16,
-                TextTransparency = 0.22,
+                TextSize = 14,
+                TextTransparency = 0.18,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Visible = not IsCompact,
                 Parent = TabButton,
@@ -12552,14 +12777,14 @@ function Library:CreateWindow(WindowInfo)
                 Parent = TabContainer,
             })
             New("UIListLayout", {
-                Padding = UDim.new(0, 2),
+                Padding = UDim.new(0, 8),
                 Parent = TabLeft,
             })
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, 2),
-                PaddingLeft = UDim.new(0, 2),
-                PaddingRight = UDim.new(0, 2),
-                PaddingTop = UDim.new(0, 2),
+                PaddingBottom = UDim.new(0, 6),
+                PaddingLeft = UDim.new(0, 6),
+                PaddingRight = UDim.new(0, 4),
+                PaddingTop = UDim.new(0, 6),
                 Parent = TabLeft,
             })
             do
@@ -12587,14 +12812,14 @@ function Library:CreateWindow(WindowInfo)
                 Parent = TabContainer,
             })
             New("UIListLayout", {
-                Padding = UDim.new(0, 2),
+                Padding = UDim.new(0, 8),
                 Parent = TabRight,
             })
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, 2),
-                PaddingLeft = UDim.new(0, 2),
-                PaddingRight = UDim.new(0, 2),
-                PaddingTop = UDim.new(0, 2),
+                PaddingBottom = UDim.new(0, 6),
+                PaddingLeft = UDim.new(0, 4),
+                PaddingRight = UDim.new(0, 6),
+                PaddingTop = UDim.new(0, 6),
                 Parent = TabRight,
             })
             do
@@ -13245,10 +13470,10 @@ function Library:CreateWindow(WindowInfo)
                     Parent = GroupboxHolder,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, 6),
-                    PaddingLeft = UDim.new(0, 6),
-                    PaddingRight = UDim.new(0, 6),
-                    PaddingTop = UDim.new(0, 6),
+                    PaddingBottom = UDim.new(0, 8),
+                    PaddingLeft = UDim.new(0, 9),
+                    PaddingRight = UDim.new(0, 9),
+                    PaddingTop = UDim.new(0, 8),
                     Parent = GroupboxTop,
                 })
 
@@ -13261,7 +13486,7 @@ function Library:CreateWindow(WindowInfo)
                         ImageRectOffset = BoxIcon.ImageRectOffset,
                         ImageRectSize = BoxIcon.ImageRectSize,
                         Position = UDim2.fromScale(0, 0.5),
-                        Size = UDim2.fromOffset(22, 22),
+                        Size = UDim2.fromOffset(18, 18),
                         Parent = GroupboxTop,
                     })
                 end
@@ -13269,9 +13494,9 @@ function Library:CreateWindow(WindowInfo)
                 local TextsFrame = New("Frame", {
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(BoxIcon and 24 or 0, 0),
+                    Position = UDim2.fromOffset(BoxIcon and 22 or 0, 0),
                     -- Reserve a fixed rail on the right for the collapse arrow.
-                    Size = UDim2.new(1, -38 - (BoxIcon and 24 or 0), 0, 0),
+                    Size = UDim2.new(1, -38 - (BoxIcon and 22 or 0), 0, 0),
                     Parent = GroupboxTop,
                 })
                 New("UIListLayout", {
@@ -13291,7 +13516,7 @@ function Library:CreateWindow(WindowInfo)
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Name,
                     TextColor3 = LayeredStyle.MainText,
-                    TextSize = 15,
+                    TextSize = 14,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Parent = TextsFrame,
@@ -13307,8 +13532,8 @@ function Library:CreateWindow(WindowInfo)
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Description or "",
                     TextColor3 = LayeredStyle.SecondaryText,
-                    TextSize = 14,
-                    TextTransparency = 0.5,
+                    TextSize = 12,
+                    TextTransparency = 0.12,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Visible = (Info.Description ~= nil),
@@ -13318,18 +13543,32 @@ function Library:CreateWindow(WindowInfo)
                 if Info.DisableCollapsing ~= true then
                     GroupboxCollapseArrow = New("ImageButton", {
                         AnchorPoint = Vector2.new(1, 0),
+                        AutoButtonColor = false,
                         BackgroundTransparency = 1,
                         Image = ArrowIcon and ArrowIcon.Url or "",
-                        ImageColor3 = LayeredStyle.MainText,
+                        ImageColor3 = LayeredStyle.SecondaryText,
                         ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
                         ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
+                        ImageTransparency = 0.18,
                         Rotation = 180,
-                        -- Fixed right edge, independent of title/description length.
-                        Position = UDim2.new(1, -6, 0, 7),
-                        Size = UDim2.fromOffset(18, 18),
+                        -- Dedicated right rail keeps every section chevron aligned.
+                        Position = UDim2.new(1, -9, 0, 8),
+                        Size = UDim2.fromOffset(16, 16),
                         ZIndex = 6,
                         Parent = GroupboxTop,
                     })
+                    GroupboxCollapseArrow.MouseEnter:Connect(function()
+                        TweenService:Create(GroupboxCollapseArrow, Library.TweenInfo, {
+                            ImageColor3 = Library.Scheme.AccentColor,
+                            ImageTransparency = 0,
+                        }):Play()
+                    end)
+                    GroupboxCollapseArrow.MouseLeave:Connect(function()
+                        TweenService:Create(GroupboxCollapseArrow, Library.TweenInfo, {
+                            ImageColor3 = LayeredStyle.SecondaryText,
+                            ImageTransparency = 0.18,
+                        }):Play()
+                    end)
                 end
 
                 GroupboxLine = Library:MakeLine(GroupboxHolder, {
@@ -13350,8 +13589,8 @@ function Library:CreateWindow(WindowInfo)
                 GroupboxContainer = New("Frame", {
                     BackgroundColor3 = LayeredStyle.InnerBox,
                     BorderSizePixel = 0,
-                    Position = UDim2.fromOffset(10, 10),
-                    Size = UDim2.new(1, -20, 0, 0),
+                    Position = UDim2.fromOffset(8, 8),
+                    Size = UDim2.new(1, -16, 0, 0),
                     Parent = GroupboxContentShell,
                 })
                 New("UICorner", {
@@ -13366,7 +13605,7 @@ function Library:CreateWindow(WindowInfo)
                 })
 
                 GroupboxList = New("UIListLayout", {
-                    Padding = UDim.new(0, 8),
+                    Padding = UDim.new(0, 7),
                     Parent = GroupboxContainer,
                 })
                 New("UIPadding", {
@@ -13408,12 +13647,12 @@ function Library:CreateWindow(WindowInfo)
                 local TopSize = (GroupboxTop.AbsoluteSize.Y / Library.DPIScale)
                 local MeasuredContentHeight = math.max(0, GroupboxList.AbsoluteContentSize.Y / Library.DPIScale)
                 local ContainerSize = MeasuredContentHeight + 16
-                local ContentShellSize = ContainerSize + 20
+                local ContentShellSize = ContainerSize + 16
 
                 local TargetSize = UDim2.new(1, 0, 0, if Groupbox.Collapsed then TopSize else (TopSize + 1 + ContentShellSize))
 
                 GroupboxContentShell.Size = UDim2.new(1, 0, 0, ContentShellSize)
-                GroupboxContainer.Size = UDim2.new(1, -20, 0, ContainerSize)
+                GroupboxContainer.Size = UDim2.new(1, -16, 0, ContainerSize)
                 GroupboxLine.Visible = not Groupbox.Collapsed
                 if Library.Animations and Library.Animations.Groupbox then
                     local TweenInfo = Library.GroupboxTweenInfo or TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -13633,7 +13872,7 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundTransparency = Hovering and 0 or 1,
             }):Play()
             TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = Hovering and 0.72 or 1,
+                Transparency = Hovering and 0.82 or 1,
             }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextColor3 = Hovering and LayeredStyle.MainText or LayeredStyle.SecondaryText,
@@ -13660,7 +13899,10 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundTransparency = 0,
             }):Play()
             TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = 0.35,
+                Transparency = 0.58,
+            }):Play()
+            TweenService:Create(TabRail, Library.TweenInfo, {
+                BackgroundTransparency = 0,
             }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextColor3 = LayeredStyle.MainText,
@@ -13693,6 +13935,9 @@ function Library:CreateWindow(WindowInfo)
             }):Play()
             TweenService:Create(TabStroke, Library.TweenInfo, {
                 Transparency = 1,
+            }):Play()
+            TweenService:Create(TabRail, Library.TweenInfo, {
+                BackgroundTransparency = 1,
             }):Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
