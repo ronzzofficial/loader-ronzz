@@ -11670,6 +11670,18 @@ function Library:CreateWindow(WindowInfo)
         local BrandGap = 7
         local BrandTextSize = 22
 
+        -- Brand text uses its own font. Obsidian's TextLabel template registers
+        -- FontFace = "Font", so a later ThemeManager/SetFont refresh would
+        -- otherwise replace GothamBlack with the normal UI font.
+        local function LockZanjiBrandFont(label)
+            if not label then return end
+            local registry = Library.Registry and Library.Registry[label]
+            if type(registry) == "table" then
+                registry.FontFace = nil
+            end
+            label.FontFace = Font.fromEnum(Enum.Font.GothamBlack)
+        end
+
         local function IsZanjiWindowTitle(value)
             return tostring(value or ""):gsub("%s+", ""):lower() == "zanjihub"
         end
@@ -11728,7 +11740,6 @@ function Library:CreateWindow(WindowInfo)
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Size = UDim2.new(0, X, 1, 0),
-            Font = Enum.Font.GothamBlack,
             RichText = IsZanjiWindowTitle(WindowInfo.Title),
             Text = FormatWindowTitle(WindowInfo.Title),
             TextColor3 = IsZanjiWindowTitle(WindowInfo.Title)
@@ -11738,11 +11749,17 @@ function Library:CreateWindow(WindowInfo)
             TextXAlignment = Enum.TextXAlignment.Center,
             Parent = TitleHolder,
         })
+        if IsZanjiWindowTitle(WindowInfo.Title) then
+            LockZanjiBrandFont(WindowTitle)
+        end
 
         UpdateBrandLayout = function()
             if not TitleHolder or not WindowTitle or not WindowIcon then return end
 
             local isZanjiBrand = IsZanjiWindowTitle(WindowInfo.Title)
+            if isZanjiBrand then
+                LockZanjiBrandFont(WindowTitle)
+            end
             WindowTitle.RichText = isZanjiBrand
             WindowTitle.Text = FormatWindowTitle(WindowInfo.Title)
             WindowTitle.TextColor3 = isZanjiBrand
@@ -14762,9 +14779,9 @@ function Library:CreateWindow(WindowInfo)
 
         local ToggleButton = Library:AddDraggableButton({
             Text = "ZANJIHUB",
-            Callback = function()
-                Library:Toggle()
-            end,
+            -- Gesture/toggle is handled below so the boxed button can use the
+            -- exact same press/bounce behavior as the old circular logo.
+            Callback = function() end,
             ExcludeScaling = false,
             ExcludeDragging = false,
         })
@@ -14837,6 +14854,9 @@ function Library:CreateWindow(WindowInfo)
                 ZIndex = Button.ZIndex + 2,
                 Parent = Brand,
             })
+            if Library.Registry[Zanji] then
+                Library.Registry[Zanji].FontFace = nil
+            end
             Zanji.FontFace = Font.fromEnum(Enum.Font.GothamBlack)
 
             local Hub = New("TextLabel", {
@@ -14851,100 +14871,102 @@ function Library:CreateWindow(WindowInfo)
                 ZIndex = Button.ZIndex + 2,
                 Parent = Brand,
             })
+            if Library.Registry[Hub] then
+                Library.Registry[Hub].FontFace = nil
+            end
             Hub.FontFace = Font.fromEnum(Enum.Font.GothamBlack)
 
-            -- Strong, visible press feedback. AutoButtonColor alone can be too
-            -- subtle on this dark theme, so animate scale + fill + border.
+            -- Same interaction used by the old circular ZANJI logo:
+            -- hover 1.04 -> press 0.92 -> click bounce 1.12 -> settle.
+            -- Dragging 5px+ only moves the button and does not toggle the UI.
             local PressScale = Button:FindFirstChildOfClass("UIScale")
-            local Pressed = false
-            local BaseScale = PressScale and PressScale.Scale or 1
-            local PressTween = TweenInfo.new(0.075, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-            local ReleaseTween = TweenInfo.new(0.09, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-
-            local function GetStroke()
-                return Button:FindFirstChildOfClass("UIStroke")
+            if not PressScale then
+                PressScale = Instance.new("UIScale")
+                PressScale.Scale = 1
+                PressScale.Parent = Button
+                table.insert(Library.Scales, PressScale)
             end
 
-            local function SetPressed(Value)
-                Pressed = Value == true
-                local Stroke = GetStroke()
-
-                if Pressed then
-                    if PressScale then
-                        BaseScale = PressScale.Scale
-                        TweenService:Create(PressScale, PressTween, {
-                            Scale = BaseScale * 0.92,
-                        }):Play()
-                    end
-
-                    TweenService:Create(Button, PressTween, {
-                        BackgroundColor3 = Library.Scheme.BackgroundColor:Lerp(
-                            Library.Scheme.AccentColor,
-                            0.20
-                        ),
-                    }):Play()
-
-                    if Stroke then
-                        TweenService:Create(Stroke, PressTween, {
-                            Color = Library.Scheme.AccentColor,
-                            Thickness = 2,
-                        }):Play()
-                    end
-                else
-                    if PressScale then
-                        TweenService:Create(PressScale, ReleaseTween, {
-                            Scale = BaseScale,
-                        }):Play()
-                    end
-
-                    TweenService:Create(Button, ReleaseTween, {
-                        BackgroundColor3 = Library.Scheme.BackgroundColor,
-                    }):Play()
-
-                    if Stroke then
-                        TweenService:Create(Stroke, ReleaseTween, {
-                            Color = Library.Scheme.OutlineColor,
-                            Thickness = 1,
-                        }):Play()
-                    end
-                end
+            local function tweenScale(value, duration, style)
+                if not Button.Parent then return end
+                TweenService:Create(
+                    PressScale,
+                    TweenInfo.new(
+                        duration or 0.10,
+                        style or Enum.EasingStyle.Quad,
+                        Enum.EasingDirection.Out
+                    ),
+                    { Scale = value }
+                ):Play()
             end
 
-            table.insert(ToggleButton.Connections, Button.InputBegan:Connect(function(Input)
-                if IsClickInput(Input) then
-                    SetPressed(true)
-                end
-            end))
+            local hovered = false
+            local pressing = false
+            local moved = false
+            local pressInput = nil
+            local pressStart = nil
 
-            table.insert(ToggleButton.Connections, Button.InputEnded:Connect(function(Input)
-                if IsClickInput(Input) then
-                    SetPressed(false)
-                end
-            end))
+            local function isPress(input)
+                return input.UserInputType == Enum.UserInputType.MouseButton1
+                    or input.UserInputType == Enum.UserInputType.Touch
+            end
 
             table.insert(ToggleButton.Connections, Button.MouseEnter:Connect(function()
-                if UserInputService.TouchEnabled or Pressed then return end
-                local Stroke = GetStroke()
-                if Stroke then
-                    TweenService:Create(Stroke, Library.TweenInfo, {
-                        Color = Library.Scheme.AccentColor,
-                        Thickness = 1.35,
-                    }):Play()
+                -- Match the old circular button: desktop hover grows slightly.
+                hovered = not UserInputService.TouchEnabled
+                if hovered and not pressing then
+                    tweenScale(1.04, 0.10)
                 end
             end))
 
             table.insert(ToggleButton.Connections, Button.MouseLeave:Connect(function()
-                if Pressed then
-                    SetPressed(false)
+                hovered = false
+                if not pressing then
+                    tweenScale(1, 0.10)
+                end
+            end))
+
+            table.insert(ToggleButton.Connections, Button.InputBegan:Connect(function(input)
+                if not isPress(input) then return end
+                pressing = true
+                moved = false
+                pressInput = input
+                pressStart = input.Position
+                tweenScale(0.92, 0.06)
+            end))
+
+            Library:GiveSignal(UserInputService.InputChanged:Connect(function(input)
+                if not pressing or not pressStart then return end
+                local movement =
+                    input == pressInput
+                    or input.UserInputType == Enum.UserInputType.MouseMovement
+                    or input.UserInputType == Enum.UserInputType.Touch
+                if not movement then return end
+
+                local delta = input.Position - pressStart
+                if delta.Magnitude >= 5 then
+                    moved = true
+                end
+            end))
+
+            Library:GiveSignal(UserInputService.InputEnded:Connect(function(input)
+                if not pressing or not isPress(input) then return end
+                pressing = false
+                pressInput = nil
+                pressStart = nil
+
+                if moved then
+                    tweenScale(hovered and 1.04 or 1, 0.12, Enum.EasingStyle.Back)
                     return
                 end
-                local Stroke = GetStroke()
-                if Stroke then
-                    TweenService:Create(Stroke, Library.TweenInfo, {
-                        Color = Library.Scheme.OutlineColor,
-                        Thickness = 1,
-                    }):Play()
-                end
+
+                Library:Toggle()
+                tweenScale(1.12, 0.10, Enum.EasingStyle.Back)
+                task.delay(0.10, function()
+                    if Button.Parent then
+                        tweenScale(hovered and 1.04 or 1, 0.14, Enum.EasingStyle.Back)
+                    end
+                end)
             end))
         end
     end
