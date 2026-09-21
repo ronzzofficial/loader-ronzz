@@ -11738,51 +11738,12 @@ function Library:CreateWindow(WindowInfo)
             Parent = TopBar,
         })
 
-        -- ZANJI brand header: no header logo. Keep the wordmark centered and
-        -- split its color so ZANJI stays white while HUB follows AccentColor.
+        -- ZANJI brand header: restore the original logo + title layout.
+        -- The Garden runtime applies the final gradient styling to the title.
         local BrandGap = 4
-        local BrandTextSize = 22
+        local BrandTextSize = 20
 
-        -- Brand text uses its own font. Obsidian's TextLabel template registers
-        -- FontFace = "Font", so a later ThemeManager/SetFont refresh would
-        -- otherwise replace GothamBlack with the normal UI font.
-        local function LockZanjiBrandFont(label)
-            if not label then return end
-            local registry = Library.Registry and Library.Registry[label]
-            if type(registry) == "table" then
-                registry.FontFace = nil
-            end
-            label.FontFace = Font.fromEnum(Enum.Font.GothamBlack)
-        end
-
-        local function IsZanjiWindowTitle(value)
-            return tostring(value or ""):gsub("%s+", ""):lower() == "zanjihub"
-        end
-
-        local function ZanjiAccentHex()
-            local accent = Library.Scheme.AccentColor
-            if typeof(accent) == "Color3" then
-                local ok, value = pcall(function()
-                    return accent:ToHex()
-                end)
-                if ok and type(value) == "string" and value ~= "" then
-                    return value:upper()
-                end
-            end
-            return "9B7CFF"
-        end
-
-        local function FormatWindowTitle(value)
-            value = tostring(value or "")
-            if IsZanjiWindowTitle(value) then
-                return 'ZANJI<font color="#' .. ZanjiAccentHex() .. '">HUB</font>'
-            end
-            return value
-        end
-
-        -- Keep a hidden icon object for compatibility with existing window
-        -- code, but never render a logo for the ZANJIHUB header.
-        if WindowInfo.Icon and not IsZanjiWindowTitle(WindowInfo.Title) then
+        if WindowInfo.Icon then
             local Icon = Library:GetCustomIcon(WindowInfo.Icon)
             WindowIcon = New("ImageLabel", {
                 BackgroundTransparency = 1,
@@ -11801,71 +11762,45 @@ function Library:CreateWindow(WindowInfo)
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 Size = WindowInfo.IconSize,
-                Text = "",
+                Text = WindowInfo.Title:sub(1, 1),
+                TextColor3 = "AccentColor",
+                TextScaled = true,
                 Visible = false,
                 Parent = TitleHolder,
             })
         end
 
-        local X = Library:GetTextBounds(WindowInfo.Title, Enum.Font.GothamBlack, BrandTextSize, 2000)
+        local X = Library:GetTextBounds(WindowInfo.Title, Library.Scheme.Font, BrandTextSize, 2000)
         WindowTitle = New("TextLabel", {
             BackgroundTransparency = 1,
-            AnchorPoint = Vector2.new(0.5, 0.5),
+            AnchorPoint = Vector2.new(0, 0.5),
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Size = UDim2.new(0, X, 1, 0),
-            RichText = IsZanjiWindowTitle(WindowInfo.Title),
-            Text = FormatWindowTitle(WindowInfo.Title),
-            TextColor3 = IsZanjiWindowTitle(WindowInfo.Title)
-                and Color3.fromRGB(245, 247, 250)
-                or Library.Scheme.AccentColor,
+            Text = WindowInfo.Title,
+            TextColor3 = "AccentColor",
             TextSize = BrandTextSize,
-            TextXAlignment = Enum.TextXAlignment.Center,
+            TextXAlignment = Enum.TextXAlignment.Left,
             Parent = TitleHolder,
         })
-        if IsZanjiWindowTitle(WindowInfo.Title) then
-            LockZanjiBrandFont(WindowTitle)
-        end
 
         UpdateBrandLayout = function()
             if not TitleHolder or not WindowTitle or not WindowIcon then return end
 
-            local isZanjiBrand = IsZanjiWindowTitle(WindowInfo.Title)
-            if isZanjiBrand then
-                LockZanjiBrandFont(WindowTitle)
-            end
-            WindowTitle.RichText = isZanjiBrand
-            WindowTitle.Text = FormatWindowTitle(WindowInfo.Title)
-            WindowTitle.TextColor3 = isZanjiBrand
-                and Color3.fromRGB(245, 247, 250)
-                or Library.Scheme.AccentColor
-
-            local measureFont = isZanjiBrand and Enum.Font.GothamBlack or Library.Scheme.Font
-            local titleWidth = select(1, Library:GetTextBounds(WindowInfo.Title, measureFont, BrandTextSize, 2000))
+            local titleWidth = select(1, Library:GetTextBounds(WindowTitle.Text, WindowTitle.FontFace or Library.Scheme.Font, BrandTextSize, 2000))
             titleWidth = math.max(1, math.ceil(tonumber(titleWidth) or X or 1))
             WindowTitle.Size = UDim2.new(0, titleWidth, 1, 0)
 
             if IsCompact == true then
                 WindowTitle.Visible = false
-                -- ZANJIHUB intentionally has no compact/header logo.
-                WindowIcon.Visible = not isZanjiBrand and WindowInfo.Icon ~= nil
-                if WindowIcon.Visible then
-                    WindowIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-                    WindowIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
-                end
+                WindowIcon.Visible = true
+                WindowIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+                WindowIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
                 return
             end
 
             WindowTitle.Visible = true
-
-            if isZanjiBrand then
-                WindowIcon.Visible = false
-                WindowTitle.AnchorPoint = Vector2.new(0.5, 0.5)
-                WindowTitle.Position = UDim2.new(0.5, 0, 0.5, 0)
-                WindowTitle.TextXAlignment = Enum.TextXAlignment.Center
-                return
-            end
-
             WindowIcon.Visible = WindowInfo.Icon ~= nil
+
             local iconWidth = WindowInfo.Icon and math.max(1, WindowInfo.IconSize.X.Offset) or 0
             local gap = iconWidth > 0 and BrandGap or 0
             local totalWidth = iconWidth + gap + titleWidth
@@ -15096,7 +15031,7 @@ function Library:CreateWindow(WindowInfo)
         Library:UpdateSearch(SearchBox.Text)
     end))
 
-    -- Z-key toggle removed; the boxed ZANJIHUB button is the UI toggle.
+    -- The circular ZANJI logo button below is the UI toggle.
 
     Library:GiveSignal(UserInputService.WindowFocused:Connect(function()
         Library.IsRobloxFocused = true
