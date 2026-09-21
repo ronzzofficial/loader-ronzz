@@ -262,11 +262,11 @@ local Library = {
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(14, 15, 18),   -- #0E0F12
-        MainColor = Color3.fromRGB(20, 22, 27),         -- #14161B
-        AccentColor = Color3.fromRGB(124, 92, 230),     -- #7C5CE6
-        OutlineColor = Color3.fromRGB(45, 49, 58),      -- #2D313A
-        FontColor = Color3.fromRGB(235, 237, 243),      -- #EBEDF3
+        BackgroundColor = Color3.fromRGB(13, 15, 20),   -- #0D0F14
+        MainColor = Color3.fromRGB(21, 24, 33),         -- #151821
+        AccentColor = Color3.fromRGB(155, 124, 255),    -- #9B7CFF
+        OutlineColor = Color3.fromRGB(52, 57, 70),      -- #343946
+        FontColor = Color3.fromRGB(238, 240, 246),      -- #EEF0F6
         Font = Font.fromEnum(Enum.Font.Code),
 
         RedColor = Color3.fromRGB(235, 86, 98),         -- #EB5662
@@ -292,24 +292,26 @@ local Library = {
 --// ZANJI layered dark style \\--
 -- Global neutral hierarchy used by every standard groupbox/control.
 local LayeredStyle = {
-    -- Professional graphite palette with a subtle cool tint.
-    -- Small contrast steps keep the hierarchy clean and consistent.
-    MainBackground = Color3.fromRGB(14, 15, 18),   -- #0E0F12
-    OuterBox = Color3.fromRGB(18, 20, 24),         -- #121418
-    InnerBox = Color3.fromRGB(23, 25, 30),         -- #17191E
-    ControlRow = Color3.fromRGB(28, 30, 36),       -- #1C1E24
-    InputBox = Color3.fromRGB(20, 22, 27),         -- #14161B
+    -- ZANJI graphite + violet palette. Neutral surfaces keep large pages calm,
+    -- while violet is reserved for focus, selection and brand identity.
+    MainBackground = Color3.fromRGB(13, 15, 20),   -- #0D0F14
+    OuterBox = Color3.fromRGB(18, 21, 27),         -- #12151B
+    InnerBox = Color3.fromRGB(22, 25, 32),         -- #161920
+    ControlRow = Color3.fromRGB(27, 30, 38),       -- #1B1E26
+    InputBox = Color3.fromRGB(17, 20, 26),         -- #11141A
 
-    -- Dropdown states: neutral -> lifted hover -> violet-tinted selection.
-    DropdownRow = Color3.fromRGB(24, 26, 31),      -- #181A1F
-    DropdownHover = Color3.fromRGB(33, 36, 43),    -- #21242B
-    DropdownSelected = Color3.fromRGB(42, 39, 53), -- #2A2735
-    DropdownHoverBorder = Color3.fromRGB(67, 72, 84), -- #434854
+    DropdownRow = Color3.fromRGB(22, 25, 32),      -- #161920
+    DropdownHover = Color3.fromRGB(31, 35, 44),    -- #1F232C
+    DropdownSelected = Color3.fromRGB(43, 36, 62), -- #2B243E
+    DropdownHoverBorder = Color3.fromRGB(73, 78, 94), -- #494E5E
 
-    Border = Color3.fromRGB(45, 49, 58),           -- #2D313A
-    Separator = Color3.fromRGB(37, 40, 48),        -- #252830
-    MainText = Color3.fromRGB(235, 237, 243),      -- #EBEDF3
-    SecondaryText = Color3.fromRGB(151, 157, 171), -- #979DAB
+    TabHover = Color3.fromRGB(31, 29, 43),          -- #1F1D2B
+    TabSelected = Color3.fromRGB(47, 39, 72),       -- #2F2748
+
+    Border = Color3.fromRGB(48, 53, 65),            -- #303541
+    Separator = Color3.fromRGB(38, 42, 52),         -- #262A34
+    MainText = Color3.fromRGB(238, 240, 246),       -- #EEF0F6
+    SecondaryText = Color3.fromRGB(157, 164, 180),  -- #9DA4B4
 }
 Library.LayeredStyle = LayeredStyle
 
@@ -11495,6 +11497,7 @@ function Library:CreateWindow(WindowInfo)
     local BottomBackground
     local FooterLabel
     local TopBar
+    local UpdateBrandLayout
 
     local InitialLeftWidth = math.ceil(WindowInfo.Size.X.Offset * 0.3)
     local IsCompact = WindowInfo.SidebarCompacted
@@ -11587,15 +11590,16 @@ function Library:CreateWindow(WindowInfo)
         })
         Library:MakeDraggable(MainFrame, TopBar, false, true)
 
-        --// Title \\--
+        --// Title \--
         TitleHolder = New("Frame", {
             BackgroundTransparency = 1,
             Size = UDim2.new(0, InitialLeftWidth, 1, 0),
             Parent = TopBar,
         })
-        -- ZANJIHUB header uses independent positioning instead of a horizontal
-        -- UIListLayout. This keeps the TITLE mathematically centered in the
-        -- sidebar while the transparent logo sits in the unused left-side space.
+
+        -- Logo + title are treated as one centered brand unit.
+        local BrandGap = 7
+        local BrandTextSize = 20
 
         if WindowInfo.Icon then
             local Icon = Library:GetCustomIcon(WindowInfo.Icon)
@@ -11605,7 +11609,7 @@ function Library:CreateWindow(WindowInfo)
                 ImageRectOffset = Icon and Icon.ImageRectOffset or Vector2.zero,
                 ImageRectSize = Icon and Icon.ImageRectSize or Vector2.zero,
                 AnchorPoint = Vector2.new(0, 0.5),
-                Position = UDim2.new(0, 10, 0.5, 0),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
                 Size = WindowInfo.IconSize,
                 ScaleType = Enum.ScaleType.Fit,
                 Parent = TitleHolder,
@@ -11613,34 +11617,66 @@ function Library:CreateWindow(WindowInfo)
         else
             WindowIcon = New("TextLabel", {
                 BackgroundTransparency = 1,
-                AnchorPoint = Vector2.new(0, 0.5),
-                Position = UDim2.new(0, 10, 0.5, 0),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
                 Size = WindowInfo.IconSize,
                 Text = WindowInfo.Title:sub(1, 1),
+                TextColor3 = "AccentColor",
                 TextScaled = true,
                 Visible = false,
                 Parent = TitleHolder,
             })
         end
 
-        local X = Library:GetTextBounds(
-            WindowInfo.Title,
-            Library.Scheme.Font,
-            20,
-            TitleHolder.AbsoluteSize.X - (WindowInfo.Icon and WindowInfo.IconSize.X.Offset + 6 or 0) - 12
-        )
+        local X = Library:GetTextBounds(WindowInfo.Title, Library.Scheme.Font, BrandTextSize, 2000)
         WindowTitle = New("TextLabel", {
             BackgroundTransparency = 1,
-            AnchorPoint = Vector2.new(0.5, 0.5),
+            AnchorPoint = Vector2.new(0, 0.5),
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Size = UDim2.new(0, X, 1, 0),
             Text = WindowInfo.Title,
-            TextSize = 20,
-            TextXAlignment = Enum.TextXAlignment.Center,
+            TextColor3 = "AccentColor",
+            TextSize = BrandTextSize,
+            TextXAlignment = Enum.TextXAlignment.Left,
             Parent = TitleHolder,
         })
 
-        --// Top Right Bar \\--
+        UpdateBrandLayout = function()
+            if not TitleHolder or not WindowTitle or not WindowIcon then return end
+
+            local titleWidth = select(1, Library:GetTextBounds(WindowTitle.Text, WindowTitle.FontFace or Library.Scheme.Font, BrandTextSize, 2000))
+            titleWidth = math.max(1, math.ceil(tonumber(titleWidth) or X or 1))
+            WindowTitle.Size = UDim2.new(0, titleWidth, 1, 0)
+
+            if IsCompact == true then
+                WindowTitle.Visible = false
+                WindowIcon.Visible = true
+                WindowIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+                WindowIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+                return
+            end
+
+            WindowTitle.Visible = true
+            WindowIcon.Visible = WindowInfo.Icon ~= nil
+
+            local iconWidth = WindowInfo.Icon and math.max(1, WindowInfo.IconSize.X.Offset) or 0
+            local gap = iconWidth > 0 and BrandGap or 0
+            local totalWidth = iconWidth + gap + titleWidth
+            local leftOffset = -math.floor(totalWidth / 2)
+
+            if WindowInfo.Icon then
+                WindowIcon.AnchorPoint = Vector2.new(0, 0.5)
+                WindowIcon.Position = UDim2.new(0.5, leftOffset, 0.5, 0)
+            end
+
+            WindowTitle.AnchorPoint = Vector2.new(0, 0.5)
+            WindowTitle.Position = UDim2.new(0.5, leftOffset + iconWidth + gap, 0.5, 0)
+            WindowTitle.TextXAlignment = Enum.TextXAlignment.Left
+        end
+
+        UpdateBrandLayout()
+
+        --// Top Right Bar \--
         RightWrapper = New("Frame", {
             AnchorPoint = Vector2.new(1, 0.5),
             BackgroundTransparency = 1,
@@ -11887,6 +11923,7 @@ function Library:CreateWindow(WindowInfo)
 
         WindowTitle.Text = title
         WindowInfo.Title = title
+        if type(UpdateBrandLayout) == "function" then UpdateBrandLayout() end
     end
 
     function Window:SetBackgroundImage(Image: string)
@@ -12039,10 +12076,7 @@ function Library:CreateWindow(WindowInfo)
             IsCompact = Window:GetSidebarWidth() <= WindowInfo.CompactWidthActivation
         end
 
-        WindowTitle.Visible = not IsCompact
-        if not WindowInfo.Icon then
-            WindowIcon.Visible = IsCompact
-        end
+        if type(UpdateBrandLayout) == "function" then UpdateBrandLayout() end
 
         for _, Button in Library.TabButtons do
             if not Button.Icon then
@@ -12207,6 +12241,7 @@ function Library:CreateWindow(WindowInfo)
         local TabButton: TextButton
         local TabLabel
         local TabIcon
+        local TabStroke
 
         local TabContainer
         local TabCanvas
@@ -12216,12 +12251,22 @@ function Library:CreateWindow(WindowInfo)
         Icon = Library:GetCustomIcon(Icon)
         do
             TabButton = New("TextButton", {
-                BackgroundColor3 = "MainColor",
+                AutoButtonColor = false,
+                BackgroundColor3 = LayeredStyle.TabHover,
                 BackgroundTransparency = 1,
+                BorderSizePixel = 0,
                 Size = UDim2.new(1, 0, 0, 40),
                 Text = "",
                 LayoutOrder = Order,
                 Parent = Tabs,
+            })
+            New("UICorner", { CornerRadius = UDim.new(0, 5), Parent = TabButton })
+            TabStroke = New("UIStroke", {
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                Color = "AccentColor",
+                Thickness = 1,
+                Transparency = 1,
+                Parent = TabButton,
             })
             local ButtonPadding = New("UIPadding", {
                 PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
@@ -12236,8 +12281,9 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromOffset(30, 0),
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
+                TextColor3 = LayeredStyle.SecondaryText,
                 TextSize = 16,
-                TextTransparency = 0.5,
+                TextTransparency = 0.22,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Visible = not IsCompact,
                 Parent = TabButton,
@@ -12258,9 +12304,11 @@ function Library:CreateWindow(WindowInfo)
             end
 
             table.insert(Library.TabButtons, {
+                Button = TabButton,
                 Label = TabLabel,
                 Padding = ButtonPadding,
                 Icon = TabIcon,
+                Stroke = TabStroke,
             })
 
             -- Resize the whole left sidebar according to the longest tab
@@ -13369,16 +13417,22 @@ function Library:CreateWindow(WindowInfo)
         end
 
         function Tab:Hover(Hovering)
-            if Library.ActiveTab == Tab then
-                return
-            end
+            if Library.ActiveTab == Tab then return end
 
+            TweenService:Create(TabButton, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.TabHover,
+                BackgroundTransparency = Hovering and 0 or 1,
+            }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = Hovering and 0.72 or 1,
+            }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = Hovering and 0.25 or 0.5,
+                TextColor3 = Hovering and LayeredStyle.MainText or LayeredStyle.SecondaryText,
+                TextTransparency = Hovering and 0.05 or 0.22,
             }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = Hovering and 0.25 or 0.5,
+                    ImageTransparency = Hovering and 0.08 or 0.38,
                 }):Play()
             end
         end
@@ -13393,9 +13447,14 @@ function Library:CreateWindow(WindowInfo)
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.TabSelected,
                 BackgroundTransparency = 0,
             }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = 0.35,
+            }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
+                TextColor3 = LayeredStyle.MainText,
                 TextTransparency = 0,
             }):Play()
             if TabIcon then
@@ -13420,16 +13479,21 @@ function Library:CreateWindow(WindowInfo)
 
         function Tab:Hide()
             TweenService:Create(TabButton, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.TabHover,
                 BackgroundTransparency = 1,
+            }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = 1,
             }):Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = 0.5,
+                TextColor3 = LayeredStyle.SecondaryText,
+                TextTransparency = 0.22,
             }):Play()
 
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = 0.5,
+                    ImageTransparency = 0.38,
                 }):Play()
             end
 
@@ -13539,6 +13603,7 @@ function Library:CreateWindow(WindowInfo)
         local TabButton: TextButton
         local TabLabel
         local TabIcon
+        local TabStroke
 
         local TabCanvas
         local TabContainer
@@ -13546,11 +13611,21 @@ function Library:CreateWindow(WindowInfo)
         Icon = if Icon == "key" then KeyIcon else Library:GetCustomIcon(Icon)
         do
             TabButton = New("TextButton", {
-                BackgroundColor3 = "MainColor",
+                AutoButtonColor = false,
+                BackgroundColor3 = LayeredStyle.TabHover,
                 BackgroundTransparency = 1,
+                BorderSizePixel = 0,
                 Size = UDim2.new(1, 0, 0, 40),
                 Text = "",
                 Parent = Tabs,
+            })
+            New("UICorner", { CornerRadius = UDim.new(0, 5), Parent = TabButton })
+            TabStroke = New("UIStroke", {
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                Color = "AccentColor",
+                Thickness = 1,
+                Transparency = 1,
+                Parent = TabButton,
             })
             local ButtonPadding = New("UIPadding", {
                 PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
@@ -13565,8 +13640,9 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromOffset(30, 0),
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
+                TextColor3 = LayeredStyle.SecondaryText,
                 TextSize = 16,
-                TextTransparency = 0.5,
+                TextTransparency = 0.22,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Visible = not IsCompact,
                 Parent = TabButton,
@@ -13586,9 +13662,11 @@ function Library:CreateWindow(WindowInfo)
             end
 
             table.insert(Library.TabButtons, {
+                Button = TabButton,
                 Label = TabLabel,
                 Padding = ButtonPadding,
                 Icon = TabIcon,
+                Stroke = TabStroke,
             })
 
             --// Tab Canvas \\--
@@ -13730,16 +13808,22 @@ function Library:CreateWindow(WindowInfo)
         function Tab:UpdateCorners() end
 
         function Tab:Hover(Hovering)
-            if Library.ActiveTab == Tab then
-                return
-            end
+            if Library.ActiveTab == Tab then return end
 
+            TweenService:Create(TabButton, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.TabHover,
+                BackgroundTransparency = Hovering and 0 or 1,
+            }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = Hovering and 0.72 or 1,
+            }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = Hovering and 0.25 or 0.5,
+                TextColor3 = Hovering and LayeredStyle.MainText or LayeredStyle.SecondaryText,
+                TextTransparency = Hovering and 0.05 or 0.22,
             }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = Hovering and 0.25 or 0.5,
+                    ImageTransparency = Hovering and 0.08 or 0.38,
                 }):Play()
             end
         end
@@ -13754,10 +13838,14 @@ function Library:CreateWindow(WindowInfo)
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.TabSelected,
                 BackgroundTransparency = 0,
             }):Play()
-
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = 0.35,
+            }):Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
+                TextColor3 = LayeredStyle.MainText,
                 TextTransparency = 0,
             }):Play()
 
@@ -13784,16 +13872,21 @@ function Library:CreateWindow(WindowInfo)
 
         function Tab:Hide()
             TweenService:Create(TabButton, Library.TweenInfo, {
+                BackgroundColor3 = LayeredStyle.TabHover,
                 BackgroundTransparency = 1,
+            }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = 1,
             }):Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = 0.5,
+                TextColor3 = LayeredStyle.SecondaryText,
+                TextTransparency = 0.22,
             }):Play()
 
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = 0.5,
+                    ImageTransparency = 0.38,
                 }):Play()
             end
 
@@ -14806,6 +14899,7 @@ function Library:CreateWindow(WindowInfo)
     Window.ZanjiTitleHolder = TitleHolder
     Window.ZanjiTitleLabel = WindowTitle
     Window.ZanjiTitleIcon = WindowIcon
+    Window.ZanjiUpdateBrandLayout = UpdateBrandLayout
 
     Library.Window = Window
     return Window
