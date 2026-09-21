@@ -11668,7 +11668,7 @@ function Library:CreateWindow(WindowInfo)
         -- ZANJI brand header: no header logo. Keep the wordmark centered and
         -- split its color so ZANJI stays white while HUB follows AccentColor.
         local BrandGap = 7
-        local BrandTextSize = 20
+        local BrandTextSize = 22
 
         local function IsZanjiWindowTitle(value)
             return tostring(value or ""):gsub("%s+", ""):lower() == "zanjihub"
@@ -11722,13 +11722,13 @@ function Library:CreateWindow(WindowInfo)
             })
         end
 
-        local X = Library:GetTextBounds(WindowInfo.Title, Enum.Font.GothamBold, BrandTextSize, 2000)
+        local X = Library:GetTextBounds(WindowInfo.Title, Enum.Font.GothamBlack, BrandTextSize, 2000)
         WindowTitle = New("TextLabel", {
             BackgroundTransparency = 1,
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Size = UDim2.new(0, X, 1, 0),
-            Font = Enum.Font.GothamBold,
+            Font = Enum.Font.GothamBlack,
             RichText = IsZanjiWindowTitle(WindowInfo.Title),
             Text = FormatWindowTitle(WindowInfo.Title),
             TextColor3 = IsZanjiWindowTitle(WindowInfo.Title)
@@ -11749,7 +11749,7 @@ function Library:CreateWindow(WindowInfo)
                 and Color3.fromRGB(245, 247, 250)
                 or Library.Scheme.AccentColor
 
-            local measureFont = isZanjiBrand and Enum.Font.GothamBold or Library.Scheme.Font
+            local measureFont = isZanjiBrand and Enum.Font.GothamBlack or Library.Scheme.Font
             local titleWidth = select(1, Library:GetTextBounds(WindowInfo.Title, measureFont, BrandTextSize, 2000))
             titleWidth = math.max(1, math.ceil(tonumber(titleWidth) or X or 1))
             WindowTitle.Size = UDim2.new(0, titleWidth, 1, 0)
@@ -14781,8 +14781,14 @@ function Library:CreateWindow(WindowInfo)
             Button.BorderSizePixel = 0
             Button.Text = ""
             Button.RichText = false
-            -- Tighter box: less dead space on both sides of the brand text.
-            Button.Size = UDim2.fromOffset(104, 34)
+            -- Tight brand box: only a small amount of padding around ZANJIHUB.
+            local BrandTextWidth = select(1, Library:GetTextBounds(
+                "ZANJIHUB",
+                Enum.Font.GothamBlack,
+                18,
+                1000
+            ))
+            Button.Size = UDim2.fromOffset(math.ceil(BrandTextWidth) + 14, 34)
             Button.ZIndex = 1000000
 
             local ExistingCorner = Button:FindFirstChildOfClass("UICorner")
@@ -14808,7 +14814,7 @@ function Library:CreateWindow(WindowInfo)
             Brand.AnchorPoint = Vector2.new(0.5, 0.5)
             Brand.BackgroundTransparency = 1
             Brand.Position = UDim2.fromScale(0.5, 0.5)
-            Brand.Size = UDim2.new(1, -6, 1, 0)
+            Brand.Size = UDim2.new(1, -4, 1, 0)
             Brand.ZIndex = Button.ZIndex + 1
             Brand.Parent = Button
 
@@ -14825,13 +14831,13 @@ function Library:CreateWindow(WindowInfo)
                 Size = UDim2.new(0, 0, 1, 0),
                 Text = "ZANJI",
                 TextColor3 = "FontColor",
-                TextSize = 16,
+                TextSize = 18,
                 TextXAlignment = Enum.TextXAlignment.Center,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = Button.ZIndex + 2,
                 Parent = Brand,
             })
-            Zanji.FontFace = Font.fromEnum(Enum.Font.GothamBold)
+            Zanji.FontFace = Font.fromEnum(Enum.Font.GothamBlack)
 
             local Hub = New("TextLabel", {
                 AutomaticSize = Enum.AutomaticSize.X,
@@ -14839,32 +14845,107 @@ function Library:CreateWindow(WindowInfo)
                 Size = UDim2.new(0, 0, 1, 0),
                 Text = "HUB",
                 TextColor3 = "AccentColor",
-                TextSize = 16,
+                TextSize = 18,
                 TextXAlignment = Enum.TextXAlignment.Center,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = Button.ZIndex + 2,
                 Parent = Brand,
             })
-            Hub.FontFace = Font.fromEnum(Enum.Font.GothamBold)
+            Hub.FontFace = Font.fromEnum(Enum.Font.GothamBlack)
 
-            Button.MouseEnter:Connect(function()
-                if UserInputService.TouchEnabled then return end
-                local Stroke = Button:FindFirstChildOfClass("UIStroke")
+            -- Strong, visible press feedback. AutoButtonColor alone can be too
+            -- subtle on this dark theme, so animate scale + fill + border.
+            local PressScale = Button:FindFirstChildOfClass("UIScale")
+            local Pressed = false
+            local BaseScale = PressScale and PressScale.Scale or 1
+            local PressTween = TweenInfo.new(0.075, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            local ReleaseTween = TweenInfo.new(0.09, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+            local function GetStroke()
+                return Button:FindFirstChildOfClass("UIStroke")
+            end
+
+            local function SetPressed(Value)
+                Pressed = Value == true
+                local Stroke = GetStroke()
+
+                if Pressed then
+                    if PressScale then
+                        BaseScale = PressScale.Scale
+                        TweenService:Create(PressScale, PressTween, {
+                            Scale = BaseScale * 0.92,
+                        }):Play()
+                    end
+
+                    TweenService:Create(Button, PressTween, {
+                        BackgroundColor3 = Library.Scheme.BackgroundColor:Lerp(
+                            Library.Scheme.AccentColor,
+                            0.20
+                        ),
+                    }):Play()
+
+                    if Stroke then
+                        TweenService:Create(Stroke, PressTween, {
+                            Color = Library.Scheme.AccentColor,
+                            Thickness = 2,
+                        }):Play()
+                    end
+                else
+                    if PressScale then
+                        TweenService:Create(PressScale, ReleaseTween, {
+                            Scale = BaseScale,
+                        }):Play()
+                    end
+
+                    TweenService:Create(Button, ReleaseTween, {
+                        BackgroundColor3 = Library.Scheme.BackgroundColor,
+                    }):Play()
+
+                    if Stroke then
+                        TweenService:Create(Stroke, ReleaseTween, {
+                            Color = Library.Scheme.OutlineColor,
+                            Thickness = 1,
+                        }):Play()
+                    end
+                end
+            end
+
+            table.insert(ToggleButton.Connections, Button.InputBegan:Connect(function(Input)
+                if IsClickInput(Input) then
+                    SetPressed(true)
+                end
+            end))
+
+            table.insert(ToggleButton.Connections, Button.InputEnded:Connect(function(Input)
+                if IsClickInput(Input) then
+                    SetPressed(false)
+                end
+            end))
+
+            table.insert(ToggleButton.Connections, Button.MouseEnter:Connect(function()
+                if UserInputService.TouchEnabled or Pressed then return end
+                local Stroke = GetStroke()
                 if Stroke then
                     TweenService:Create(Stroke, Library.TweenInfo, {
                         Color = Library.Scheme.AccentColor,
+                        Thickness = 1.35,
                     }):Play()
                 end
-            end)
+            end))
 
-            Button.MouseLeave:Connect(function()
-                local Stroke = Button:FindFirstChildOfClass("UIStroke")
+            table.insert(ToggleButton.Connections, Button.MouseLeave:Connect(function()
+                if Pressed then
+                    SetPressed(false)
+                    return
+                end
+                local Stroke = GetStroke()
                 if Stroke then
                     TweenService:Create(Stroke, Library.TweenInfo, {
                         Color = Library.Scheme.OutlineColor,
+                        Thickness = 1,
                     }):Play()
                 end
-            end)
+            end))
         end
     end
 
