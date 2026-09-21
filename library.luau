@@ -6325,9 +6325,10 @@ do
             Parent = Holder,
         })
 
-        -- ZANJI: keep long input values visually inside the textbox.
-        -- The TextBox lives inside a clipping frame so Roblox cannot draw its
-        -- text past the rounded input border when the value is very long.
+        -- ZANJI: every AddInput uses one fixed 30px single-line field.
+        -- When unfocused, a clipped TextLabel preview renders long values with
+        -- ... at the end. When focused, the real TextBox takes over so editing
+        -- and cursor scrolling still work normally.
         local BoxClip = New("Frame", {
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
@@ -6336,6 +6337,23 @@ do
             Position = UDim2.new(0, 10, 1, -10),
             Size = UDim2.new(1, -20, 0, 30),
             Parent = Holder,
+        })
+
+        local Preview = New("TextLabel", {
+            Active = false,
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            Position = UDim2.fromOffset(9, 0),
+            Size = UDim2.new(1, -18, 1, 0),
+            Text = tostring(Input.Value or ""),
+            TextColor3 = LayeredStyle.MainText,
+            TextSize = tonumber(Info.InputTextSize) or 13,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextWrapped = false,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextYAlignment = Enum.TextYAlignment.Center,
+            ZIndex = 1,
+            Parent = BoxClip,
         })
 
         local Box = New("TextBox", {
@@ -6352,11 +6370,10 @@ do
             TextEditable = not Input.Disabled,
             TextScaled = false,
             TextWrapped = false,
-            -- Slightly smaller value text leaves more usable width and keeps
-            -- long links/codes readable without touching the border.
             TextSize = tonumber(Info.InputTextSize) or 13,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
+            ZIndex = 2,
             Parent = BoxClip,
         })
 
@@ -6365,6 +6382,20 @@ do
             PaddingRight = UDim.new(0, 9),
             Parent = Box,
         })
+
+        local function RefreshPreview()
+            local focused = Box:IsFocused()
+            local raw = tostring(Box.Text or "")
+            local empty = raw == ""
+
+            Preview.Text = empty and tostring(Input.Placeholder or "") or raw
+            Preview.TextTransparency = Input.Disabled and 0.8 or (empty and 0.5 or 0)
+            Preview.Visible = not focused
+
+            -- Keep the real TextBox on top for click/focus, but hide its text
+            -- while the ellipsis preview is being shown.
+            Box.TextTransparency = focused and (Input.Disabled and 0.8 or 0) or 1
+        end
 
         local BoxStroke = New("UIStroke", {
             Color = LayeredStyle.Border,
@@ -6386,7 +6417,7 @@ do
             end
 
             Label.TextTransparency = Input.Disabled and 0.8 or 0
-            Box.TextTransparency = Input.Disabled and 0.8 or 0
+            RefreshPreview()
         end
 
         function Input:OnChanged(Func)
@@ -6419,6 +6450,7 @@ do
 
             Input.Value = Text
             Box.Text = Text
+            RefreshPreview()
 
             if not Input.Disabled then
                 Input:RunChanged()
@@ -6470,6 +6502,7 @@ do
         end
 
         table.insert(Input.Connections, Box.Focused:Connect(function()
+            RefreshPreview()
             if Input.Disabled then
                 return
             end
@@ -6481,10 +6514,15 @@ do
         end))
 
         table.insert(Input.Connections, Box.FocusLost:Connect(function()
+            RefreshPreview()
             Library.Registry[BoxStroke].Color = "OutlineColor"
             TweenService:Create(BoxStroke, Library.TweenInfo, {
                 Color = Library.Scheme.OutlineColor,
             }):Play()
+        end))
+
+        table.insert(Input.Connections, Box:GetPropertyChangedSignal("Text"):Connect(function()
+            RefreshPreview()
         end))
 
         if typeof(Input.Tooltip) == "string" or typeof(Input.DisabledTooltip) == "string" then
@@ -6495,6 +6533,10 @@ do
         Groupbox:Resize()
 
         Input.Holder = Holder
+        Input.TextBox = Box
+        Input.DisplayText = Preview
+        Input.BoxClip = BoxClip
+        RefreshPreview()
         table.insert(Groupbox.Elements, Input)
 
         Input.Default = Input.Value
@@ -7184,13 +7226,11 @@ do
             ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
             ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
             ImageTransparency = 0.5,
-            -- Parent to Holder so Display's right text padding does not push the
-            -- chevron inward. The display itself ends 10 px from the holder edge,
-            -- so -18 keeps the icon 8 px inside the real dropdown edge.
-            Position = UDim2.new(1, -18, 1, -25),
+            -- Pin the arrow to the field itself, never to label/title width.
+            Position = UDim2.new(1, -8, 0.5, 0),
             Size = UDim2.fromOffset(16, 16),
             ZIndex = 3,
-            Parent = Holder,
+            Parent = Display,
         })
 
         local ClickBlocker = New("TextButton", {
@@ -13139,7 +13179,8 @@ function Library:CreateWindow(WindowInfo)
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
                     Position = UDim2.fromOffset(BoxIcon and 24 or 0, 0),
-                    Size = UDim2.new(1, -22 - (BoxIcon and 24 or 0), 0, 0),
+                    -- Reserve a fixed rail on the right for the collapse arrow.
+                    Size = UDim2.new(1, -38 - (BoxIcon and 24 or 0), 0, 0),
                     Parent = GroupboxTop,
                 })
                 New("UIListLayout", {
@@ -13185,15 +13226,17 @@ function Library:CreateWindow(WindowInfo)
 
                 if Info.DisableCollapsing ~= true then
                     GroupboxCollapseArrow = New("ImageButton", {
-                        AnchorPoint = Vector2.new(1, 0.5),
+                        AnchorPoint = Vector2.new(1, 0),
                         BackgroundTransparency = 1,
                         Image = ArrowIcon and ArrowIcon.Url or "",
                         ImageColor3 = LayeredStyle.MainText,
                         ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
                         ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
                         Rotation = 180,
-                        Position = UDim2.fromScale(1, 0.5),
-                        Size = UDim2.fromOffset(22, 22),
+                        -- Fixed right edge, independent of title/description length.
+                        Position = UDim2.new(1, -6, 0, 7),
+                        Size = UDim2.fromOffset(18, 18),
+                        ZIndex = 6,
                         Parent = GroupboxTop,
                     })
                 end
@@ -14701,256 +14744,121 @@ function Library:CreateWindow(WindowInfo)
     end
 
     --==================================================
-    -- ZANJI UNIVERSAL LOGO TOGGLE
+    -- ZANJI BOXED TEXT TOGGLE
     --==================================================
+    -- Match Obsidian's native draggable text-button style instead of using
+    -- an image logo. ZANJI stays white and HUB follows AccentColor.
     do
-        if Library.ZanjiToggleGui then
+        if Library.ZanjiToggleButton and Library.ZanjiToggleButton.Destroy then
             pcall(function()
-                Library.ZanjiToggleGui:Destroy()
+                Library.ZanjiToggleButton:Destroy()
             end)
         end
 
-        local ToggleGui = Instance.new("ScreenGui")
-        ToggleGui.Name = "ZANJI_UI_TOGGLE"
-        ToggleGui.ResetOnSpawn = false
-        ToggleGui.IgnoreGuiInset = false
-        ToggleGui.DisplayOrder = 2147483647
-        ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-        ParentUI(ToggleGui)
-        SetAlwaysOnTop(ToggleGui, true)
-        Library.ZanjiToggleGui = ToggleGui
+        local ToggleButton = Library:AddDraggableButton({
+            Text = "ZANJIHUB",
+            Callback = function()
+                Library:Toggle()
+            end,
+            ExcludeScaling = false,
+            ExcludeDragging = false,
+        })
 
-        local Holder = Instance.new("Frame")
-        Holder.Name = "LogoToggleHolder"
-        Holder.BackgroundTransparency = 1
-        Holder.BorderSizePixel = 0
-        Holder.Position = UDim2.fromOffset(6, 6)
-        Holder.Size = UDim2.fromOffset(58, 58)
-        Holder.Active = true
-        Holder.ZIndex = 1000000
-        Holder.Parent = ToggleGui
+        Library.ZanjiToggleButton = ToggleButton
 
-        local Shadow = Instance.new("Frame")
-        Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-        Shadow.Position = UDim2.new(0.5, 2, 0.5, 3)
-        Shadow.Size = UDim2.fromScale(1, 1)
-        Shadow.BackgroundColor3 = Color3.new(0, 0, 0)
-        Shadow.BackgroundTransparency = 0.56
-        Shadow.BorderSizePixel = 0
-        Shadow.ZIndex = 999998
-        Shadow.Parent = Holder
+        local Button = ToggleButton and ToggleButton.Button
+        if Button then
+            Button.Name = "ZanjiTextToggle"
+            Button.AutoButtonColor = false
+            Button.BackgroundColor3 = Library.Scheme.BackgroundColor
+            Button.BackgroundTransparency = 0
+            Button.BorderSizePixel = 0
+            Button.Text = ""
+            Button.RichText = false
+            Button.Size = UDim2.fromOffset(112, 34)
+            Button.ZIndex = 1000000
 
-        local ShadowCorner = Instance.new("UICorner")
-        ShadowCorner.CornerRadius = UDim.new(1, 0)
-        ShadowCorner.Parent = Shadow
-
-        local Button = Instance.new("ImageButton")
-        Button.Name = "ZanjiLogoToggle"
-        -- Keep the original galaxy-style ZANJI artwork. A dark masking stroke
-        -- covers the cyan edge baked into that thumbnail, then a thin violet
-        -- overlay supplies the visible border.
-        Button.BackgroundColor3 = Color3.fromRGB(7, 8, 18)
-        Button.BackgroundTransparency = 0
-        Button.BorderSizePixel = 0
-        Button.Size = UDim2.fromScale(1, 1)
-        Button.Image = "rbxthumb://type=Asset&id=100735693340724&w=420&h=420"
-        Button.ImageColor3 = Color3.new(1, 1, 1)
-        Button.ImageTransparency = 0
-        Button.ScaleType = Enum.ScaleType.Fit
-        Button.AutoButtonColor = false
-        Button.Active = true
-        Button.Selectable = false
-        Button.ZIndex = 1000000
-        Button.Parent = Holder
-
-        local ButtonCorner = Instance.new("UICorner")
-        ButtonCorner.CornerRadius = UDim.new(1, 0)
-        ButtonCorner.Parent = Button
-
-        local Stroke = Instance.new("UIStroke")
-        Stroke.Name = "ZanjiLogoCyanMask"
-        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        Stroke.Color = Color3.fromRGB(7, 8, 18)
-        Stroke.Thickness = 4
-        Stroke.Transparency = 0
-        Stroke.Parent = Button
-
-        -- One thin visible ring. Do not stack another violet stroke on Button.
-        local VioletRing = Instance.new("Frame")
-        VioletRing.Name = "ZanjiLogoVioletRing"
-        VioletRing.AnchorPoint = Vector2.new(0.5, 0.5)
-        VioletRing.Position = UDim2.fromScale(0.5, 0.5)
-        VioletRing.Size = UDim2.new(1, -1, 1, -1)
-        VioletRing.BackgroundTransparency = 1
-        VioletRing.BorderSizePixel = 0
-        VioletRing.Active = false
-        VioletRing.ZIndex = 1000001
-        VioletRing.Parent = Holder
-
-        local VioletRingCorner = Instance.new("UICorner")
-        VioletRingCorner.CornerRadius = UDim.new(1, 0)
-        VioletRingCorner.Parent = VioletRing
-
-        local VioletRingStroke = Instance.new("UIStroke")
-        VioletRingStroke.Name = "ZanjiLogoVioletOverlayStroke"
-        VioletRingStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        VioletRingStroke.Color = Color3.fromRGB(168, 85, 247)
-        VioletRingStroke.Thickness = 1.25
-        VioletRingStroke.Transparency = 0
-        VioletRingStroke.Parent = VioletRing
-
-        local Scale = Instance.new("UIScale")
-        Scale.Scale = 1
-        Scale.Parent = Holder
-
-        local function tweenScale(value, duration, style)
-            if not Holder.Parent then return end
-            TweenService:Create(
-                Scale,
-                TweenInfo.new(
-                    duration or 0.10,
-                    style or Enum.EasingStyle.Quad,
-                    Enum.EasingDirection.Out
-                ),
-                { Scale = value }
-            ):Play()
-        end
-
-        local function clampToViewport()
-            local camera = workspace.CurrentCamera
-            if not camera then return end
-            local viewport = camera.ViewportSize
-            local size = Holder.AbsoluteSize
-            local x = math.clamp(
-                Holder.Position.X.Offset,
-                4,
-                math.max(4, viewport.X - size.X - 4)
-            )
-            local y = math.clamp(
-                Holder.Position.Y.Offset,
-                4,
-                math.max(4, viewport.Y - size.Y - 4)
-            )
-            Holder.Position = UDim2.fromOffset(x, y)
-        end
-
-        local function updateSize()
-            local camera = workspace.CurrentCamera
-            local viewport = camera and camera.ViewportSize or Vector2.new(900, 600)
-            local shortest = math.max(1, math.min(viewport.X, viewport.Y))
-            local size = math.floor(math.clamp(shortest * 0.07, 48, 66) + 0.5)
-            Holder.Size = UDim2.fromOffset(size, size)
-            Stroke.Thickness = 4
-            VioletRingStroke.Thickness = 1.25
-            task.defer(clampToViewport)
-        end
-
-        local hovered = false
-        Button.MouseEnter:Connect(function()
-            -- Touch taps can fire MouseEnter without a matching MouseLeave.
-            -- Never use hover to alter the border, otherwise it stays thick
-            -- after opening the window on phones.
-            hovered = not UserInputService.TouchEnabled
-            if hovered then
-                tweenScale(1.04, 0.10)
-            end
-        end)
-
-        Button.MouseLeave:Connect(function()
-            hovered = false
-            Stroke.Thickness = 4
-            Stroke.Transparency = 0
-            VioletRingStroke.Thickness = 1.25
-            VioletRingStroke.Transparency = 0
-            tweenScale(1, 0.10)
-        end)
-
-        local dragging = false
-        local moved = false
-        local dragInput
-        local dragStart
-        local dragStartPosition
-
-        local function isPress(input)
-            return input.UserInputType == Enum.UserInputType.MouseButton1
-                or input.UserInputType == Enum.UserInputType.Touch
-        end
-
-        Button.InputBegan:Connect(function(input)
-            if not isPress(input) then return end
-            dragging = true
-            moved = false
-            dragInput = input
-            dragStart = input.Position
-            dragStartPosition = Holder.Position
-            tweenScale(0.92, 0.06)
-        end)
-
-        Library:GiveSignal(UserInputService.InputChanged:Connect(function(input)
-            if not dragging or not dragStart or not dragStartPosition then return end
-            local movement =
-                input == dragInput
-                or input.UserInputType == Enum.UserInputType.MouseMovement
-                or input.UserInputType == Enum.UserInputType.Touch
-            if not movement then return end
-
-            local delta = input.Position - dragStart
-            if delta.Magnitude >= 5 then
-                moved = true
+            local ExistingCorner = Button:FindFirstChildOfClass("UICorner")
+            if ExistingCorner then
+                ExistingCorner.CornerRadius = UDim.new(0, Library.CornerRadius)
             end
 
-            Holder.Position = UDim2.new(
-                dragStartPosition.X.Scale,
-                dragStartPosition.X.Offset + delta.X,
-                dragStartPosition.Y.Scale,
-                dragStartPosition.Y.Offset + delta.Y
-            )
-            clampToViewport()
-        end))
-
-        Library:GiveSignal(UserInputService.InputEnded:Connect(function(input)
-            if not dragging or not isPress(input) then return end
-            dragging = false
-            dragInput = nil
-
-            if moved then
-                tweenScale(hovered and 1.04 or 1, 0.12, Enum.EasingStyle.Back)
-                return
+            local ExistingStroke = Button:FindFirstChildOfClass("UIStroke")
+            if ExistingStroke then
+                ExistingStroke.Color = Library.Scheme.OutlineColor
+                ExistingStroke.Thickness = 1
+                ExistingStroke.Transparency = 0
+            else
+                local Stroke = Instance.new("UIStroke")
+                Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                Stroke.Color = Library.Scheme.OutlineColor
+                Stroke.Thickness = 1
+                Stroke.Parent = Button
             end
 
-            Library:Toggle()
+            local Brand = Instance.new("Frame")
+            Brand.Name = "Brand"
+            Brand.AnchorPoint = Vector2.new(0.5, 0.5)
+            Brand.BackgroundTransparency = 1
+            Brand.Position = UDim2.fromScale(0.5, 0.5)
+            Brand.Size = UDim2.new(1, -18, 1, 0)
+            Brand.ZIndex = Button.ZIndex + 1
+            Brand.Parent = Button
 
-            tweenScale(1.12, 0.10, Enum.EasingStyle.Back)
-            task.delay(0.10, function()
-                if Holder.Parent then
-                    Stroke.Thickness = 4
-                    VioletRingStroke.Thickness = 1.25
-                    tweenScale(hovered and 1.04 or 1, 0.14, Enum.EasingStyle.Back)
+            local BrandLayout = Instance.new("UIListLayout")
+            BrandLayout.FillDirection = Enum.FillDirection.Horizontal
+            BrandLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            BrandLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+            BrandLayout.Padding = UDim.new(0, 0)
+            BrandLayout.Parent = Brand
+
+            local Zanji = New("TextLabel", {
+                AutomaticSize = Enum.AutomaticSize.X,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, 0, 1, 0),
+                Text = "ZANJI",
+                TextColor3 = "FontColor",
+                TextSize = 14,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                TextYAlignment = Enum.TextYAlignment.Center,
+                ZIndex = Button.ZIndex + 2,
+                Parent = Brand,
+            })
+            Zanji.FontFace = Font.fromEnum(Enum.Font.GothamBold)
+
+            local Hub = New("TextLabel", {
+                AutomaticSize = Enum.AutomaticSize.X,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, 0, 1, 0),
+                Text = "HUB",
+                TextColor3 = "AccentColor",
+                TextSize = 14,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                TextYAlignment = Enum.TextYAlignment.Center,
+                ZIndex = Button.ZIndex + 2,
+                Parent = Brand,
+            })
+            Hub.FontFace = Font.fromEnum(Enum.Font.GothamBold)
+
+            Button.MouseEnter:Connect(function()
+                if UserInputService.TouchEnabled then return end
+                local Stroke = Button:FindFirstChildOfClass("UIStroke")
+                if Stroke then
+                    TweenService:Create(Stroke, Library.TweenInfo, {
+                        Color = Library.Scheme.AccentColor,
+                    }):Play()
                 end
             end)
-        end))
 
-        local function connectCamera(camera)
-            if not camera then return end
-            Library:GiveSignal(
-                camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateSize)
-            )
+            Button.MouseLeave:Connect(function()
+                local Stroke = Button:FindFirstChildOfClass("UIStroke")
+                if Stroke then
+                    TweenService:Create(Stroke, Library.TweenInfo, {
+                        Color = Library.Scheme.OutlineColor,
+                    }):Play()
+                end
+            end)
         end
-
-        connectCamera(workspace.CurrentCamera)
-        Library:GiveSignal(
-            workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
-                connectCamera(workspace.CurrentCamera)
-                updateSize()
-            end)
-        )
-
-        task.defer(function()
-            updateSize()
-            pcall(function()
-                game:GetService("ContentProvider"):PreloadAsync({ Button })
-            end)
-        end)
     end
 
     --// Execution \\--
@@ -14958,7 +14866,7 @@ function Library:CreateWindow(WindowInfo)
         Library:UpdateSearch(SearchBox.Text)
     end))
 
-    -- Z-key toggle removed; floating logo is the only UI toggle.
+    -- Z-key toggle removed; the boxed ZANJIHUB button is the UI toggle.
 
     Library:GiveSignal(UserInputService.WindowFocused:Connect(function()
         Library.IsRobloxFocused = true
