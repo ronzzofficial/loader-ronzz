@@ -7128,7 +7128,10 @@ do
             Text = "---",
             RichText = true,
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.None,
+            -- Closed dropdowns can contain long rich pet/item names.
+            -- Truncate only the compact field; the popup still shows full text.
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 1,
@@ -8511,7 +8514,10 @@ local List = New("ScrollingFrame", {
             Text = "---",
             RichText = true,
             TextSize = 14,
-            TextTruncate = Enum.TextTruncate.None,
+            -- Closed dropdowns can contain long rich pet/item names.
+            -- Truncate only the compact field; the popup still shows full text.
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 1,
