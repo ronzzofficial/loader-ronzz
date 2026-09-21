@@ -262,17 +262,17 @@ local Library = {
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(11, 11, 11),
-        MainColor = Color3.fromRGB(24, 24, 24),
-        AccentColor = Color3.fromRGB(125, 85, 255),
-        OutlineColor = Color3.fromRGB(41, 41, 41),
-        FontColor = Color3.fromRGB(238, 238, 238),
+        BackgroundColor = Color3.fromRGB(14, 15, 18),   -- #0E0F12
+        MainColor = Color3.fromRGB(20, 22, 27),         -- #14161B
+        AccentColor = Color3.fromRGB(124, 92, 230),     -- #7C5CE6
+        OutlineColor = Color3.fromRGB(45, 49, 58),      -- #2D313A
+        FontColor = Color3.fromRGB(235, 237, 243),      -- #EBEDF3
         Font = Font.fromEnum(Enum.Font.Code),
 
-        RedColor = Color3.fromRGB(255, 50, 50),
-        DestructiveColor = Color3.fromRGB(220, 38, 38),
-        DarkColor = Color3.new(0, 0, 0),
-        WhiteColor = Color3.new(1, 1, 1),
+        RedColor = Color3.fromRGB(235, 86, 98),         -- #EB5662
+        DestructiveColor = Color3.fromRGB(207, 65, 78), -- #CF414E
+        DarkColor = Color3.fromRGB(7, 8, 10),           -- #07080A
+        WhiteColor = Color3.fromRGB(248, 249, 252),     -- #F8F9FC
 
         BackgroundImage = ""
     },
@@ -292,23 +292,24 @@ local Library = {
 --// ZANJI layered dark style \\--
 -- Global neutral hierarchy used by every standard groupbox/control.
 local LayeredStyle = {
-    MainBackground = Color3.fromRGB(11, 11, 11),   -- #0b0b0b
-    OuterBox = Color3.fromRGB(17, 17, 17),         -- #111111
-    InnerBox = Color3.fromRGB(27, 27, 27),         -- #1b1b1b
-    ControlRow = Color3.fromRGB(32, 32, 32),       -- #202020
-    InputBox = Color3.fromRGB(24, 24, 24),         -- #181818
+    -- Professional graphite palette with a subtle cool tint.
+    -- Small contrast steps keep the hierarchy clean and consistent.
+    MainBackground = Color3.fromRGB(14, 15, 18),   -- #0E0F12
+    OuterBox = Color3.fromRGB(18, 20, 24),         -- #121418
+    InnerBox = Color3.fromRGB(23, 25, 30),         -- #17191E
+    ControlRow = Color3.fromRGB(28, 30, 36),       -- #1C1E24
+    InputBox = Color3.fromRGB(20, 22, 27),         -- #14161B
 
-    -- Dropdown rows: normal -> hover -> selected.
-    -- Kept neutral/dark like the reference; purple is reserved for selection outline.
-    DropdownRow = Color3.fromRGB(27, 27, 29),      -- #1b1b1d
-    DropdownHover = Color3.fromRGB(36, 36, 41),    -- #242429
-    DropdownSelected = Color3.fromRGB(52, 52, 58), -- #34343a
-    DropdownHoverBorder = Color3.fromRGB(62, 62, 68),
+    -- Dropdown states: neutral -> lifted hover -> violet-tinted selection.
+    DropdownRow = Color3.fromRGB(24, 26, 31),      -- #181A1F
+    DropdownHover = Color3.fromRGB(33, 36, 43),    -- #21242B
+    DropdownSelected = Color3.fromRGB(42, 39, 53), -- #2A2735
+    DropdownHoverBorder = Color3.fromRGB(67, 72, 84), -- #434854
 
-    Border = Color3.fromRGB(41, 41, 41),           -- #292929
-    Separator = Color3.fromRGB(37, 37, 37),        -- #252525
-    MainText = Color3.fromRGB(238, 238, 238),       -- #eeeeee
-    SecondaryText = Color3.fromRGB(168, 168, 168), -- #a8a8a8
+    Border = Color3.fromRGB(45, 49, 58),           -- #2D313A
+    Separator = Color3.fromRGB(37, 40, 48),        -- #252830
+    MainText = Color3.fromRGB(235, 237, 243),      -- #EBEDF3
+    SecondaryText = Color3.fromRGB(151, 157, 171), -- #979DAB
 }
 Library.LayeredStyle = LayeredStyle
 
@@ -5799,12 +5800,12 @@ do
                 ImageTransparency = Toggle.Value and 0 or 1,
             }):Play()
 
-            Checkbox.BackgroundColor3 = Toggle.Value and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.78)
+            Checkbox.BackgroundColor3 = Toggle.Value and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.82)
                 or LayeredStyle.InputBox
             CheckboxStroke.Color = Toggle.Value and Library.Scheme.AccentColor or LayeredStyle.Border
             CheckboxStroke.Transparency = Toggle.Value and 0.08 or 0
             Library.Registry[Checkbox].BackgroundColor3 = function()
-                return Toggle.Value and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.78)
+                return Toggle.Value and Library.Scheme.AccentColor:Lerp(LayeredStyle.InputBox, 0.82)
                     or LayeredStyle.InputBox
             end
             Library.Registry[CheckboxStroke].Color = function()
@@ -7510,8 +7511,8 @@ local List = New("ScrollingFrame", {
         local function UpdateCloseButtonStyle()
             if Info.Multi then
                 CloseButton.Text = "Done"
-                CloseButton.BackgroundColor3 = Library.Scheme.AccentColor:Lerp(Library.Scheme.MainColor, 0.2)
-                CloseButtonStroke.Color = Library.Scheme.AccentColor:Lerp(Library.Scheme.WhiteColor, 0.2)
+                CloseButton.BackgroundColor3 = Library.Scheme.AccentColor:Lerp(Library.Scheme.MainColor, 0.34)
+                CloseButtonStroke.Color = Library.Scheme.AccentColor:Lerp(Library.Scheme.WhiteColor, 0.12)
                 CloseButtonStroke.Transparency = 0.2
             else
                 CloseButton.Text = "Close"
@@ -8810,8 +8811,8 @@ local List = New("ScrollingFrame", {
         local function UpdateCloseButtonStyle()
             if Info.Multi then
                 CloseButton.Text = "Done"
-                CloseButton.BackgroundColor3 = Library.Scheme.AccentColor:Lerp(Library.Scheme.MainColor, 0.2)
-                CloseButtonStroke.Color = Library.Scheme.AccentColor:Lerp(Library.Scheme.WhiteColor, 0.2)
+                CloseButton.BackgroundColor3 = Library.Scheme.AccentColor:Lerp(Library.Scheme.MainColor, 0.34)
+                CloseButtonStroke.Color = Library.Scheme.AccentColor:Lerp(Library.Scheme.WhiteColor, 0.12)
                 CloseButtonStroke.Transparency = 0.2
             else
                 CloseButton.Text = "Close"
