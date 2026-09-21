@@ -257,16 +257,16 @@ local Library = {
     OriginalMinSize = Vector2.new(480, 360),
     MinSize = Vector2.new(480, 360),
     DPIScale = 1,
-    CornerRadius = 2,
+    CornerRadius = 6,
 
     --// Scheme \\--
     IsLightTheme = false,
     Scheme = {
-        BackgroundColor = Color3.fromRGB(13, 15, 20),   -- #0D0F14
-        MainColor = Color3.fromRGB(21, 24, 33),         -- #151821
-        AccentColor = Color3.fromRGB(155, 124, 255),    -- #9B7CFF
-        OutlineColor = Color3.fromRGB(52, 57, 70),      -- #343946
-        FontColor = Color3.fromRGB(238, 240, 246),      -- #EEF0F6
+        BackgroundColor = Color3.fromRGB(11, 13, 18),   -- #0B0D12
+        MainColor = Color3.fromRGB(18, 21, 29),         -- #12151D
+        AccentColor = Color3.fromRGB(139, 124, 255),    -- #8B7CFF
+        OutlineColor = Color3.fromRGB(46, 52, 66),      -- #2E3442
+        FontColor = Color3.fromRGB(242, 244, 248),      -- #F2F4F8
         Font = Font.fromEnum(Enum.Font.Code),
 
         RedColor = Color3.fromRGB(235, 86, 98),         -- #EB5662
@@ -294,24 +294,24 @@ local Library = {
 local LayeredStyle = {
     -- ZANJI graphite + violet palette. Neutral surfaces keep large pages calm,
     -- while violet is reserved for focus, selection and brand identity.
-    MainBackground = Color3.fromRGB(13, 15, 20),   -- #0D0F14
-    OuterBox = Color3.fromRGB(18, 21, 27),         -- #12151B
-    InnerBox = Color3.fromRGB(22, 25, 32),         -- #161920
-    ControlRow = Color3.fromRGB(27, 30, 38),       -- #1B1E26
-    InputBox = Color3.fromRGB(17, 20, 26),         -- #11141A
+    MainBackground = Color3.fromRGB(11, 13, 18),   -- #0B0D12
+    OuterBox = Color3.fromRGB(16, 19, 26),         -- #10131A
+    InnerBox = Color3.fromRGB(20, 23, 31),         -- #14171F
+    ControlRow = Color3.fromRGB(24, 28, 38),       -- #181C26
+    InputBox = Color3.fromRGB(14, 17, 24),         -- #0E1118
 
-    DropdownRow = Color3.fromRGB(22, 25, 32),      -- #161920
-    DropdownHover = Color3.fromRGB(31, 35, 44),    -- #1F232C
-    DropdownSelected = Color3.fromRGB(43, 36, 62), -- #2B243E
-    DropdownHoverBorder = Color3.fromRGB(73, 78, 94), -- #494E5E
+    DropdownRow = Color3.fromRGB(20, 23, 31),      -- #14171F
+    DropdownHover = Color3.fromRGB(28, 33, 44),    -- #1C212C
+    DropdownSelected = Color3.fromRGB(40, 34, 59), -- #28223B
+    DropdownHoverBorder = Color3.fromRGB(76, 80, 100), -- #4C5064
 
-    TabHover = Color3.fromRGB(31, 29, 43),          -- #1F1D2B
-    TabSelected = Color3.fromRGB(47, 39, 72),       -- #2F2748
+    TabHover = Color3.fromRGB(28, 26, 39),          -- #1C1A27
+    TabSelected = Color3.fromRGB(43, 36, 66),       -- #2B2442
 
-    Border = Color3.fromRGB(48, 53, 65),            -- #303541
-    Separator = Color3.fromRGB(38, 42, 52),         -- #262A34
-    MainText = Color3.fromRGB(238, 240, 246),       -- #EEF0F6
-    SecondaryText = Color3.fromRGB(157, 164, 180),  -- #9DA4B4
+    Border = Color3.fromRGB(43, 49, 62),            -- #2B313E
+    Separator = Color3.fromRGB(34, 39, 49),         -- #222731
+    MainText = Color3.fromRGB(242, 244, 248),       -- #F2F4F8
+    SecondaryText = Color3.fromRGB(156, 164, 181),  -- #9CA4B5
 }
 Library.LayeredStyle = LayeredStyle
 
@@ -5348,15 +5348,17 @@ do
                 Text = Button.Text,
                 TextColor3 = LayeredStyle.MainText,
                 TextSize = 14,
-                TextTransparency = 0.15,
+                TextTransparency = 0.05,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 Visible = Button.Visible,
                 Parent = Holder,
             })
 
             local Stroke = New("UIStroke", {
-                Color = Library.Scheme.AccentColor,
-                Transparency = Button.Disabled and 0.8 or 0.62,
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                Color = LayeredStyle.Border,
+                Thickness = 1,
+                Transparency = Button.Disabled and 0.62 or 0.08,
                 Parent = Base,
             })
 
@@ -5378,9 +5380,14 @@ do
                 end
 
                 Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
+                    BackgroundColor3 = LayeredStyle.DropdownHover,
                     TextTransparency = 0,
                 })
                 Button.Tween:Play()
+                TweenService:Create(Button.Stroke, Library.TweenInfo, {
+                    Color = Library.Scheme.AccentColor,
+                    Transparency = 0.12,
+                }):Play()
             end)
             Button.Base.MouseLeave:Connect(function()
                 if Button.Disabled then
@@ -5388,9 +5395,14 @@ do
                 end
 
                 Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
-                    TextTransparency = 0.15,
+                    BackgroundColor3 = LayeredStyle.InputBox,
+                    TextTransparency = 0.05,
                 })
                 Button.Tween:Play()
+                TweenService:Create(Button.Stroke, Library.TweenInfo, {
+                    Color = LayeredStyle.Border,
+                    Transparency = 0.08,
+                }):Play()
             end)
 
             Button.Base.MouseButton1Click:Connect(function()
@@ -5463,9 +5475,9 @@ do
 
                 SubButton.Base.BackgroundColor3 = SubButton.Disabled and LayeredStyle.ControlRow
                     or LayeredStyle.InputBox
-                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.15
-                SubButton.Stroke.Color = Library.Scheme.AccentColor
-                SubButton.Stroke.Transparency = SubButton.Disabled and 0.8 or 0.62
+                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.05
+                SubButton.Stroke.Color = LayeredStyle.Border
+                SubButton.Stroke.Transparency = SubButton.Disabled and 0.62 or 0.08
 
                 Library.Registry[SubButton.Base].BackgroundColor3 = function()
                     return SubButton.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
@@ -5554,9 +5566,9 @@ do
 
             Button.Base.BackgroundColor3 = Button.Disabled and LayeredStyle.ControlRow
                 or LayeredStyle.InputBox
-            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.15
-            Button.Stroke.Color = Library.Scheme.AccentColor
-            Button.Stroke.Transparency = Button.Disabled and 0.8 or 0.62
+            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.05
+            Button.Stroke.Color = LayeredStyle.Border
+            Button.Stroke.Transparency = Button.Disabled and 0.62 or 0.08
 
             Library.Registry[Button.Base].BackgroundColor3 = function()
                 return Button.Disabled and LayeredStyle.ControlRow or LayeredStyle.InputBox
@@ -11603,7 +11615,7 @@ function Library:CreateWindow(WindowInfo)
         })
 
         -- Logo + title are treated as one centered brand unit.
-        local BrandGap = 7
+        local BrandGap = 2
         local BrandTextSize = 20
 
         if WindowInfo.Icon then
@@ -11640,8 +11652,9 @@ function Library:CreateWindow(WindowInfo)
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Size = UDim2.new(0, X, 1, 0),
             Text = WindowInfo.Title,
-            TextColor3 = "AccentColor",
+            TextColor3 = "WhiteColor",
             TextSize = BrandTextSize,
+            FontFace = Font.fromEnum(Enum.Font.GothamBold),
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = TitleHolder,
         })
