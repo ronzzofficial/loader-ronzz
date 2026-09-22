@@ -7321,8 +7321,8 @@ do
             Position = UDim2.new(
                 1,
                 CompactMobileDropdown and -24 or -28,
-                0,
-                (Dropdown.Text and DropdownFieldTop or DropdownTopPadding) + (DropdownFieldHeight / 2)
+                1,
+                CompactMobileDropdown and -17 or -22
             ),
             Size = UDim2.fromOffset(13, 13),
             ZIndex = 3,
