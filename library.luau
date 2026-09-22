@@ -7273,7 +7273,7 @@ do
             TextSize = Library.IsMobile and 12 or 13,
             -- Closed dropdowns can contain long rich pet/item names.
             -- Truncate only the compact field; the popup still shows full text.
-            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextTruncate = Enum.TextTruncate.None,
             TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -7747,9 +7747,8 @@ local List = New("ScrollingFrame", {
                 or (Library.ScreenGui and Library.ScreenGui.AbsoluteSize)
                 or Vector2.new(1280, 720)
 
-            -- Mobile dropdowns scale with the user's UI scale and with the
-            -- amount of content. A two-choice dropdown stays compact; long pet
-            -- lists can grow, but only to a comfortable portion of the screen.
+            -- Mobile dropdowns follow the user's UI scale. Vertical size is
+            -- fixed per device/scale; only horizontal size auto-fits content.
             if Library.IsMobile then
                 local vw = math.max(240, tonumber(viewport.X) or 360)
                 local vh = math.max(240, tonumber(viewport.Y) or 640)
@@ -7828,19 +7827,14 @@ local List = New("ScrollingFrame", {
 
                 local width = math.clamp(desiredW, minW, maxW)
 
-                -- Content-aware height: small lists hug their content; large
-                -- lists use more vertical room without turning into a full-screen
-                -- sheet. This also keeps landscape phone dropdowns proportional.
-                local maxHByScreen = math.floor(vh * (landscape and 0.78 or 0.70))
-                local maxHByScale = math.floor((landscape and 650 or 720) * scale)
-                local maxH = math.max(145, math.min(vh - verticalMargin * 2, maxHByScreen, maxHByScale))
-
-                local toolbarH = (hasSearch or hasBulk) and (math.max(searchH, actionH) + gap) or 0
-                local chrome = padY * 2 + headerH + gap + toolbarH + math.max(14, math.floor(20 * scale))
-                local rowsH = optionCount * rowH + math.max(0, optionCount - 1) * rowGap
-                local desiredH = chrome + rowsH
-                local minH = math.max(125, math.floor(145 * scale))
-                local height = math.clamp(desiredH, minH, maxH)
+                -- Mobile popup HEIGHT is fixed by UI scale, not by the number
+                -- of choices. Only the horizontal width auto-fits content.
+                -- This keeps all dropdowns visually consistent on one device.
+                local availableH = math.max(180, vh - verticalMargin * 2)
+                local logicalH = landscape and 500 or 560
+                local scaledH = math.floor(logicalH * scale + 0.5)
+                local minScaledH = math.floor((landscape and 300 or 360) * scale + 0.5)
+                local height = math.clamp(scaledH, math.max(180, minScaledH), availableH)
 
                 return {
                     width = width,
@@ -7919,6 +7913,45 @@ local List = New("ScrollingFrame", {
                 optionText = optionText,
                 rowH = rowH,
             }
+        end
+
+        local function UpdateTextTruncateForActualWidth(TextObject, ExtraReserve)
+            if not TextObject or not TextObject.Parent then return end
+
+            local function apply()
+                if not TextObject or not TextObject.Parent then return end
+
+                local width = tonumber(TextObject.AbsoluteSize.X) or 0
+                if width <= 1 then
+                    TextObject.TextTruncate = Enum.TextTruncate.None
+                    return
+                end
+
+                local horizontalPadding = 0
+                local padding = TextObject:FindFirstChildOfClass("UIPadding")
+                if padding then
+                    horizontalPadding = math.max(0, tonumber(padding.PaddingLeft.Offset) or 0)
+                        + math.max(0, tonumber(padding.PaddingRight.Offset) or 0)
+                end
+
+                local available = math.max(1, width - horizontalPadding - (tonumber(ExtraReserve) or 0))
+                local text = tostring(TextObject.Text or "")
+                local textWidth = Library:GetTextBounds(
+                    text,
+                    TextObject.FontFace or Library.Scheme.Font,
+                    tonumber(TextObject.TextSize) or 13,
+                    100000
+                )
+
+                -- Show ellipsis only when rendered text truly exceeds the
+                -- available width. Prevents false "..." in Quick Cast rows.
+                TextObject.TextTruncate = textWidth > (available + 2)
+                    and Enum.TextTruncate.AtEnd
+                    or Enum.TextTruncate.None
+            end
+
+            apply()
+            task.defer(apply)
         end
 
         local function ApplyPopupLayout()
@@ -8049,6 +8082,7 @@ local List = New("ScrollingFrame", {
             for _, Entry in pairs(Buttons) do
                 Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
+                UpdateTextTruncateForActualWidth(Entry.Button, 0)
             end
 
             if RenderVirtualRows then
@@ -8076,6 +8110,7 @@ local List = New("ScrollingFrame", {
             Entry.Button.TextColor3 = LayeredStyle.MainText
             Entry.Button.TextTransparency = Entry.Disabled and 0.65 or 0
             Entry.Button.Text = tostring(GetOptionText(Entry.Value))
+            UpdateTextTruncateForActualWidth(Entry.Button, 0)
 
             if rowStroke then
                 if selected then
@@ -8194,7 +8229,7 @@ local List = New("ScrollingFrame", {
                 -- Long labels now end cleanly with an ellipsis instead of being
                 -- hard-cut by the popup edge. The wider mobile popup above keeps
                 -- this as a last-resort fallback only.
-                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextTruncate = Enum.TextTruncate.None,
                 TextWrapped = false,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
@@ -8435,6 +8470,7 @@ local List = New("ScrollingFrame", {
             end
 
             Display.Text = (Str == "" and "---" or Str)
+            UpdateTextTruncateForActualWidth(Display, 0)
         end
 
         function Dropdown:OnChanged(Func)
@@ -8941,7 +8977,7 @@ local List = New("ScrollingFrame", {
             TextSize = Library.IsMobile and 12 or 13,
             -- Closed dropdowns can contain long rich pet/item names.
             -- Truncate only the compact field; the popup still shows full text.
-            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextTruncate = Enum.TextTruncate.None,
             TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -9362,9 +9398,8 @@ local List = New("ScrollingFrame", {
                 or (Library.ScreenGui and Library.ScreenGui.AbsoluteSize)
                 or Vector2.new(1280, 720)
 
-            -- Mobile dropdowns scale with the user's UI scale and with the
-            -- amount of content. A two-choice dropdown stays compact; long pet
-            -- lists can grow, but only to a comfortable portion of the screen.
+            -- Mobile dropdowns follow the user's UI scale. Vertical size is
+            -- fixed per device/scale; only horizontal size auto-fits content.
             if Library.IsMobile then
                 local vw = math.max(240, tonumber(viewport.X) or 360)
                 local vh = math.max(240, tonumber(viewport.Y) or 640)
@@ -9443,19 +9478,14 @@ local List = New("ScrollingFrame", {
 
                 local width = math.clamp(desiredW, minW, maxW)
 
-                -- Content-aware height: small lists hug their content; large
-                -- lists use more vertical room without turning into a full-screen
-                -- sheet. This also keeps landscape phone dropdowns proportional.
-                local maxHByScreen = math.floor(vh * (landscape and 0.78 or 0.70))
-                local maxHByScale = math.floor((landscape and 650 or 720) * scale)
-                local maxH = math.max(145, math.min(vh - verticalMargin * 2, maxHByScreen, maxHByScale))
-
-                local toolbarH = (hasSearch or hasBulk) and (math.max(searchH, actionH) + gap) or 0
-                local chrome = padY * 2 + headerH + gap + toolbarH + math.max(14, math.floor(20 * scale))
-                local rowsH = optionCount * rowH + math.max(0, optionCount - 1) * rowGap
-                local desiredH = chrome + rowsH
-                local minH = math.max(125, math.floor(145 * scale))
-                local height = math.clamp(desiredH, minH, maxH)
+                -- Mobile popup HEIGHT is fixed by UI scale, not by the number
+                -- of choices. Only the horizontal width auto-fits content.
+                -- This keeps all dropdowns visually consistent on one device.
+                local availableH = math.max(180, vh - verticalMargin * 2)
+                local logicalH = landscape and 500 or 560
+                local scaledH = math.floor(logicalH * scale + 0.5)
+                local minScaledH = math.floor((landscape and 300 or 360) * scale + 0.5)
+                local height = math.clamp(scaledH, math.max(180, minScaledH), availableH)
 
                 return {
                     width = width,
@@ -9535,6 +9565,45 @@ local List = New("ScrollingFrame", {
                 optionText = optionText,
                 rowH = rowH,
             }
+        end
+
+        local function UpdateTextTruncateForActualWidth(TextObject, ExtraReserve)
+            if not TextObject or not TextObject.Parent then return end
+
+            local function apply()
+                if not TextObject or not TextObject.Parent then return end
+
+                local width = tonumber(TextObject.AbsoluteSize.X) or 0
+                if width <= 1 then
+                    TextObject.TextTruncate = Enum.TextTruncate.None
+                    return
+                end
+
+                local horizontalPadding = 0
+                local padding = TextObject:FindFirstChildOfClass("UIPadding")
+                if padding then
+                    horizontalPadding = math.max(0, tonumber(padding.PaddingLeft.Offset) or 0)
+                        + math.max(0, tonumber(padding.PaddingRight.Offset) or 0)
+                end
+
+                local available = math.max(1, width - horizontalPadding - (tonumber(ExtraReserve) or 0))
+                local text = tostring(TextObject.Text or "")
+                local textWidth = Library:GetTextBounds(
+                    text,
+                    TextObject.FontFace or Library.Scheme.Font,
+                    tonumber(TextObject.TextSize) or 13,
+                    100000
+                )
+
+                -- Show ellipsis only when rendered text truly exceeds the
+                -- available width. Prevents false "..." in Quick Cast rows.
+                TextObject.TextTruncate = textWidth > (available + 2)
+                    and Enum.TextTruncate.AtEnd
+                    or Enum.TextTruncate.None
+            end
+
+            apply()
+            task.defer(apply)
         end
 
         local function ApplyPopupLayout()
@@ -9663,6 +9732,7 @@ local List = New("ScrollingFrame", {
             for _, Entry in pairs(Buttons) do
                 Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
+                UpdateTextTruncateForActualWidth(Entry.Button, 0)
             end
 
             if RenderVirtualRows then
@@ -9690,6 +9760,7 @@ local List = New("ScrollingFrame", {
             Entry.Button.TextColor3 = LayeredStyle.MainText
             Entry.Button.TextTransparency = Entry.Disabled and 0.65 or 0
             Entry.Button.Text = FormatZanjiDropdownValue(Entry.Value)
+            UpdateTextTruncateForActualWidth(Entry.Button, 0)
 
             if rowStroke then
                 if selected then
@@ -9797,7 +9868,7 @@ local List = New("ScrollingFrame", {
                 TextColor3 = LayeredStyle.MainText,
                 RichText = true,
                 TextSize = CurrentOptionTextSize,
-                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextTruncate = Enum.TextTruncate.None,
                 TextWrapped = false,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
@@ -10031,6 +10102,7 @@ local List = New("ScrollingFrame", {
             end
 
             Display.Text = (Str == "" and "---" or Str)
+            UpdateTextTruncateForActualWidth(Display, 0)
         end
     
         function Dropdown:OnChanged(Func)
