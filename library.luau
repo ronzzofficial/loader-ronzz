@@ -295,36 +295,34 @@ local Library = {
 --// ZANJI layered dark style \\--
 -- Global neutral hierarchy used by every standard groupbox/control.
 local LayeredStyle = {
-    -- ZANJI PRO surface hierarchy. Inspired by current desktop/mobile
-    -- dashboard patterns: low-noise graphite layers, soft borders, one accent.
-    MainBackground = Color3.fromRGB(10, 12, 17),     -- #0A0C11
-    Sidebar = Color3.fromRGB(12, 15, 21),            -- #0C0F15
-    TopBar = Color3.fromRGB(13, 16, 22),             -- #0D1016
+    MainBackground = Color3.fromRGB(11, 11, 14),
+    Sidebar = Color3.fromRGB(13, 13, 16),
+    TopBar = Color3.fromRGB(15, 15, 18),
 
-    OuterBox = Color3.fromRGB(16, 19, 26),           -- #10131A
-    InnerBox = Color3.fromRGB(12, 15, 21),           -- #0C0F15
-    Elevated = Color3.fromRGB(20, 24, 33),           -- #141821
+    OuterBox = Color3.fromRGB(20, 20, 24),
+    InnerBox = Color3.fromRGB(15, 15, 18),
+    Elevated = Color3.fromRGB(25, 25, 30),
 
-    ControlRow = Color3.fromRGB(18, 22, 30),         -- #12161E
-    ControlHover = Color3.fromRGB(23, 28, 38),       -- #171C26
-    InputBox = Color3.fromRGB(15, 19, 27),           -- #0F131B
-    InputHover = Color3.fromRGB(20, 25, 35),         -- #141923
+    ControlRow = Color3.fromRGB(24, 24, 29),
+    ControlHover = Color3.fromRGB(29, 29, 35),
+    InputBox = Color3.fromRGB(19, 19, 23),
+    InputHover = Color3.fromRGB(24, 24, 29),
 
-    DropdownRow = Color3.fromRGB(17, 21, 29),        -- #11151D
-    DropdownHover = Color3.fromRGB(24, 29, 40),      -- #181D28
-    DropdownSelected = Color3.fromRGB(35, 31, 55),   -- subtle violet tint
-    DropdownHoverBorder = Color3.fromRGB(70, 65, 96),
+    DropdownRow = Color3.fromRGB(22, 22, 27),
+    DropdownHover = Color3.fromRGB(29, 29, 35),
+    DropdownSelected = Color3.fromRGB(35, 31, 51),
+    DropdownHoverBorder = Color3.fromRGB(92, 80, 140),
 
-    TabHover = Color3.fromRGB(18, 22, 30),
-    TabSelected = Color3.fromRGB(29, 27, 43),
+    TabHover = Color3.fromRGB(23, 23, 28),
+    TabSelected = Color3.fromRGB(32, 29, 45),
 
-    Border = Color3.fromRGB(39, 45, 58),             -- #272D3A
-    BorderStrong = Color3.fromRGB(55, 63, 80),       -- #373F50
-    Separator = Color3.fromRGB(29, 34, 44),          -- #1D222C
+    Border = Color3.fromRGB(43, 43, 51),
+    BorderStrong = Color3.fromRGB(61, 61, 72),
+    Separator = Color3.fromRGB(33, 33, 40),
 
-    MainText = Color3.fromRGB(242, 244, 248),        -- #F2F4F8
-    SecondaryText = Color3.fromRGB(151, 159, 174),   -- #979FAE
-    MutedText = Color3.fromRGB(105, 113, 128),       -- #697180
+    MainText = Color3.fromRGB(245, 245, 247),
+    SecondaryText = Color3.fromRGB(166, 166, 176),
+    MutedText = Color3.fromRGB(112, 112, 122),
 }
 Library.LayeredStyle = LayeredStyle
 
@@ -5054,13 +5052,13 @@ do
 
             Data.Text = Params.Text or ""
             Data.DoesWrap = Params.DoesWrap or false
-            Data.Size = Params.Size or 14
+            Data.Size = Params.Size or (Library.IsMobile and 13 or 14)
             Data.Visible = Params.Visible ~= false
             Data.Idx = typeof(Second) == "table" and First or nil
         else
             Data.Text = First or ""
             Data.DoesWrap = Second or false
-            Data.Size = 14
+            Data.Size = Library.IsMobile and 13 or 14
             Data.Visible = true
             Data.Idx = select(3, ...) or nil
         end
@@ -5103,7 +5101,7 @@ do
             BackgroundTransparency = Label.IsDivider and 1 or 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Label.IsDivider and 10 or 28),
+            Size = UDim2.new(1, 0, 0, Label.IsDivider and 10 or (Library.IsMobile and 26 or 28)),
             Text = Label.IsDivider and "" or Label.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Data.Size,
@@ -5137,8 +5135,8 @@ do
         end
         New("UIPadding", {
             PaddingBottom = UDim.new(0, 1),
-            PaddingLeft = UDim.new(0, 10),
-            PaddingRight = UDim.new(0, 10),
+            PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 10),
+            PaddingRight = UDim.new(0, Library.IsMobile and 8 or 10),
             PaddingTop = UDim.new(0, 1),
             Parent = TextLabel,
         })
@@ -5150,7 +5148,7 @@ do
             end
 
             if not Label.DoesWrap then
-                TextLabel.Size = UDim2.new(1, 0, 0, 28)
+                TextLabel.Size = UDim2.new(1, 0, 0, Library.IsMobile and 26 or 28)
                 return
             end
 
@@ -5159,12 +5157,12 @@ do
                 -- The groupbox can report a tiny transient width while its tab
                 -- is mounting. Measuring long stock/farm text at that width
                 -- creates a huge label with the text far below the title.
-                TextLabel.Size = UDim2.new(1, 0, 0, 28)
+                TextLabel.Size = UDim2.new(1, 0, 0, Library.IsMobile and 26 or 28)
                 return
             end
 
             local _, Y = Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, Width)
-            TextLabel.Size = UDim2.new(1, 0, 0, math.max(28, Y + 10))
+            TextLabel.Size = UDim2.new(1, 0, 0, math.max(Library.IsMobile and 26 or 28, Y + (Library.IsMobile and 8 or 10)))
         end
 
         function Label:SetVisible(Visible: boolean)
@@ -5343,14 +5341,14 @@ do
 
         local Holder = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 32),
+            Size = UDim2.new(1, 0, 0, Library.IsMobile and 30 or 32),
             Parent = Container,
         })
 
         New("UIListLayout", {
             FillDirection = Enum.FillDirection.Horizontal,
             HorizontalFlex = Enum.UIFlexAlignment.Fill,
-            Padding = UDim.new(0, 9),
+            Padding = UDim.new(0, Library.IsMobile and 6 or 9),
             Parent = Holder,
         })
 
@@ -5362,7 +5360,7 @@ do
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
                 TextColor3 = LayeredStyle.MainText,
-                TextSize = 13,
+                TextSize = Library.IsMobile and 12 or 13,
                 TextTransparency = 0.04,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 Visible = Button.Visible,
@@ -5724,7 +5722,7 @@ do
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
-            Size = UDim2.new(1, 0, 0, 32),
+            Size = UDim2.new(1, 0, 0, Library.IsMobile and 30 or 32),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
@@ -6039,7 +6037,7 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, 32),
+            Size = UDim2.new(1, 0, 0, Library.IsMobile and 30 or 32),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
@@ -6359,7 +6357,7 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Library.IsMobile and 56 or 62),
+            Size = UDim2.new(1, 0, 0, Library.IsMobile and 51 or 58),
             Visible = Input.Visible,
             Parent = Container,
         })
@@ -6376,11 +6374,11 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(10, Library.IsMobile and 6 or 7),
-            Size = UDim2.new(1, -20, 0, 15),
+            Position = UDim2.fromOffset(Library.IsMobile and 8 or 10, Library.IsMobile and 5 or 6),
+            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, 15),
             Text = Input.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = 12,
+            TextSize = Library.IsMobile and 11 or 12,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -6397,8 +6395,8 @@ do
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Position = UDim2.new(0, 10, 1, Library.IsMobile and -7 or -8),
-            Size = UDim2.new(1, -20, 0, Library.IsMobile and 27 or 30),
+            Position = UDim2.new(0, Library.IsMobile and 8 or 10, 1, Library.IsMobile and -6 or -7),
+            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, Library.IsMobile and 26 or 29),
             Parent = Holder,
         })
 
@@ -6446,18 +6444,17 @@ do
             Parent = Box,
         })
 
+        local Editing = false
         local function RefreshPreview()
-            local focused = Box:IsFocused()
             local raw = tostring(Box.Text or "")
             local empty = raw == ""
 
             Preview.Text = empty and tostring(Input.Placeholder or "") or raw
             Preview.TextTransparency = Input.Disabled and 0.8 or (empty and 0.5 or 0)
-            Preview.Visible = not focused
+            Preview.Visible = not Editing
 
-            -- Keep the real TextBox on top for click/focus, but hide its text
-            -- while the ellipsis preview is being shown.
-            Box.TextTransparency = focused and (Input.Disabled and 0.8 or 0) or 1
+            Box.TextColor3 = LayeredStyle.MainText
+            Box.TextTransparency = Editing and (Input.Disabled and 0.8 or 0) or 1
         end
 
         local BoxStroke = New("UIStroke", {
@@ -6566,6 +6563,7 @@ do
         end
 
         table.insert(Input.Connections, Box.Focused:Connect(function()
+            Editing = true
             RefreshPreview()
             if Input.Disabled then
                 return
@@ -6582,6 +6580,7 @@ do
         end))
 
         table.insert(Input.Connections, Box.FocusLost:Connect(function()
+            Editing = false
             RefreshPreview()
             Library.Registry[BoxStroke].Color = function()
                 return LayeredStyle.Border
@@ -7229,8 +7228,8 @@ do
             ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0,
                 Dropdown.Text
-                    and (CompactMobileDropdown and 54 or 62)
-                    or (CompactMobileDropdown and 30 or 34)
+                    and (CompactMobileDropdown and 50 or 60)
+                    or (CompactMobileDropdown and 28 or 32)
             ),
             Visible = Dropdown.Visible,
             Parent = Container,
@@ -7266,8 +7265,8 @@ do
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -7 or -8),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 28),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -6 or -7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 23 or 27),
             Text = "---",
             RichText = true,
             TextSize = Library.IsMobile and 12 or 13,
@@ -7462,7 +7461,10 @@ do
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             PlaceholderText = "Search items...",
+            PlaceholderColor3 = LayeredStyle.SecondaryText,
+            ClearTextOnFocus = false,
             TextColor3 = LayeredStyle.MainText,
+            TextTransparency = 0,
             TextSize = 13,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -7488,7 +7490,15 @@ do
             Parent = SearchInput,
         })
 
+        local function RefreshSearchTypingVisual()
+            -- Keep mobile search text readable at every edit state.
+            -- Do not recolor an empty focused TextBox to fake-hide the caret.
+            SearchInput.TextTransparency = 0
+            SearchInput.TextColor3 = LayeredStyle.MainText
+        end
+
         SearchInput.Focused:Connect(function()
+            RefreshSearchTypingVisual()
             TweenService:Create(SearchInput, Library.TweenInfo, {
                 BackgroundColor3 = LayeredStyle.InputHover,
             }):Play()
@@ -7498,6 +7508,8 @@ do
             }):Play()
         end)
         SearchInput.FocusLost:Connect(function()
+            SearchInput.TextTransparency = 0
+            SearchInput.TextColor3 = LayeredStyle.MainText
             TweenService:Create(SearchInput, Library.TweenInfo, {
                 BackgroundColor3 = LayeredStyle.InputBox,
             }):Play()
@@ -7550,7 +7562,7 @@ do
         local RefreshButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Text = "Refresh ↻",
+            Text = "Refresh",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -7747,39 +7759,42 @@ local List = New("ScrollingFrame", {
                 or (Library.ScreenGui and Library.ScreenGui.AbsoluteSize)
                 or Vector2.new(1280, 720)
 
-            -- Mobile dropdowns follow the user's UI scale. Vertical size is
-            -- fixed per device/scale; only horizontal size auto-fits content.
+            -- Mobile dropdowns follow the same UI scale as the main window.
+            -- Height is fixed by device/scale; width grows sideways to fit text.
             if Library.IsMobile then
-                local vw = math.max(240, tonumber(viewport.X) or 360)
-                local vh = math.max(240, tonumber(viewport.Y) or 640)
+                local screenSize = Library.ScreenGui and Library.ScreenGui.AbsoluteSize
+                local rawVW = tonumber(viewport.X) or 360
+                local rawVH = tonumber(viewport.Y) or 640
+                if screenSize and screenSize.X > 1 and screenSize.Y > 1 then
+                    rawVW = math.min(rawVW, screenSize.X)
+                    rawVH = math.min(rawVH, screenSize.Y)
+                end
+
+                local vw = math.max(240, rawVW)
+                local vh = math.max(220, rawVH)
                 local landscape = vw > vh
                 local shortSide = math.min(vw, vh)
-                local optionCount = math.max(1, #(Dropdown.Values or {}))
 
-                -- Popups live directly under ScreenGui, outside the main
-                -- window UIScale. Apply the same DPI scale manually so popup
-                -- text/rows/buttons visually match the rest of ZANJIHUB.
                 local uiScale = math.clamp(tonumber(Library.DPIScale) or 1, 0.65, 1.05)
                 local deviceScale = shortSide < 360 and 0.90 or (shortSide < 430 and 0.95 or 1)
                 local scale = math.clamp(uiScale * deviceScale, 0.64, 1.0)
 
-                local optionText = math.clamp(math.floor(12 * scale + 0.5), 10, 12)
-                local titleText = math.clamp(math.floor(14 * scale + 0.5), 11, 14)
+                local optionText = math.clamp(math.floor(12 * scale + 0.5), 11, 12)
+                local titleText = math.clamp(math.floor(13 * scale + 0.5), 11, 13)
                 local inputText = math.clamp(math.floor(12 * scale + 0.5), 10, 12)
-                local rowH = math.max(22, math.floor(29 * scale + 0.5))
-                local headerH = math.max(26, math.floor(34 * scale + 0.5))
-                local searchH = math.max(24, math.floor(30 * scale + 0.5))
-                local actionH = math.max(22, math.floor(27 * scale + 0.5))
-                local gap = math.max(3, math.floor(5 * scale + 0.5))
-                local padX = math.max(6, math.floor(9 * scale + 0.5))
-                local padY = math.max(5, math.floor(7 * scale + 0.5))
-                local rowGap = math.max(2, math.floor(3 * scale + 0.5))
+                local rowH = math.max(21, math.floor(27 * scale + 0.5))
+                local headerH = math.max(23, math.floor(29 * scale + 0.5))
+                local searchH = math.max(21, math.floor(26 * scale + 0.5))
+                local actionH = math.max(20, math.floor(23 * scale + 0.5))
+                local gap = math.max(3, math.floor(4 * scale + 0.5))
+                local padX = math.max(6, math.floor(8 * scale + 0.5))
+                local padY = math.max(4, math.floor(6 * scale + 0.5))
 
                 local sideMargin = math.clamp(math.floor(vw * 0.018), 8, 18)
-                local verticalMargin = math.clamp(math.floor(vh * 0.035), 10, 22)
-                local maxAllowedW = math.max(220, vw - sideMargin * 2)
-                local minW = math.min(maxAllowedW, math.floor((landscape and 430 or 300) * scale))
-                local maxLogicalW = math.floor((landscape and 1080 or 680) * scale)
+                local verticalMargin = math.clamp(math.floor(vh * 0.05), 12, 24)
+                local maxAllowedW = math.max(210, vw - sideMargin * 2)
+                local minW = math.min(maxAllowedW, math.floor((landscape and 250 or 230) * scale))
+                local maxLogicalW = math.floor((landscape and 1120 or 720) * scale)
                 local maxW = math.max(minW, math.min(maxAllowedW, maxLogicalW))
 
                 local function mobilePlainText(value)
@@ -7790,20 +7805,22 @@ local List = New("ScrollingFrame", {
                     return tostring(text or ""):gsub("<[^<>]->", "")
                 end
 
-                -- Size width from the actual content instead of a fixed 80-92%
-                -- screen percentage. This keeps short lists small while still
-                -- giving long pet names + UUIDs enough room.
-                local desiredW = minW
+                local longestTextWidth = 0
                 for _, value in ipairs(Dropdown.Values or {}) do
-                    local textWidth = Library:GetTextBounds(
+                    longestTextWidth = math.max(longestTextWidth, Library:GetTextBounds(
                         mobilePlainText(value),
                         Library.Scheme.Font,
                         optionText,
                         100000
-                    )
-                    desiredW = math.max(desiredW, math.ceil(textWidth + 48 * scale))
+                    ))
                 end
 
+                -- Mobile dropdown text keeps the UI-scaled font size. The popup
+                -- grows horizontally to fit the longest value, then clamps only
+                -- at the physical viewport margin. Never shrink option text just
+                -- to force it inside a narrower popup.
+                local textReserve = math.max(34, math.floor(46 * scale))
+                local desiredW = math.max(minW, math.ceil(longestTextWidth + textReserve))
                 if Dropdown.Text and Dropdown.Text ~= "" then
                     local titleWidth = Library:GetTextBounds(
                         tostring(Dropdown.Text):gsub("<[^<>]->", ""),
@@ -7818,23 +7835,20 @@ local List = New("ScrollingFrame", {
                 local hasBulk = (Info.Multi == true and Info.ShowBulkActions ~= false)
                     or (Info.Multi ~= true and Info.AllowNull == true)
                     or type(Dropdown.RefreshFunc) == "function"
-
                 if hasSearch and hasBulk then
-                    desiredW = math.max(desiredW, math.floor(390 * scale))
+                    desiredW = math.max(desiredW, math.floor(340 * scale))
                 elseif hasSearch then
-                    desiredW = math.max(desiredW, math.floor(300 * scale))
+                    desiredW = math.max(desiredW, math.floor(280 * scale))
                 end
 
                 local width = math.clamp(desiredW, minW, maxW)
 
-                -- Mobile popup HEIGHT is fixed by UI scale, not by the number
-                -- of choices. Only the horizontal width auto-fits content.
-                -- This keeps all dropdowns visually consistent on one device.
-                local availableH = math.max(180, vh - verticalMargin * 2)
-                local logicalH = landscape and 500 or 560
+                -- Slightly shorter than V10.6 and always clamped to the real
+                -- ScreenGui height so the centered popup cannot leave screen.
+                local availableH = math.max(160, vh - verticalMargin * 2)
+                local logicalH = landscape and 285 or 360
                 local scaledH = math.floor(logicalH * scale + 0.5)
-                local minScaledH = math.floor((landscape and 300 or 360) * scale + 0.5)
-                local height = math.clamp(scaledH, math.max(180, minScaledH), availableH)
+                local height = math.min(math.max(180, scaledH), availableH)
 
                 return {
                     width = width,
@@ -7935,16 +7949,32 @@ local List = New("ScrollingFrame", {
                 end
 
                 local available = math.max(1, width - horizontalPadding - (tonumber(ExtraReserve) or 0))
-                local text = tostring(TextObject.Text or "")
+                local rawText = tostring(TextObject.Text or "")
+                local plainText = rawText:gsub("<[^<>]->", "")
+
+                local baseSize = tonumber(TextObject:GetAttribute("ZanjiBaseTextSize"))
+                if not baseSize then
+                    baseSize = tonumber(TextObject.TextSize) or 13
+                    pcall(function() TextObject:SetAttribute("ZanjiBaseTextSize", baseSize) end)
+                end
+                TextObject.TextSize = baseSize
+
                 local textWidth = Library:GetTextBounds(
-                    text,
+                    plainText,
                     TextObject.FontFace or Library.Scheme.Font,
-                    tonumber(TextObject.TextSize) or 13,
+                    baseSize,
                     100000
                 )
 
-                -- Show ellipsis only when rendered text truly exceeds the
-                -- available width. Prevents false "..." in Quick Cast rows.
+                if Library.IsMobile then
+                    -- Keep the exact UI-scaled font size on mobile. Popup width
+                    -- is responsible for accommodating long labels; do not shrink
+                    -- text or add an ellipsis just because the row is long.
+                    TextObject.TextSize = baseSize
+                    TextObject.TextTruncate = Enum.TextTruncate.None
+                    return
+                end
+
                 TextObject.TextTruncate = textWidth > (available + 2)
                     and Enum.TextTruncate.AtEnd
                     or Enum.TextTruncate.None
@@ -8082,6 +8112,7 @@ local List = New("ScrollingFrame", {
             for _, Entry in pairs(Buttons) do
                 Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
+                pcall(function() Entry.Button:SetAttribute("ZanjiBaseTextSize", CurrentOptionTextSize) end)
                 UpdateTextTruncateForActualWidth(Entry.Button, 0)
             end
 
@@ -8097,7 +8128,7 @@ local List = New("ScrollingFrame", {
             local hovered = Entry.Hovered == true and not Entry.Disabled and not Dropdown.Disabled
 
             -- Reference behavior:
-            -- normal = dark row, hover = slightly lighter row, selected = gray row + purple outline.
+            -- normal = dark row, hover = lighter row, selected = subtle accent fill.
             if selected then
                 Entry.Button.BackgroundColor3 = LayeredStyle.DropdownSelected
             elseif hovered then
@@ -8226,10 +8257,7 @@ local List = New("ScrollingFrame", {
                 TextColor3 = LayeredStyle.MainText,
                 RichText = true,
                 TextSize = CurrentOptionTextSize,
-                -- Long labels now end cleanly with an ellipsis instead of being
-                -- hard-cut by the popup edge. The wider mobile popup above keeps
-                -- this as a last-resort fallback only.
-                TextTruncate = Enum.TextTruncate.None,
+                                TextTruncate = Enum.TextTruncate.None,
                 TextWrapped = false,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
@@ -8784,6 +8812,7 @@ local List = New("ScrollingFrame", {
 
         if SearchInput.Visible then
             SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
+                RefreshSearchTypingVisual()
                 Dropdown:BuildDropdownList(true)
             end)
         end
@@ -8933,8 +8962,8 @@ local List = New("ScrollingFrame", {
             ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0,
                 Dropdown.Text
-                    and (CompactMobileDropdown and 54 or 62)
-                    or (CompactMobileDropdown and 30 or 34)
+                    and (CompactMobileDropdown and 50 or 60)
+                    or (CompactMobileDropdown and 28 or 32)
             ),
             Visible = Dropdown.Visible,
             Parent = Container,
@@ -8970,8 +8999,8 @@ local List = New("ScrollingFrame", {
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -7 or -8),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 28),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -6 or -7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 23 or 27),
             Text = "---",
             RichText = true,
             TextSize = Library.IsMobile and 12 or 13,
@@ -9166,7 +9195,10 @@ local List = New("ScrollingFrame", {
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             PlaceholderText = "Search items...",
+            PlaceholderColor3 = LayeredStyle.SecondaryText,
+            ClearTextOnFocus = false,
             TextColor3 = LayeredStyle.MainText,
+            TextTransparency = 0,
             TextSize = 13,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -9193,7 +9225,15 @@ local List = New("ScrollingFrame", {
             Parent = SearchInput,
         })
     
+        local function RefreshSearchTypingVisual()
+            -- Keep mobile search text readable at every edit state.
+            -- Do not recolor an empty focused TextBox to fake-hide the caret.
+            SearchInput.TextTransparency = 0
+            SearchInput.TextColor3 = LayeredStyle.MainText
+        end
+
         SearchInput.Focused:Connect(function()
+            RefreshSearchTypingVisual()
             TweenService:Create(SearchInput, Library.TweenInfo, {
                 BackgroundColor3 = LayeredStyle.InputHover,
             }):Play()
@@ -9203,6 +9243,8 @@ local List = New("ScrollingFrame", {
             }):Play()
         end)
         SearchInput.FocusLost:Connect(function()
+            SearchInput.TextTransparency = 0
+            SearchInput.TextColor3 = LayeredStyle.MainText
             TweenService:Create(SearchInput, Library.TweenInfo, {
                 BackgroundColor3 = LayeredStyle.InputBox,
             }):Play()
@@ -9255,7 +9297,7 @@ local List = New("ScrollingFrame", {
         local RefreshButton = New("TextButton", {
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Text = "Refresh ↻",
+            Text = "Refresh",
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -9398,39 +9440,42 @@ local List = New("ScrollingFrame", {
                 or (Library.ScreenGui and Library.ScreenGui.AbsoluteSize)
                 or Vector2.new(1280, 720)
 
-            -- Mobile dropdowns follow the user's UI scale. Vertical size is
-            -- fixed per device/scale; only horizontal size auto-fits content.
+            -- Mobile dropdowns follow the same UI scale as the main window.
+            -- Height is fixed by device/scale; width grows sideways to fit text.
             if Library.IsMobile then
-                local vw = math.max(240, tonumber(viewport.X) or 360)
-                local vh = math.max(240, tonumber(viewport.Y) or 640)
+                local screenSize = Library.ScreenGui and Library.ScreenGui.AbsoluteSize
+                local rawVW = tonumber(viewport.X) or 360
+                local rawVH = tonumber(viewport.Y) or 640
+                if screenSize and screenSize.X > 1 and screenSize.Y > 1 then
+                    rawVW = math.min(rawVW, screenSize.X)
+                    rawVH = math.min(rawVH, screenSize.Y)
+                end
+
+                local vw = math.max(240, rawVW)
+                local vh = math.max(220, rawVH)
                 local landscape = vw > vh
                 local shortSide = math.min(vw, vh)
-                local optionCount = math.max(1, #(Dropdown.Values or {}))
 
-                -- Popups live directly under ScreenGui, outside the main
-                -- window UIScale. Apply the same DPI scale manually so popup
-                -- text/rows/buttons visually match the rest of ZANJIHUB.
                 local uiScale = math.clamp(tonumber(Library.DPIScale) or 1, 0.65, 1.05)
                 local deviceScale = shortSide < 360 and 0.90 or (shortSide < 430 and 0.95 or 1)
                 local scale = math.clamp(uiScale * deviceScale, 0.64, 1.0)
 
-                local optionText = math.clamp(math.floor(12 * scale + 0.5), 10, 12)
-                local titleText = math.clamp(math.floor(14 * scale + 0.5), 11, 14)
+                local optionText = math.clamp(math.floor(12 * scale + 0.5), 11, 12)
+                local titleText = math.clamp(math.floor(13 * scale + 0.5), 11, 13)
                 local inputText = math.clamp(math.floor(12 * scale + 0.5), 10, 12)
-                local rowH = math.max(22, math.floor(29 * scale + 0.5))
-                local headerH = math.max(26, math.floor(34 * scale + 0.5))
-                local searchH = math.max(24, math.floor(30 * scale + 0.5))
-                local actionH = math.max(22, math.floor(27 * scale + 0.5))
-                local gap = math.max(3, math.floor(5 * scale + 0.5))
-                local padX = math.max(6, math.floor(9 * scale + 0.5))
-                local padY = math.max(5, math.floor(7 * scale + 0.5))
-                local rowGap = math.max(2, math.floor(3 * scale + 0.5))
+                local rowH = math.max(21, math.floor(27 * scale + 0.5))
+                local headerH = math.max(23, math.floor(29 * scale + 0.5))
+                local searchH = math.max(21, math.floor(26 * scale + 0.5))
+                local actionH = math.max(20, math.floor(23 * scale + 0.5))
+                local gap = math.max(3, math.floor(4 * scale + 0.5))
+                local padX = math.max(6, math.floor(8 * scale + 0.5))
+                local padY = math.max(4, math.floor(6 * scale + 0.5))
 
                 local sideMargin = math.clamp(math.floor(vw * 0.018), 8, 18)
-                local verticalMargin = math.clamp(math.floor(vh * 0.035), 10, 22)
-                local maxAllowedW = math.max(220, vw - sideMargin * 2)
-                local minW = math.min(maxAllowedW, math.floor((landscape and 430 or 300) * scale))
-                local maxLogicalW = math.floor((landscape and 1080 or 680) * scale)
+                local verticalMargin = math.clamp(math.floor(vh * 0.05), 12, 24)
+                local maxAllowedW = math.max(210, vw - sideMargin * 2)
+                local minW = math.min(maxAllowedW, math.floor((landscape and 250 or 230) * scale))
+                local maxLogicalW = math.floor((landscape and 1120 or 720) * scale)
                 local maxW = math.max(minW, math.min(maxAllowedW, maxLogicalW))
 
                 local function mobilePlainText(value)
@@ -9441,20 +9486,22 @@ local List = New("ScrollingFrame", {
                     return tostring(text or ""):gsub("<[^<>]->", "")
                 end
 
-                -- Size width from the actual content instead of a fixed 80-92%
-                -- screen percentage. This keeps short lists small while still
-                -- giving long pet names + UUIDs enough room.
-                local desiredW = minW
+                local longestTextWidth = 0
                 for _, value in ipairs(Dropdown.Values or {}) do
-                    local textWidth = Library:GetTextBounds(
+                    longestTextWidth = math.max(longestTextWidth, Library:GetTextBounds(
                         mobilePlainText(value),
                         Library.Scheme.Font,
                         optionText,
                         100000
-                    )
-                    desiredW = math.max(desiredW, math.ceil(textWidth + 48 * scale))
+                    ))
                 end
 
+                -- Mobile dropdown text keeps the UI-scaled font size. The popup
+                -- grows horizontally to fit the longest value, then clamps only
+                -- at the physical viewport margin. Never shrink option text just
+                -- to force it inside a narrower popup.
+                local textReserve = math.max(34, math.floor(46 * scale))
+                local desiredW = math.max(minW, math.ceil(longestTextWidth + textReserve))
                 if Dropdown.Text and Dropdown.Text ~= "" then
                     local titleWidth = Library:GetTextBounds(
                         tostring(Dropdown.Text):gsub("<[^<>]->", ""),
@@ -9469,23 +9516,20 @@ local List = New("ScrollingFrame", {
                 local hasBulk = (Info.Multi == true and Info.ShowBulkActions ~= false)
                     or (Info.Multi ~= true and Info.AllowNull == true)
                     or type(Dropdown.RefreshFunc) == "function"
-
                 if hasSearch and hasBulk then
-                    desiredW = math.max(desiredW, math.floor(390 * scale))
+                    desiredW = math.max(desiredW, math.floor(340 * scale))
                 elseif hasSearch then
-                    desiredW = math.max(desiredW, math.floor(300 * scale))
+                    desiredW = math.max(desiredW, math.floor(280 * scale))
                 end
 
                 local width = math.clamp(desiredW, minW, maxW)
 
-                -- Mobile popup HEIGHT is fixed by UI scale, not by the number
-                -- of choices. Only the horizontal width auto-fits content.
-                -- This keeps all dropdowns visually consistent on one device.
-                local availableH = math.max(180, vh - verticalMargin * 2)
-                local logicalH = landscape and 500 or 560
+                -- Slightly shorter than V10.6 and always clamped to the real
+                -- ScreenGui height so the centered popup cannot leave screen.
+                local availableH = math.max(160, vh - verticalMargin * 2)
+                local logicalH = landscape and 285 or 360
                 local scaledH = math.floor(logicalH * scale + 0.5)
-                local minScaledH = math.floor((landscape and 300 or 360) * scale + 0.5)
-                local height = math.clamp(scaledH, math.max(180, minScaledH), availableH)
+                local height = math.min(math.max(180, scaledH), availableH)
 
                 return {
                     width = width,
@@ -9587,16 +9631,32 @@ local List = New("ScrollingFrame", {
                 end
 
                 local available = math.max(1, width - horizontalPadding - (tonumber(ExtraReserve) or 0))
-                local text = tostring(TextObject.Text or "")
+                local rawText = tostring(TextObject.Text or "")
+                local plainText = rawText:gsub("<[^<>]->", "")
+
+                local baseSize = tonumber(TextObject:GetAttribute("ZanjiBaseTextSize"))
+                if not baseSize then
+                    baseSize = tonumber(TextObject.TextSize) or 13
+                    pcall(function() TextObject:SetAttribute("ZanjiBaseTextSize", baseSize) end)
+                end
+                TextObject.TextSize = baseSize
+
                 local textWidth = Library:GetTextBounds(
-                    text,
+                    plainText,
                     TextObject.FontFace or Library.Scheme.Font,
-                    tonumber(TextObject.TextSize) or 13,
+                    baseSize,
                     100000
                 )
 
-                -- Show ellipsis only when rendered text truly exceeds the
-                -- available width. Prevents false "..." in Quick Cast rows.
+                if Library.IsMobile then
+                    -- Keep the exact UI-scaled font size on mobile. Popup width
+                    -- is responsible for accommodating long labels; do not shrink
+                    -- text or add an ellipsis just because the row is long.
+                    TextObject.TextSize = baseSize
+                    TextObject.TextTruncate = Enum.TextTruncate.None
+                    return
+                end
+
                 TextObject.TextTruncate = textWidth > (available + 2)
                     and Enum.TextTruncate.AtEnd
                     or Enum.TextTruncate.None
@@ -9732,6 +9792,7 @@ local List = New("ScrollingFrame", {
             for _, Entry in pairs(Buttons) do
                 Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
+                pcall(function() Entry.Button:SetAttribute("ZanjiBaseTextSize", CurrentOptionTextSize) end)
                 UpdateTextTruncateForActualWidth(Entry.Button, 0)
             end
 
@@ -9747,7 +9808,7 @@ local List = New("ScrollingFrame", {
             local hovered = Entry.Hovered == true and not Entry.Disabled and not Dropdown.Disabled
 
             -- Reference behavior:
-            -- normal = dark row, hover = slightly lighter row, selected = gray row + purple outline.
+            -- normal = dark row, hover = lighter row, selected = subtle accent fill.
             if selected then
                 Entry.Button.BackgroundColor3 = LayeredStyle.DropdownSelected
             elseif hovered then
@@ -10364,6 +10425,7 @@ local List = New("ScrollingFrame", {
 
         if SearchInput.Visible then
             SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
+                RefreshSearchTypingVisual()
                 Dropdown:BuildDropdownList(true)
             end)
         end
@@ -11693,18 +11755,13 @@ function Library:Notify(...)
     local Data = {}
     local Info = select(1, ...)
 
-    local function CompactNotifyText(value, limit)
+    local function CompactNotifyText(value)
         local text = tostring(value or "")
             :gsub("<[^>]->", "")
             :gsub("%s+", " ")
             :gsub("^%s+", "")
             :gsub("%s+$", "")
-        if text == "" then return nil end
-        limit = tonumber(limit) or 80
-        if #text > limit then
-            text = text:sub(1, math.max(1, limit - 3)):gsub("%s+$", "") .. "..."
-        end
-        return text
+        return text ~= "" and text or nil
     end
 
     if typeof(Info) == "table" then
@@ -11714,7 +11771,7 @@ function Library:Notify(...)
         Data.Description = CompactNotifyText(Info.Description, 82)
         Data.DescriptionColor = Info.DescriptionColor
 
-        Data.Time = Info.Time or 3.5
+        Data.Time = Info.Time or 3.0
         Data.SoundId = Info.SoundId
         Data.Steps = Info.Steps
         Data.Persist = Info.Persist
@@ -11726,7 +11783,7 @@ function Library:Notify(...)
         Data.Volume = tonumber(Info.Volume) or 3
     else
         Data.Description = CompactNotifyText(Info, 82)
-        Data.Time = select(2, ...) or 3.5
+        Data.Time = select(2, ...) or 3.0
         Data.SoundId = select(3, ...)
         Data.Volume = select(4, ...) or 3
     end
@@ -11887,8 +11944,9 @@ function Library:Notify(...)
             TextColor3 = Data.DescriptionColor or "FontColor",
             TextSize = 12,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextWrapped = false,
-            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextWrapped = true,
+            TextTruncate = Enum.TextTruncate.None,
+            LineHeight = 1.05,
             Parent = TextContainer,
         })
     end
@@ -13730,10 +13788,10 @@ function Library:CreateWindow(WindowInfo)
                     Parent = GroupboxHolder,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, 8),
-                    PaddingLeft = UDim.new(0, 9),
-                    PaddingRight = UDim.new(0, 9),
-                    PaddingTop = UDim.new(0, 8),
+                    PaddingBottom = UDim.new(0, Library.IsMobile and 6 or 8),
+                    PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 9),
+                    PaddingRight = UDim.new(0, Library.IsMobile and 8 or 9),
+                    PaddingTop = UDim.new(0, Library.IsMobile and 6 or 8),
                     Parent = GroupboxTop,
                 })
 
@@ -13746,7 +13804,7 @@ function Library:CreateWindow(WindowInfo)
                         ImageRectOffset = BoxIcon.ImageRectOffset,
                         ImageRectSize = BoxIcon.ImageRectSize,
                         Position = UDim2.fromScale(0, 0.5),
-                        Size = UDim2.fromOffset(18, 18),
+                        Size = UDim2.fromOffset(Library.IsMobile and 16 or 18, Library.IsMobile and 16 or 18),
                         Parent = GroupboxTop,
                     })
                 end
@@ -13776,7 +13834,7 @@ function Library:CreateWindow(WindowInfo)
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Name,
                     TextColor3 = LayeredStyle.MainText,
-                    TextSize = 14,
+                    TextSize = Library.IsMobile and 13 or 14,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Parent = TextsFrame,
@@ -13792,7 +13850,7 @@ function Library:CreateWindow(WindowInfo)
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Description or "",
                     TextColor3 = LayeredStyle.SecondaryText,
-                    TextSize = 12,
+                    TextSize = Library.IsMobile and 11 or 12,
                     TextTransparency = 0.12,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
