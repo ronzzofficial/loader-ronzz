@@ -7231,6 +7231,8 @@ do
         }
 
         local CompactMobileDropdown = Library.IsMobile == true
+        -- V11.4: keep label-to-field spacing tight on both phone and desktop.
+        -- Controls stay readable, but the value box sits directly under its label.
 
         local Holder = New("Frame", {
             BackgroundColor3 = LayeredStyle.ControlRow,
@@ -7239,8 +7241,8 @@ do
             ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0,
                 Dropdown.Text
-                    and (CompactMobileDropdown and 46 or 60)
-                    or (CompactMobileDropdown and 27 or 32)
+                    and (CompactMobileDropdown and 42 or 48)
+                    or (CompactMobileDropdown and 25 or 29)
             ),
             Visible = Dropdown.Visible,
             Parent = Container,
@@ -7258,8 +7260,8 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 4 or 7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 12 or 15),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 3 or 4),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 10 or 12),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Library.IsMobile and 12 or 13,
@@ -7276,8 +7278,8 @@ do
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -5 or -7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 27),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, -4),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 23 or 25),
             Text = "---",
             RichText = true,
             TextSize = Library.IsMobile and 12 or 13,
@@ -7320,7 +7322,7 @@ do
             -- Parent to Holder so Display's right text padding cannot push the
             -- chevron inward. This keeps every dropdown arrow at the same
             -- physical right edge regardless of title/value length.
-            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -17 or -22),
+            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -15 or -17),
             Size = UDim2.fromOffset(13, 13),
             ZIndex = 3,
             Parent = Holder,
@@ -8965,6 +8967,8 @@ local List = New("ScrollingFrame", {
         end
     
         local CompactMobileDropdown = Library.IsMobile == true
+        -- V11.4: keep label-to-field spacing tight on both phone and desktop.
+        -- Controls stay readable, but the value box sits directly under its label.
 
         local Holder = New("Frame", {
             BackgroundColor3 = LayeredStyle.ControlRow,
@@ -8973,8 +8977,8 @@ local List = New("ScrollingFrame", {
             ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0,
                 Dropdown.Text
-                    and (CompactMobileDropdown and 46 or 60)
-                    or (CompactMobileDropdown and 27 or 32)
+                    and (CompactMobileDropdown and 42 or 48)
+                    or (CompactMobileDropdown and 25 or 29)
             ),
             Visible = Dropdown.Visible,
             Parent = Container,
@@ -8992,8 +8996,8 @@ local List = New("ScrollingFrame", {
     
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 4 or 7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 12 or 15),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 3 or 4),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 10 or 12),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Library.IsMobile and 12 or 13,
@@ -9010,8 +9014,8 @@ local List = New("ScrollingFrame", {
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -5 or -7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 27),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, -4),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 23 or 25),
             Text = "---",
             RichText = true,
             TextSize = Library.IsMobile and 12 or 13,
@@ -9053,7 +9057,7 @@ local List = New("ScrollingFrame", {
             ImageTransparency = 0.5,
             -- Same right-edge anchor as every other dropdown. Holder parenting
             -- avoids the Display UIPadding offset entirely.
-            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -17 or -22),
+            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -15 or -17),
             Size = UDim2.fromOffset(13, 13),
             ZIndex = 3,
             Parent = Holder,
