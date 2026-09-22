@@ -5110,7 +5110,7 @@ do
             TextWrapped = Label.DoesWrap,
             TextTruncate = Label.DoesWrap and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd,
             TextXAlignment = Groupbox.IsKeyTab and Enum.TextXAlignment.Center or Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
+            TextYAlignment = Label.DoesWrap and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
             Parent = Container,
         })
         New("UICorner", {
@@ -5178,7 +5178,7 @@ do
             local DisplayText = FormatSemanticLabelText(Text)
             Label.Text = DisplayText
             TextLabel.Text = Label.IsDivider and "" or DisplayText
-            TextLabel.TextYAlignment = Enum.TextYAlignment.Center
+            TextLabel.TextYAlignment = Label.DoesWrap and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center
 
             Label:Display()
             Groupbox:Resize()
@@ -7747,51 +7747,100 @@ local List = New("ScrollingFrame", {
                 or (Library.ScreenGui and Library.ScreenGui.AbsoluteSize)
                 or Vector2.new(1280, 720)
 
-            -- Mobile dropdown uses the available viewport instead of a fixed
-            -- percentage cap. On landscape phones this intentionally fills most
-            -- of the free vertical space while keeping a small safe margin.
+            -- Mobile dropdowns scale with the user's UI scale and with the
+            -- amount of content. A two-choice dropdown stays compact; long pet
+            -- lists can grow, but only to a comfortable portion of the screen.
             if Library.IsMobile then
                 local vw = math.max(240, tonumber(viewport.X) or 360)
                 local vh = math.max(240, tonumber(viewport.Y) or 640)
                 local landscape = vw > vh
                 local shortSide = math.min(vw, vh)
-                local compact = shortSide < 360
                 local optionCount = math.max(1, #(Dropdown.Values or {}))
 
-                local density = math.clamp(shortSide / 430, 0.84, 1)
-                local rowH = math.max(27, math.floor((compact and 29 or 32) * density))
-                local headerH = math.max(31, math.floor((compact and 33 or 36) * density))
-                local searchH = math.max(28, math.floor((compact and 30 or 32) * density))
-                local actionH = math.max(25, math.floor((compact and 26 or 28) * density))
-                local gap = math.max(4, math.floor(5 * density))
-                local padX = math.max(7, math.floor(9 * density))
-                local padY = math.max(6, math.floor(8 * density))
+                -- Popups live directly under ScreenGui, outside the main
+                -- window UIScale. Apply the same DPI scale manually so popup
+                -- text/rows/buttons visually match the rest of ZANJIHUB.
+                local uiScale = math.clamp(tonumber(Library.DPIScale) or 1, 0.65, 1.05)
+                local deviceScale = shortSide < 360 and 0.90 or (shortSide < 430 and 0.95 or 1)
+                local scale = math.clamp(uiScale * deviceScale, 0.64, 1.0)
 
-                local sideMargin = math.clamp(math.floor(vw * 0.025), 8, 22)
-                local verticalMargin = math.clamp(math.floor(vh * 0.025), 8, 18)
-                local maxAllowedW = math.max(210, vw - sideMargin * 2)
-                local desiredW = landscape and math.floor(vw * 0.80) or math.floor(vw * 0.92)
-                local width = math.min(maxAllowedW, desiredW)
-                width = math.max(math.min(280, maxAllowedW), width)
+                local optionText = math.clamp(math.floor(12 * scale + 0.5), 10, 12)
+                local titleText = math.clamp(math.floor(14 * scale + 0.5), 11, 14)
+                local inputText = math.clamp(math.floor(12 * scale + 0.5), 10, 12)
+                local rowH = math.max(22, math.floor(29 * scale + 0.5))
+                local headerH = math.max(26, math.floor(34 * scale + 0.5))
+                local searchH = math.max(24, math.floor(30 * scale + 0.5))
+                local actionH = math.max(22, math.floor(27 * scale + 0.5))
+                local gap = math.max(3, math.floor(5 * scale + 0.5))
+                local padX = math.max(6, math.floor(9 * scale + 0.5))
+                local padY = math.max(5, math.floor(7 * scale + 0.5))
+                local rowGap = math.max(2, math.floor(3 * scale + 0.5))
 
-                -- The maximum height is now based on real free screen space, not
-                -- 42-74% of the display. Large lists therefore occupy the useful
-                -- top/bottom area instead of showing only two rows.
-                local maxH = math.max(190, vh - verticalMargin * 2)
+                local sideMargin = math.clamp(math.floor(vw * 0.018), 8, 18)
+                local verticalMargin = math.clamp(math.floor(vh * 0.035), 10, 22)
+                local maxAllowedW = math.max(220, vw - sideMargin * 2)
+                local minW = math.min(maxAllowedW, math.floor((landscape and 430 or 300) * scale))
+                local maxLogicalW = math.floor((landscape and 1080 or 680) * scale)
+                local maxW = math.max(minW, math.min(maxAllowedW, maxLogicalW))
+
+                local function mobilePlainText(value)
+                    local text = value
+                    if typeof(value) == "table" then
+                        text = value.Text or value.Value or ""
+                    end
+                    return tostring(text or ""):gsub("<[^<>]->", "")
+                end
+
+                -- Size width from the actual content instead of a fixed 80-92%
+                -- screen percentage. This keeps short lists small while still
+                -- giving long pet names + UUIDs enough room.
+                local desiredW = minW
+                for _, value in ipairs(Dropdown.Values or {}) do
+                    local textWidth = Library:GetTextBounds(
+                        mobilePlainText(value),
+                        Library.Scheme.Font,
+                        optionText,
+                        100000
+                    )
+                    desiredW = math.max(desiredW, math.ceil(textWidth + 48 * scale))
+                end
+
+                if Dropdown.Text and Dropdown.Text ~= "" then
+                    local titleWidth = Library:GetTextBounds(
+                        tostring(Dropdown.Text):gsub("<[^<>]->", ""),
+                        Library.Scheme.Font,
+                        titleText,
+                        100000
+                    )
+                    desiredW = math.max(desiredW, math.ceil(titleWidth + 105 * scale))
+                end
 
                 local hasSearch = Info.Searchable == true
                 local hasBulk = (Info.Multi == true and Info.ShowBulkActions ~= false)
                     or (Info.Multi ~= true and Info.AllowNull == true)
                     or type(Dropdown.RefreshFunc) == "function"
+
+                if hasSearch and hasBulk then
+                    desiredW = math.max(desiredW, math.floor(390 * scale))
+                elseif hasSearch then
+                    desiredW = math.max(desiredW, math.floor(300 * scale))
+                end
+
+                local width = math.clamp(desiredW, minW, maxW)
+
+                -- Content-aware height: small lists hug their content; large
+                -- lists use more vertical room without turning into a full-screen
+                -- sheet. This also keeps landscape phone dropdowns proportional.
+                local maxHByScreen = math.floor(vh * (landscape and 0.78 or 0.70))
+                local maxHByScale = math.floor((landscape and 650 or 720) * scale)
+                local maxH = math.max(145, math.min(vh - verticalMargin * 2, maxHByScreen, maxHByScale))
+
                 local toolbarH = (hasSearch or hasBulk) and (math.max(searchH, actionH) + gap) or 0
-                local chrome = padY * 2 + headerH + gap + toolbarH + 22
-                local rowGap = 4
-                local roomForRows = math.max(rowH * 2, maxH - chrome)
-                local maxRows = math.max(2, math.floor((roomForRows + rowGap) / math.max(1, rowH + rowGap)))
-                local visibleRows = math.max(1, math.min(optionCount, maxRows))
-                local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * rowGap
+                local chrome = padY * 2 + headerH + gap + toolbarH + math.max(14, math.floor(20 * scale))
+                local rowsH = optionCount * rowH + math.max(0, optionCount - 1) * rowGap
                 local desiredH = chrome + rowsH
-                local height = math.clamp(desiredH, 180, maxH)
+                local minH = math.max(125, math.floor(145 * scale))
+                local height = math.clamp(desiredH, minH, maxH)
 
                 return {
                     width = width,
@@ -7802,9 +7851,9 @@ local List = New("ScrollingFrame", {
                     searchH = searchH,
                     actionH = actionH,
                     gap = gap,
-                    titleText = compact and 13 or 14,
-                    inputText = compact and 12 or 13,
-                    optionText = compact and 12 or 13,
+                    titleText = titleText,
+                    inputText = inputText,
+                    optionText = optionText,
                     rowH = rowH,
                 }
             end
@@ -7876,7 +7925,7 @@ local List = New("ScrollingFrame", {
             local M = GetPopupMetrics()
             local closeH = math.floor(M.headerH * 0.72)
             local closeW = Library.IsMobile
-                and math.max(56, math.floor(closeH * 1.72))
+                and math.max(46, math.floor(closeH * 1.68))
                 or math.max(78, math.floor(closeH * 2.05))
             local bodyTop, innerPadX, innerPadY, listTop
 
@@ -7921,11 +7970,11 @@ local List = New("ScrollingFrame", {
             local hasBulkActions = BulkActions.Visible
 
             if hasSearch or hasBulkActions then
-                local selectAllWidth = Library.IsMobile and 58 or 78
-                local clearWidth = Library.IsMobile and 42 or 52
-                local refreshWidth = Library.IsMobile and 58 or 76
-                local actionGap = Library.IsMobile and 4 or 6
-                local toolbarGap = Library.IsMobile and 5 or 8
+                local selectAllWidth = Library.IsMobile and math.max(48, math.floor(M.actionH * 2.05)) or 78
+                local clearWidth = Library.IsMobile and math.max(36, math.floor(M.actionH * 1.50)) or 52
+                local refreshWidth = Library.IsMobile and math.max(48, math.floor(M.actionH * 2.00)) or 76
+                local actionGap = Library.IsMobile and math.max(3, math.floor(M.gap * 0.8)) or 6
+                local toolbarGap = Library.IsMobile and math.max(4, M.gap) or 8
                 local bulkWidth = 0
 
                 if showMultiActions then
@@ -7968,14 +8017,14 @@ local List = New("ScrollingFrame", {
                     if showMultiActions then
                         SelectAllButton.Size = UDim2.fromOffset(selectAllWidth, M.searchH)
                         SelectAllButton.Position = UDim2.fromOffset(x, 0)
-                        SelectAllButton.TextSize = 12
+                        SelectAllButton.TextSize = Library.IsMobile and math.max(10, M.inputText - 1) or 12
                         x += selectAllWidth + actionGap
                     end
 
                     if showMultiActions or showClearAction then
                         ClearButton.Size = UDim2.fromOffset(clearWidth, M.searchH)
                         ClearButton.Position = UDim2.fromOffset(x, 0)
-                        ClearButton.TextSize = 12
+                        ClearButton.TextSize = Library.IsMobile and math.max(10, M.inputText - 1) or 12
                         x += clearWidth
                     end
 
@@ -7983,7 +8032,7 @@ local List = New("ScrollingFrame", {
                         if x > 0 then x += actionGap end
                         RefreshButton.Size = UDim2.fromOffset(refreshWidth, M.searchH)
                         RefreshButton.Position = UDim2.fromOffset(x, 0)
-                        RefreshButton.TextSize = 12
+                        RefreshButton.TextSize = Library.IsMobile and math.max(10, M.inputText - 1) or 12
                     end
                 end
 
@@ -9313,51 +9362,100 @@ local List = New("ScrollingFrame", {
                 or (Library.ScreenGui and Library.ScreenGui.AbsoluteSize)
                 or Vector2.new(1280, 720)
 
-            -- Mobile dropdown uses the available viewport instead of a fixed
-            -- percentage cap. On landscape phones this intentionally fills most
-            -- of the free vertical space while keeping a small safe margin.
+            -- Mobile dropdowns scale with the user's UI scale and with the
+            -- amount of content. A two-choice dropdown stays compact; long pet
+            -- lists can grow, but only to a comfortable portion of the screen.
             if Library.IsMobile then
                 local vw = math.max(240, tonumber(viewport.X) or 360)
                 local vh = math.max(240, tonumber(viewport.Y) or 640)
                 local landscape = vw > vh
                 local shortSide = math.min(vw, vh)
-                local compact = shortSide < 360
                 local optionCount = math.max(1, #(Dropdown.Values or {}))
 
-                local density = math.clamp(shortSide / 430, 0.84, 1)
-                local rowH = math.max(27, math.floor((compact and 29 or 32) * density))
-                local headerH = math.max(31, math.floor((compact and 33 or 36) * density))
-                local searchH = math.max(28, math.floor((compact and 30 or 32) * density))
-                local actionH = math.max(25, math.floor((compact and 26 or 28) * density))
-                local gap = math.max(4, math.floor(5 * density))
-                local padX = math.max(7, math.floor(9 * density))
-                local padY = math.max(6, math.floor(8 * density))
+                -- Popups live directly under ScreenGui, outside the main
+                -- window UIScale. Apply the same DPI scale manually so popup
+                -- text/rows/buttons visually match the rest of ZANJIHUB.
+                local uiScale = math.clamp(tonumber(Library.DPIScale) or 1, 0.65, 1.05)
+                local deviceScale = shortSide < 360 and 0.90 or (shortSide < 430 and 0.95 or 1)
+                local scale = math.clamp(uiScale * deviceScale, 0.64, 1.0)
 
-                local sideMargin = math.clamp(math.floor(vw * 0.025), 8, 22)
-                local verticalMargin = math.clamp(math.floor(vh * 0.025), 8, 18)
-                local maxAllowedW = math.max(210, vw - sideMargin * 2)
-                local desiredW = landscape and math.floor(vw * 0.80) or math.floor(vw * 0.92)
-                local width = math.min(maxAllowedW, desiredW)
-                width = math.max(math.min(280, maxAllowedW), width)
+                local optionText = math.clamp(math.floor(12 * scale + 0.5), 10, 12)
+                local titleText = math.clamp(math.floor(14 * scale + 0.5), 11, 14)
+                local inputText = math.clamp(math.floor(12 * scale + 0.5), 10, 12)
+                local rowH = math.max(22, math.floor(29 * scale + 0.5))
+                local headerH = math.max(26, math.floor(34 * scale + 0.5))
+                local searchH = math.max(24, math.floor(30 * scale + 0.5))
+                local actionH = math.max(22, math.floor(27 * scale + 0.5))
+                local gap = math.max(3, math.floor(5 * scale + 0.5))
+                local padX = math.max(6, math.floor(9 * scale + 0.5))
+                local padY = math.max(5, math.floor(7 * scale + 0.5))
+                local rowGap = math.max(2, math.floor(3 * scale + 0.5))
 
-                -- The maximum height is now based on real free screen space, not
-                -- 42-74% of the display. Large lists therefore occupy the useful
-                -- top/bottom area instead of showing only two rows.
-                local maxH = math.max(190, vh - verticalMargin * 2)
+                local sideMargin = math.clamp(math.floor(vw * 0.018), 8, 18)
+                local verticalMargin = math.clamp(math.floor(vh * 0.035), 10, 22)
+                local maxAllowedW = math.max(220, vw - sideMargin * 2)
+                local minW = math.min(maxAllowedW, math.floor((landscape and 430 or 300) * scale))
+                local maxLogicalW = math.floor((landscape and 1080 or 680) * scale)
+                local maxW = math.max(minW, math.min(maxAllowedW, maxLogicalW))
+
+                local function mobilePlainText(value)
+                    local text = value
+                    if typeof(value) == "table" then
+                        text = value.Text or value.Value or ""
+                    end
+                    return tostring(text or ""):gsub("<[^<>]->", "")
+                end
+
+                -- Size width from the actual content instead of a fixed 80-92%
+                -- screen percentage. This keeps short lists small while still
+                -- giving long pet names + UUIDs enough room.
+                local desiredW = minW
+                for _, value in ipairs(Dropdown.Values or {}) do
+                    local textWidth = Library:GetTextBounds(
+                        mobilePlainText(value),
+                        Library.Scheme.Font,
+                        optionText,
+                        100000
+                    )
+                    desiredW = math.max(desiredW, math.ceil(textWidth + 48 * scale))
+                end
+
+                if Dropdown.Text and Dropdown.Text ~= "" then
+                    local titleWidth = Library:GetTextBounds(
+                        tostring(Dropdown.Text):gsub("<[^<>]->", ""),
+                        Library.Scheme.Font,
+                        titleText,
+                        100000
+                    )
+                    desiredW = math.max(desiredW, math.ceil(titleWidth + 105 * scale))
+                end
 
                 local hasSearch = Info.Searchable == true
                 local hasBulk = (Info.Multi == true and Info.ShowBulkActions ~= false)
                     or (Info.Multi ~= true and Info.AllowNull == true)
                     or type(Dropdown.RefreshFunc) == "function"
+
+                if hasSearch and hasBulk then
+                    desiredW = math.max(desiredW, math.floor(390 * scale))
+                elseif hasSearch then
+                    desiredW = math.max(desiredW, math.floor(300 * scale))
+                end
+
+                local width = math.clamp(desiredW, minW, maxW)
+
+                -- Content-aware height: small lists hug their content; large
+                -- lists use more vertical room without turning into a full-screen
+                -- sheet. This also keeps landscape phone dropdowns proportional.
+                local maxHByScreen = math.floor(vh * (landscape and 0.78 or 0.70))
+                local maxHByScale = math.floor((landscape and 650 or 720) * scale)
+                local maxH = math.max(145, math.min(vh - verticalMargin * 2, maxHByScreen, maxHByScale))
+
                 local toolbarH = (hasSearch or hasBulk) and (math.max(searchH, actionH) + gap) or 0
-                local chrome = padY * 2 + headerH + gap + toolbarH + 22
-                local rowGap = 4
-                local roomForRows = math.max(rowH * 2, maxH - chrome)
-                local maxRows = math.max(2, math.floor((roomForRows + rowGap) / math.max(1, rowH + rowGap)))
-                local visibleRows = math.max(1, math.min(optionCount, maxRows))
-                local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * rowGap
+                local chrome = padY * 2 + headerH + gap + toolbarH + math.max(14, math.floor(20 * scale))
+                local rowsH = optionCount * rowH + math.max(0, optionCount - 1) * rowGap
                 local desiredH = chrome + rowsH
-                local height = math.clamp(desiredH, 180, maxH)
+                local minH = math.max(125, math.floor(145 * scale))
+                local height = math.clamp(desiredH, minH, maxH)
 
                 return {
                     width = width,
@@ -9368,9 +9466,9 @@ local List = New("ScrollingFrame", {
                     searchH = searchH,
                     actionH = actionH,
                     gap = gap,
-                    titleText = compact and 13 or 14,
-                    inputText = compact and 12 or 13,
-                    optionText = compact and 12 or 13,
+                    titleText = titleText,
+                    inputText = inputText,
+                    optionText = optionText,
                     rowH = rowH,
                 }
             end
@@ -9443,7 +9541,7 @@ local List = New("ScrollingFrame", {
             local M = GetPopupMetrics()
             local closeH = math.floor(M.headerH * 0.72)
             local closeW = Library.IsMobile
-                and math.max(56, math.floor(closeH * 1.72))
+                and math.max(46, math.floor(closeH * 1.68))
                 or math.max(78, math.floor(closeH * 2.05))
             local bodyTop, innerPadX, innerPadY, listTop
     
@@ -9486,11 +9584,11 @@ local List = New("ScrollingFrame", {
             local hasBulkActions = BulkActions.Visible
 
             if hasSearch or hasBulkActions then
-                local selectAllWidth = Library.IsMobile and 58 or 78
-                local clearWidth = Library.IsMobile and 42 or 52
-                local refreshWidth = Library.IsMobile and 58 or 76
-                local actionGap = Library.IsMobile and 4 or 6
-                local toolbarGap = Library.IsMobile and 5 or 8
+                local selectAllWidth = Library.IsMobile and math.max(48, math.floor(M.actionH * 2.05)) or 78
+                local clearWidth = Library.IsMobile and math.max(36, math.floor(M.actionH * 1.50)) or 52
+                local refreshWidth = Library.IsMobile and math.max(48, math.floor(M.actionH * 2.00)) or 76
+                local actionGap = Library.IsMobile and math.max(3, math.floor(M.gap * 0.8)) or 6
+                local toolbarGap = Library.IsMobile and math.max(4, M.gap) or 8
                 local bulkWidth = 0
 
                 if showMultiActions then
@@ -9533,14 +9631,14 @@ local List = New("ScrollingFrame", {
                     if showMultiActions then
                         SelectAllButton.Size = UDim2.fromOffset(selectAllWidth, M.searchH)
                         SelectAllButton.Position = UDim2.fromOffset(x, 0)
-                        SelectAllButton.TextSize = 12
+                        SelectAllButton.TextSize = Library.IsMobile and math.max(10, M.inputText - 1) or 12
                         x += selectAllWidth + actionGap
                     end
 
                     if showMultiActions or showClearAction then
                         ClearButton.Size = UDim2.fromOffset(clearWidth, M.searchH)
                         ClearButton.Position = UDim2.fromOffset(x, 0)
-                        ClearButton.TextSize = 12
+                        ClearButton.TextSize = Library.IsMobile and math.max(10, M.inputText - 1) or 12
                         x += clearWidth
                     end
 
@@ -9548,7 +9646,7 @@ local List = New("ScrollingFrame", {
                         if x > 0 then x += actionGap end
                         RefreshButton.Size = UDim2.fromOffset(refreshWidth, M.searchH)
                         RefreshButton.Position = UDim2.fromOffset(x, 0)
-                        RefreshButton.TextSize = 12
+                        RefreshButton.TextSize = Library.IsMobile and math.max(10, M.inputText - 1) or 12
                     end
                 end
 
