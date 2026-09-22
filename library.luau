@@ -5054,13 +5054,13 @@ do
 
             Data.Text = Params.Text or ""
             Data.DoesWrap = Params.DoesWrap or false
-            Data.Size = Params.Size or (Library.IsMobile and 13 or 14)
+            Data.Size = Params.Size or (Library.IsMobile and 12 or 13)
             Data.Visible = Params.Visible ~= false
             Data.Idx = typeof(Second) == "table" and First or nil
         else
             Data.Text = First or ""
             Data.DoesWrap = Second or false
-            Data.Size = Library.IsMobile and 13 or 14
+            Data.Size = Library.IsMobile and 12 or 13
             Data.Visible = true
             Data.Idx = select(3, ...) or nil
         end
@@ -5390,7 +5390,7 @@ do
             table.insert(
                 Library.Corners,
                 New("UICorner", {
-                    CornerRadius = UDim.new(0, Library.CornerRadius / 2),
+                    CornerRadius = UDim.new(0, 7),
                     Parent = Base,
                 })
             )
@@ -5757,7 +5757,7 @@ do
             Size = UDim2.new(1, -46, 1, 0),
             Text = Toggle.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = 13,
+            TextSize = Library.IsMobile and 12 or 13,
             TextTransparency = 0.16,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -6076,7 +6076,7 @@ do
             TextColor3 = function()
                 return LayeredStyle.MainText
             end,
-            TextSize = 14,
+            TextSize = Library.IsMobile and 12 or 13,
             TextTransparency = 0.4,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextWrapped = false,
@@ -6491,14 +6491,23 @@ do
         local function RefreshPreview()
             local raw = tostring(Box.Text or "")
             local empty = raw == ""
-            local editingNow = IsTextboxEditing()
 
             Preview.Text = empty and tostring(Input.Placeholder or "") or raw
             Preview.TextTransparency = Input.Disabled and 0.8 or (empty and 0.5 or 0)
-            Preview.Visible = not editingNow
 
-            -- Keep the real TextBox fully readable while the mobile keyboard
-            -- is open. The preview only owns rendering while unfocused.
+            -- Android/touch clients can lose the preview/edit handoff after
+            -- reopening the software keyboard. On mobile the real TextBox is
+            -- therefore the single renderer in both focused and unfocused
+            -- states. This keeps every keystroke visible on every focus cycle.
+            if Library.IsMobile then
+                Preview.Visible = false
+                Box.TextColor3 = LayeredStyle.MainText
+                Box.TextTransparency = Input.Disabled and 0.8 or 0
+                return
+            end
+
+            local editingNow = IsTextboxEditing()
+            Preview.Visible = not editingNow
             Box.TextColor3 = LayeredStyle.MainText
             Box.TextTransparency = editingNow and (Input.Disabled and 0.8 or 0) or 1
         end
@@ -6513,7 +6522,7 @@ do
         table.insert(
             Library.Corners,
             New("UICorner", {
-                CornerRadius = UDim.new(0, Library.CornerRadius / 2),
+                CornerRadius = UDim.new(0, 7),
                 Parent = BoxClip,
             })
         )
@@ -6590,11 +6599,19 @@ do
 
         if Input.Finished then
             table.insert(Input.Connections, Box.FocusLost:Connect(function(Enter)
+                -- Mobile users often dismiss the software keyboard with Back
+                -- instead of the Enter action. Commit the visible edit on any
+                -- mobile focus loss so the next focus cycle starts from the
+                -- exact text the user just entered.
+                if Library.IsMobile then
+                    Input:SetValue(Box.Text)
+                    return
+                end
+
                 if not Enter then
                     if Input.ClearTextOnBlur then
                         Box.Text = Input.Value
                     end
-
                     return
                 end
 
@@ -6776,7 +6793,7 @@ do
                 Size = UDim2.new(1, -20, 0, 14),
                 Text = Slider.Text,
                 TextColor3 = LayeredStyle.MainText,
-                TextSize = 12,
+                TextSize = Library.IsMobile and 12 or 13,
                 TextTruncate = Enum.TextTruncate.AtEnd,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
@@ -6803,7 +6820,7 @@ do
             BackgroundTransparency = 1,
             Size = UDim2.fromScale(1, 1),
             Text = "",
-            TextSize = 12,
+            TextSize = Library.IsMobile and 12 or 13,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = Bar.ZIndex + 2,
@@ -6822,7 +6839,7 @@ do
                 BackgroundTransparency = 1,
                 Size = UDim2.fromScale(1, 1),
                 Text = "",
-                TextSize = 12,
+                TextSize = Library.IsMobile and 12 or 13,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = Bar.ZIndex + 3,
                 Visible = false,
@@ -6847,7 +6864,7 @@ do
         table.insert(
             Library.Corners,
             New("UICorner", {
-                CornerRadius = UDim.new(0, Library.CornerRadius / 2),
+                CornerRadius = UDim.new(0, 7),
                 Parent = Bar,
             })
         )
@@ -7156,9 +7173,48 @@ do
         return Slider
     end
 
+    local function ZanjiIsEmptyDropdownValue(Value)
+        if Value == nil then return true end
+        if typeof(Value) ~= "string" then return false end
+        local normalized = tostring(Value):gsub("%s+", ""):lower()
+        return normalized == ""
+            or normalized == "-"
+            or normalized == "--"
+            or normalized == "---"
+            or normalized == "none"
+            or normalized == "nil"
+    end
+
     function Funcs:AddValueDropdown(Idx, Info)
         Info = Library:Validate(Info, Templates.Dropdown)
         Info.LabelValueDropdown = true
+
+        if Info.AllowNull == true and Info.Multi ~= true then
+            if ZanjiIsEmptyDropdownValue(Info.Default) then
+                Info.Default = nil
+            end
+            if typeof(Info.Values) == "table" then
+                local cleaned = {}
+                for key, item in pairs(Info.Values) do
+                    if typeof(key) == "number" then
+                        local rawValue = item
+                        if typeof(item) == "table" then
+                            rawValue = item.Value or item.Text or item.Title or item.Label or item.Name or item[1]
+                        end
+                        if not ZanjiIsEmptyDropdownValue(rawValue) then
+                            table.insert(cleaned, item)
+                        end
+                    else
+                        -- Preserve map-style value dropdowns (display -> value).
+                        if not ZanjiIsEmptyDropdownValue(key)
+                            and not ZanjiIsEmptyDropdownValue(item) then
+                            cleaned[key] = item
+                        end
+                    end
+                end
+                Info.Values = cleaned
+            end
+        end
 
         local Groupbox = self
         local Container = Groupbox.Container
@@ -7345,7 +7401,7 @@ do
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius / 2),
+            CornerRadius = UDim.new(0, 7),
             Parent = Display,
         })
 
@@ -8562,7 +8618,7 @@ local List = New("ScrollingFrame", {
             end
 
             if Info.AllowNull == true and Info.Multi ~= true
-                and (Str == "-" or Str == "---") then
+                and ZanjiIsEmptyDropdownValue(Str) then
                 Str = ""
             end
 
@@ -8629,7 +8685,7 @@ local List = New("ScrollingFrame", {
 
         function Dropdown:SetValue(Value, suppressCallback)
             if Info.AllowNull == true and Info.Multi ~= true
-                and (Value == "" or Value == "-" or Value == "---") then
+                and ZanjiIsEmptyDropdownValue(Value) then
                 Value = nil
             end
 
@@ -8972,6 +9028,28 @@ local List = New("ScrollingFrame", {
 
     function Funcs:AddDropdown(Idx, Info)
         Info = Library:Validate(Info, Templates.Dropdown)
+
+        if Info.AllowNull == true and Info.Multi ~= true then
+            if ZanjiIsEmptyDropdownValue(Info.Default) then
+                Info.Default = nil
+            end
+            if typeof(Info.Values) == "table" then
+                local cleaned = {}
+                for key, item in pairs(Info.Values) do
+                    if typeof(key) == "number" then
+                        if not ZanjiIsEmptyDropdownValue(item) then
+                            table.insert(cleaned, item)
+                        end
+                    else
+                        if not ZanjiIsEmptyDropdownValue(key)
+                            and not ZanjiIsEmptyDropdownValue(item) then
+                            cleaned[key] = item
+                        end
+                    end
+                end
+                Info.Values = cleaned
+            end
+        end
     
         local Groupbox = self
         local Container = Groupbox.Container
@@ -9102,7 +9180,7 @@ local List = New("ScrollingFrame", {
         })
     
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius / 2),
+            CornerRadius = UDim.new(0, 7),
             Parent = Display,
         })
     
@@ -10250,7 +10328,7 @@ local List = New("ScrollingFrame", {
             end
     
             if Info.AllowNull == true and Info.Multi ~= true
-                and (Str == "-" or Str == "---") then
+                and ZanjiIsEmptyDropdownValue(Str) then
                 Str = ""
             end
 
@@ -10313,7 +10391,7 @@ local List = New("ScrollingFrame", {
     
         function Dropdown:SetValue(Value, suppressCallback)
             if Info.AllowNull == true and Info.Multi ~= true
-                and (Value == "" or Value == "-" or Value == "---") then
+                and ZanjiIsEmptyDropdownValue(Value) then
                 Value = nil
             end
 
@@ -13871,7 +13949,7 @@ function Library:CreateWindow(WindowInfo)
                 table.insert(
                     Library.Corners,
                     New("UICorner", {
-                        CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+                        CornerRadius = UDim.new(0, 7),
                         Parent = GroupboxHolder,
                     })
                 )
