@@ -7778,7 +7778,7 @@ local List = New("ScrollingFrame", {
             RowCount = 0,
             LastFirstIndex = -1,
         }
-        local VirtualDropdownThreshold = tonumber(Info.VirtualDropdownThreshold) or 80
+        local VirtualDropdownThreshold = Library.IsMobile and 500 or (tonumber(Info.VirtualDropdownThreshold) or 80)
         local VirtualDropdownBuffer = tonumber(Info.VirtualDropdownBuffer) or 8
         
         local function ClearDropdownList()
@@ -7887,13 +7887,11 @@ local List = New("ScrollingFrame", {
             -- Mobile dropdowns follow the same UI scale as the main window.
             -- Height is fixed by device/scale; width grows sideways to fit text.
             if Library.IsMobile then
-                local screenSize = Library.ScreenGui and Library.ScreenGui.AbsoluteSize
+                -- Use the physical camera viewport for popup boundaries.
+                -- ScreenGui.AbsoluteSize can reflect logical UI scaling and
+                -- incorrectly cap the popup narrower than the phone screen.
                 local rawVW = tonumber(viewport.X) or 360
                 local rawVH = tonumber(viewport.Y) or 640
-                if screenSize and screenSize.X > 1 and screenSize.Y > 1 then
-                    rawVW = math.min(rawVW, screenSize.X)
-                    rawVH = math.min(rawVH, screenSize.Y)
-                end
 
                 local vw = math.max(240, rawVW)
                 local vh = math.max(220, rawVH)
@@ -7912,10 +7910,10 @@ local List = New("ScrollingFrame", {
                 local searchH = math.max(21, math.floor(26 * scale + 0.5))
                 local actionH = math.max(20, math.floor(23 * scale + 0.5))
                 local gap = math.max(3, math.floor(4 * scale + 0.5))
-                local padX = math.max(6, math.floor(8 * scale + 0.5))
+                local padX = math.max(4, math.floor(6 * scale + 0.5))
                 local padY = math.max(4, math.floor(6 * scale + 0.5))
 
-                local sideMargin = math.clamp(math.floor(vw * 0.012), 6, 12)
+                local sideMargin = math.clamp(math.floor(vw * 0.006), 3, 7)
                 local verticalMargin = math.clamp(math.floor(vh * 0.05), 12, 24)
                 local maxAllowedW = math.max(210, vw - sideMargin * 2)
                 local minW = math.min(maxAllowedW, math.floor((landscape and 250 or 230) * scale))
@@ -7924,18 +7922,11 @@ local List = New("ScrollingFrame", {
                 -- allow the popup to grow to that safe viewport width.
                 local maxW = maxAllowedW
 
-                local function mobilePlainText(value)
-                    local text = value
-                    if typeof(value) == "table" then
-                        text = value.Text or value.Value or ""
-                    end
-                    return tostring(text or ""):gsub("<[^<>]->", "")
-                end
-
                 local longestTextWidth = 0
                 for _, value in ipairs(Dropdown.Values or {}) do
+                    local renderedText = StripRichText(GetOptionText(value))
                     longestTextWidth = math.max(longestTextWidth, Library:GetTextBounds(
-                        mobilePlainText(value),
+                        renderedText,
                         Library.Scheme.Font,
                         optionText,
                         100000
@@ -7946,7 +7937,7 @@ local List = New("ScrollingFrame", {
                 -- grows horizontally to fit the longest value, then clamps only
                 -- at the physical viewport margin. Never shrink option text just
                 -- to force it inside a narrower popup.
-                local textReserve = math.max(48, math.floor(64 * scale))
+                local textReserve = math.max(34, math.floor(46 * scale))
                 local desiredW = math.max(minW, math.ceil(longestTextWidth + textReserve))
                 if Dropdown.Text and Dropdown.Text ~= "" then
                     local titleWidth = Library:GetTextBounds(
@@ -8151,7 +8142,7 @@ local List = New("ScrollingFrame", {
             PopupBody.Position = UDim2.fromOffset(M.padX, bodyTop)
             PopupBody.Size = UDim2.new(1, -M.padX * 2, 1, -(bodyTop + M.padY))
 
-            innerPadX = math.max(10, math.floor(M.padX * 0.7))
+            innerPadX = Library.IsMobile and math.max(4, math.floor(M.padX * 0.7)) or math.max(10, math.floor(M.padX * 0.7))
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
 
             listTop = innerPadY
@@ -8244,7 +8235,7 @@ local List = New("ScrollingFrame", {
             ListLayout.Padding = UDim.new(0, CurrentRowGap)
 
             for _, Entry in pairs(Buttons) do
-                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
+                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -2 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
                 pcall(function() Entry.Button:SetAttribute("ZanjiBaseTextSize", CurrentOptionTextSize) end)
                 UpdateTextTruncateForActualWidth(Entry.Button, 0)
@@ -8322,7 +8313,7 @@ local List = New("ScrollingFrame", {
             local Selected = {}
             local Unselected = {}
 
-            for _, Value in pairs(Dropdown.Values or {}) do
+            for _, Value in ipairs(Dropdown.Values or {}) do
                 if Query ~= "" then
                     local SearchText = GetSearchText(Value)
 
@@ -8386,7 +8377,7 @@ local List = New("ScrollingFrame", {
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
-                Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight),
+                Size = UDim2.new(1, Library.IsMobile and -2 or -16, 0, CurrentRowHeight),
                 Text = "",
                 TextColor3 = LayeredStyle.MainText,
                 RichText = true,
@@ -8414,8 +8405,8 @@ local List = New("ScrollingFrame", {
             })
 
             New("UIPadding", {
-                PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 12),
-                PaddingRight = UDim.new(0, Library.IsMobile and 8 or 12),
+                PaddingLeft = UDim.new(0, Library.IsMobile and 5 or 12),
+                PaddingRight = UDim.new(0, Library.IsMobile and 5 or 12),
                 Parent = Button,
             })
 
@@ -8465,7 +8456,7 @@ local List = New("ScrollingFrame", {
                 return
             end
 
-            local firstIndex = math.floor((List.CanvasPosition.Y or 0) / rowStep) + 1
+            local firstIndex = math.floor(math.max(0, (List.CanvasPosition.Y or 0) - 8) / rowStep) + 1
             firstIndex = math.clamp(firstIndex, 1, total)
 
             if not Force and firstIndex == VirtualState.LastFirstIndex then
@@ -8516,6 +8507,7 @@ local List = New("ScrollingFrame", {
             end
 
             local query = SearchInput.Visible and (SearchInput.Text or ""):lower() or ""
+            local previousCanvasY = tonumber(List.CanvasPosition.Y) or 0
             local orderedValues = BuildOrderedValues(query, PrioritizeSelected == true)
             local disabledLookup = {}
 
@@ -8564,8 +8556,16 @@ local List = New("ScrollingFrame", {
                 UpdateEntry(Entry)
             end
 
-            List.CanvasPosition = Vector2.zero
             ApplyPopupLayout()
+            if query == "" and previousCanvasY > 0 then
+                task.defer(function()
+                    if MenuState.Active then
+                        List.CanvasPosition = Vector2.new(0, previousCanvasY)
+                    end
+                end)
+            else
+                List.CanvasPosition = Vector2.zero
+            end
             Dropdown:Display()
         end
 
@@ -9567,7 +9567,7 @@ local List = New("ScrollingFrame", {
             RowCount = 0,
             LastFirstIndex = -1,
         }
-        local VirtualDropdownThreshold = tonumber(Info.VirtualDropdownThreshold) or 80
+        local VirtualDropdownThreshold = Library.IsMobile and 500 or (tonumber(Info.VirtualDropdownThreshold) or 80)
         local VirtualDropdownBuffer = tonumber(Info.VirtualDropdownBuffer) or 8
         
         local function ClearDropdownList()
@@ -9622,13 +9622,11 @@ local List = New("ScrollingFrame", {
             -- Mobile dropdowns follow the same UI scale as the main window.
             -- Height is fixed by device/scale; width grows sideways to fit text.
             if Library.IsMobile then
-                local screenSize = Library.ScreenGui and Library.ScreenGui.AbsoluteSize
+                -- Use the physical camera viewport for popup boundaries.
+                -- ScreenGui.AbsoluteSize can reflect logical UI scaling and
+                -- incorrectly cap the popup narrower than the phone screen.
                 local rawVW = tonumber(viewport.X) or 360
                 local rawVH = tonumber(viewport.Y) or 640
-                if screenSize and screenSize.X > 1 and screenSize.Y > 1 then
-                    rawVW = math.min(rawVW, screenSize.X)
-                    rawVH = math.min(rawVH, screenSize.Y)
-                end
 
                 local vw = math.max(240, rawVW)
                 local vh = math.max(220, rawVH)
@@ -9647,10 +9645,10 @@ local List = New("ScrollingFrame", {
                 local searchH = math.max(21, math.floor(26 * scale + 0.5))
                 local actionH = math.max(20, math.floor(23 * scale + 0.5))
                 local gap = math.max(3, math.floor(4 * scale + 0.5))
-                local padX = math.max(6, math.floor(8 * scale + 0.5))
+                local padX = math.max(4, math.floor(6 * scale + 0.5))
                 local padY = math.max(4, math.floor(6 * scale + 0.5))
 
-                local sideMargin = math.clamp(math.floor(vw * 0.012), 6, 12)
+                local sideMargin = math.clamp(math.floor(vw * 0.006), 3, 7)
                 local verticalMargin = math.clamp(math.floor(vh * 0.05), 12, 24)
                 local maxAllowedW = math.max(210, vw - sideMargin * 2)
                 local minW = math.min(maxAllowedW, math.floor((landscape and 250 or 230) * scale))
@@ -9659,18 +9657,11 @@ local List = New("ScrollingFrame", {
                 -- allow the popup to grow to that safe viewport width.
                 local maxW = maxAllowedW
 
-                local function mobilePlainText(value)
-                    local text = value
-                    if typeof(value) == "table" then
-                        text = value.Text or value.Value or ""
-                    end
-                    return tostring(text or ""):gsub("<[^<>]->", "")
-                end
-
                 local longestTextWidth = 0
                 for _, value in ipairs(Dropdown.Values or {}) do
+                    local renderedText = StripRichText(GetOptionText(value))
                     longestTextWidth = math.max(longestTextWidth, Library:GetTextBounds(
-                        mobilePlainText(value),
+                        renderedText,
                         Library.Scheme.Font,
                         optionText,
                         100000
@@ -9681,7 +9672,7 @@ local List = New("ScrollingFrame", {
                 -- grows horizontally to fit the longest value, then clamps only
                 -- at the physical viewport margin. Never shrink option text just
                 -- to force it inside a narrower popup.
-                local textReserve = math.max(48, math.floor(64 * scale))
+                local textReserve = math.max(34, math.floor(46 * scale))
                 local desiredW = math.max(minW, math.ceil(longestTextWidth + textReserve))
                 if Dropdown.Text and Dropdown.Text ~= "" then
                     local titleWidth = Library:GetTextBounds(
@@ -9885,7 +9876,7 @@ local List = New("ScrollingFrame", {
             PopupBody.Position = UDim2.fromOffset(M.padX, bodyTop)
             PopupBody.Size = UDim2.new(1, -M.padX * 2, 1, -(bodyTop + M.padY))
     
-            innerPadX = math.max(10, math.floor(M.padX * 0.7))
+            innerPadX = Library.IsMobile and math.max(4, math.floor(M.padX * 0.7)) or math.max(10, math.floor(M.padX * 0.7))
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
 
             listTop = innerPadY
@@ -9978,7 +9969,7 @@ local List = New("ScrollingFrame", {
             ListLayout.Padding = UDim.new(0, CurrentRowGap)
     
             for _, Entry in pairs(Buttons) do
-                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
+                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -2 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
                 pcall(function() Entry.Button:SetAttribute("ZanjiBaseTextSize", CurrentOptionTextSize) end)
                 UpdateTextTruncateForActualWidth(Entry.Button, 0)
@@ -10056,7 +10047,7 @@ local List = New("ScrollingFrame", {
             local Selected = {}
             local Unselected = {}
     
-            for _, Value in pairs(Dropdown.Values or {}) do
+            for _, Value in ipairs(Dropdown.Values or {}) do
                 if Query ~= "" and not tostring(Value):lower():find(Query, 1, true) then
                     continue
                 end
@@ -10112,7 +10103,7 @@ local List = New("ScrollingFrame", {
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
-                Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight),
+                Size = UDim2.new(1, Library.IsMobile and -2 or -16, 0, CurrentRowHeight),
                 Text = "",
                 TextColor3 = LayeredStyle.MainText,
                 RichText = true,
@@ -10140,8 +10131,8 @@ local List = New("ScrollingFrame", {
             })
 
             New("UIPadding", {
-                PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 12),
-                PaddingRight = UDim.new(0, Library.IsMobile and 8 or 12),
+                PaddingLeft = UDim.new(0, Library.IsMobile and 5 or 12),
+                PaddingRight = UDim.new(0, Library.IsMobile and 5 or 12),
                 Parent = Button,
             })
 
@@ -10191,7 +10182,7 @@ local List = New("ScrollingFrame", {
                 return
             end
 
-            local firstIndex = math.floor((List.CanvasPosition.Y or 0) / rowStep) + 1
+            local firstIndex = math.floor(math.max(0, (List.CanvasPosition.Y or 0) - 8) / rowStep) + 1
             firstIndex = math.clamp(firstIndex, 1, total)
 
             if not Force and firstIndex == VirtualState.LastFirstIndex then
@@ -10242,6 +10233,7 @@ local List = New("ScrollingFrame", {
             end
 
             local query = SearchInput.Visible and (SearchInput.Text or ""):lower() or ""
+            local previousCanvasY = tonumber(List.CanvasPosition.Y) or 0
             local orderedValues = BuildOrderedValues(query, PrioritizeSelected == true)
             local disabledLookup = {}
     
@@ -10290,8 +10282,16 @@ local List = New("ScrollingFrame", {
                 UpdateEntry(Entry)
             end
     
-            List.CanvasPosition = Vector2.zero
             ApplyPopupLayout()
+            if query == "" and previousCanvasY > 0 then
+                task.defer(function()
+                    if MenuState.Active then
+                        List.CanvasPosition = Vector2.new(0, previousCanvasY)
+                    end
+                end)
+            else
+                List.CanvasPosition = Vector2.zero
+            end
             Dropdown:Display()
         end
     
