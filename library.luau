@@ -7744,41 +7744,55 @@ local List = New("ScrollingFrame", {
         local function GetPopupMetrics()
             local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
 
-            -- Mobile popup scales from the real phone viewport AND the number
-            -- of choices. Small phones get a much smaller selector instead of a
-            -- fixed 320x340 panel that covers most of the screen.
+            -- Mobile dropdown auto-fits to the REAL phone viewport.
+            -- Landscape phones use the otherwise-empty top/bottom space and
+            -- a wider panel so pet/item names are not unnecessarily clipped.
             if Library.IsMobile then
                 local vw = math.max(240, tonumber(viewport.X) or 360)
-                local vh = math.max(300, tonumber(viewport.Y) or 640)
+                local vh = math.max(240, tonumber(viewport.Y) or 640)
+                local landscape = vw > vh
                 local shortSide = math.min(vw, vh)
-                local compact = shortSide < 375 or vh < 560
+                local compact = shortSide < 360
                 local optionCount = math.max(1, #(Dropdown.Values or {}))
 
-                -- Density follows the actual device instead of using one phone
-                -- preset. Small/landscape phones stay intentionally compact.
-                local density = math.clamp(shortSide / 430, 0.82, 1)
-                local rowH = math.floor((compact and 27 or 30) * density)
-                local headerH = math.floor((compact and 31 or 34) * density)
-                local searchH = math.floor((compact and 27 or 30) * density)
-                local actionH = math.floor((compact and 23 or 25) * density)
-                local gap = math.max(3, math.floor(5 * density))
-                local padX = math.max(6, math.floor(8 * density))
-                local padY = math.max(5, math.floor(7 * density))
+                local density = math.clamp(shortSide / 430, 0.84, 1)
+                local rowH = math.max(26, math.floor((compact and 28 or 31) * density))
+                local headerH = math.max(30, math.floor((compact and 32 or 36) * density))
+                local searchH = math.max(27, math.floor((compact and 29 or 32) * density))
+                local actionH = math.max(24, math.floor((compact and 25 or 28) * density))
+                local gap = math.max(4, math.floor(6 * density))
+                local padX = math.max(7, math.floor(10 * density))
+                local padY = math.max(6, math.floor(9 * density))
 
-                -- Width is constrained by both viewport and a desktop-like max.
-                -- This keeps tablet/large-phone dropdowns from becoming huge.
-                local horizontalMargin = math.clamp(math.floor(vw * 0.055), 10, 22)
-                local width = math.min(360, vw - horizontalMargin * 2)
-                width = math.max(math.min(220, vw - 16), width)
+                -- Width: portrait stays compact; landscape may use much more of
+                -- the available horizontal space so long option labels remain useful.
+                local sideMargin = math.clamp(math.floor(vw * 0.035), 10, 24)
+                local maxAllowedW = math.max(180, vw - sideMargin * 2)
+                local desiredW = landscape and math.floor(vw * 0.62) or math.floor(vw * 0.90)
+                local widthCap = landscape and 820 or 520
+                local width = math.min(maxAllowedW, widthCap, desiredW)
+                width = math.max(math.min(300, maxAllowedW), width)
 
-                local chrome = padY * 2 + headerH + gap + searchH + gap + 18
-                local maxH = math.max(150, math.min(340, math.floor(vh * (compact and 0.42 or 0.48))))
+                -- Height: use the spare vertical room on landscape phones instead
+                -- of forcing a tiny 2-row selector. Still leave a comfortable
+                -- margin around the modal so it never feels full-screen.
+                local heightRatio = landscape and 0.74 or 0.62
+                local verticalMargin = math.clamp(math.floor(vh * 0.06), 12, 28)
+                local maxH = math.min(vh - verticalMargin * 2, math.floor(vh * heightRatio))
+                maxH = math.max(190, maxH)
+
+                local hasSearch = Info.Searchable == true
+                local hasBulk = (Info.Multi == true and Info.ShowBulkActions ~= false)
+                    or type(Dropdown.RefreshFunc) == "function"
+                local toolbarH = (hasSearch or hasBulk) and (math.max(searchH, actionH) + gap) or 0
+                local chrome = padY * 2 + headerH + gap + toolbarH + 22
                 local roomForRows = math.max(rowH * 2, maxH - chrome)
                 local maxRows = math.max(2, math.floor(roomForRows / math.max(1, rowH + 4)))
-                local visibleRows = math.clamp(optionCount, 2, math.min(maxRows, compact and 5 or 7))
+                local rowCap = landscape and 12 or 9
+                local visibleRows = math.clamp(optionCount, 2, math.min(maxRows, rowCap))
                 local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * 4
                 local desiredH = chrome + rowsH
-                local height = math.clamp(desiredH, 150, maxH)
+                local height = math.clamp(desiredH, 180, maxH)
 
                 return {
                     width = width,
@@ -7789,9 +7803,9 @@ local List = New("ScrollingFrame", {
                     searchH = searchH,
                     actionH = actionH,
                     gap = gap,
-                    titleText = compact and 12 or 13,
-                    inputText = compact and 11 or 12,
-                    optionText = compact and 11 or 12,
+                    titleText = compact and 13 or 14,
+                    inputText = compact and 12 or 13,
+                    optionText = compact and 12 or 13,
                     rowH = rowH,
                 }
             end
@@ -8123,7 +8137,11 @@ local List = New("ScrollingFrame", {
                 TextColor3 = LayeredStyle.MainText,
                 RichText = true,
                 TextSize = CurrentOptionTextSize,
-                TextTruncate = Enum.TextTruncate.None,
+                -- Long labels now end cleanly with an ellipsis instead of being
+                -- hard-cut by the popup edge. The wider mobile popup above keeps
+                -- this as a last-resort fallback only.
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextWrapped = false,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = 123,
