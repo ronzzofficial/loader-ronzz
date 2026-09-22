@@ -5079,6 +5079,13 @@ do
 
         Data.Text = FormatSemanticLabelText(Data.Text)
 
+        -- ZANJI V11.2: "wrap" labels only use multiple lines when the
+        -- text explicitly contains a newline. Descriptions/status text stay
+        -- single-line and truncate with ... as the UI becomes narrower.
+        local function HasExplicitLineBreak(Value)
+            return tostring(Value or ""):find("\n", 1, true) ~= nil
+        end
+
         local Groupbox = self
         local Container = Groupbox.Container
 
@@ -5105,10 +5112,10 @@ do
             Text = Label.IsDivider and "" or Label.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Data.Size,
-            TextWrapped = Label.DoesWrap,
-            TextTruncate = Label.DoesWrap and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd,
+            TextWrapped = Label.DoesWrap and HasExplicitLineBreak(Label.Text),
+            TextTruncate = (Label.DoesWrap and HasExplicitLineBreak(Label.Text)) and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd,
             TextXAlignment = Groupbox.IsKeyTab and Enum.TextXAlignment.Center or Enum.TextXAlignment.Left,
-            TextYAlignment = Label.DoesWrap and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
+            TextYAlignment = (Label.DoesWrap and HasExplicitLineBreak(Label.Text)) and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
             Parent = Container,
         })
         New("UICorner", {
@@ -5147,8 +5154,13 @@ do
                 return
             end
 
-            if not Label.DoesWrap then
-                TextLabel.Size = UDim2.new(1, 0, 0, Library.IsMobile and 26 or 28)
+            local WrapNow = Label.DoesWrap and HasExplicitLineBreak(Label.Text)
+            TextLabel.TextWrapped = WrapNow
+            TextLabel.TextTruncate = WrapNow and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd
+            TextLabel.TextYAlignment = WrapNow and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center
+
+            if not WrapNow then
+                TextLabel.Size = UDim2.new(1, 0, 0, Library.IsMobile and 24 or 28)
                 return
             end
 
@@ -5176,7 +5188,6 @@ do
             local DisplayText = FormatSemanticLabelText(Text)
             Label.Text = DisplayText
             TextLabel.Text = Label.IsDivider and "" or DisplayText
-            TextLabel.TextYAlignment = Label.DoesWrap and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center
 
             Label:Display()
             Groupbox:Resize()
@@ -6357,7 +6368,7 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Library.IsMobile and 51 or 58),
+            Size = UDim2.new(1, 0, 0, Library.IsMobile and 47 or 58),
             Visible = Input.Visible,
             Parent = Container,
         })
@@ -6374,8 +6385,8 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(Library.IsMobile and 8 or 10, Library.IsMobile and 5 or 6),
-            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, 15),
+            Position = UDim2.fromOffset(Library.IsMobile and 8 or 10, Library.IsMobile and 4 or 6),
+            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, Library.IsMobile and 13 or 15),
             Text = Input.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Library.IsMobile and 11 or 12,
@@ -6395,8 +6406,8 @@ do
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Position = UDim2.new(0, Library.IsMobile and 8 or 10, 1, Library.IsMobile and -6 or -7),
-            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, Library.IsMobile and 26 or 29),
+            Position = UDim2.new(0, Library.IsMobile and 8 or 10, 1, Library.IsMobile and -5 or -7),
+            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, Library.IsMobile and 25 or 29),
             Parent = Holder,
         })
 
@@ -7228,8 +7239,8 @@ do
             ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0,
                 Dropdown.Text
-                    and (CompactMobileDropdown and 50 or 60)
-                    or (CompactMobileDropdown and 28 or 32)
+                    and (CompactMobileDropdown and 46 or 60)
+                    or (CompactMobileDropdown and 27 or 32)
             ),
             Visible = Dropdown.Visible,
             Parent = Container,
@@ -7247,8 +7258,8 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 5 or 7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 13 or 15),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 4 or 7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 12 or 15),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Library.IsMobile and 12 or 13,
@@ -7265,8 +7276,8 @@ do
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -6 or -7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 23 or 27),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -5 or -7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 27),
             Text = "---",
             RichText = true,
             TextSize = Library.IsMobile and 12 or 13,
@@ -7309,7 +7320,7 @@ do
             -- Parent to Holder so Display's right text padding cannot push the
             -- chevron inward. This keeps every dropdown arrow at the same
             -- physical right edge regardless of title/value length.
-            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -19 or -22),
+            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -17 or -22),
             Size = UDim2.fromOffset(13, 13),
             ZIndex = 3,
             Parent = Holder,
@@ -8962,8 +8973,8 @@ local List = New("ScrollingFrame", {
             ClipsDescendants = true,
             Size = UDim2.new(1, 0, 0,
                 Dropdown.Text
-                    and (CompactMobileDropdown and 50 or 60)
-                    or (CompactMobileDropdown and 28 or 32)
+                    and (CompactMobileDropdown and 46 or 60)
+                    or (CompactMobileDropdown and 27 or 32)
             ),
             Visible = Dropdown.Visible,
             Parent = Container,
@@ -8981,8 +8992,8 @@ local List = New("ScrollingFrame", {
     
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 5 or 7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 13 or 15),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 4 or 7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 12 or 15),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Library.IsMobile and 12 or 13,
@@ -8999,8 +9010,8 @@ local List = New("ScrollingFrame", {
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -6 or -7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 23 or 27),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -5 or -7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 27),
             Text = "---",
             RichText = true,
             TextSize = Library.IsMobile and 12 or 13,
@@ -9042,7 +9053,7 @@ local List = New("ScrollingFrame", {
             ImageTransparency = 0.5,
             -- Same right-edge anchor as every other dropdown. Holder parenting
             -- avoids the Display UIPadding offset entirely.
-            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -19 or -22),
+            Position = UDim2.new(1, CompactMobileDropdown and -24 or -28, 1, CompactMobileDropdown and -17 or -22),
             Size = UDim2.fromOffset(13, 13),
             ZIndex = 3,
             Parent = Holder,
@@ -12438,12 +12449,14 @@ function Library:CreateWindow(WindowInfo)
 
         CurrentTabDescription = New("TextLabel", {
             BackgroundTransparency = 1,
-            Size = UDim2.fromScale(1, 0),
-            AutomaticSize = Enum.AutomaticSize.Y,
+            Size = UDim2.new(1, 0, 0, Library.IsMobile and 13 or 15),
+            AutomaticSize = Enum.AutomaticSize.None,
             Text = "",
-            TextWrapped = true,
-            TextSize = 14,
+            TextWrapped = false,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextSize = Library.IsMobile and 11 or 12,
             TextXAlignment = Enum.TextXAlignment.Left,
+            TextYAlignment = Enum.TextYAlignment.Center,
             TextTransparency = 0.5,
             Parent = CurrentTabInfo,
         })
@@ -13091,18 +13104,18 @@ function Library:CreateWindow(WindowInfo)
                 CanvasSize = UDim2.fromScale(0, 0),
                 ScrollBarImageTransparency = 1,
                 ScrollBarThickness = 0,
-                Size = UDim2.new(0.5, -3, 1, 0),
+                Size = UDim2.new(0.5, Library.IsMobile and -1 or -2, 1, 0),
                 Parent = TabContainer,
             })
             New("UIListLayout", {
-                Padding = UDim.new(0, 8),
+                Padding = UDim.new(0, Library.IsMobile and 4 or 6),
                 Parent = TabLeft,
             })
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, 6),
-                PaddingLeft = UDim.new(0, 6),
-                PaddingRight = UDim.new(0, 4),
-                PaddingTop = UDim.new(0, 6),
+                PaddingBottom = UDim.new(0, Library.IsMobile and 3 or 4),
+                PaddingLeft = UDim.new(0, Library.IsMobile and 3 or 4),
+                PaddingRight = UDim.new(0, Library.IsMobile and 2 or 3),
+                PaddingTop = UDim.new(0, Library.IsMobile and 3 or 4),
                 Parent = TabLeft,
             })
             do
@@ -13126,18 +13139,18 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromScale(1, 0),
                 ScrollBarImageTransparency = 1,
                 ScrollBarThickness = 0,
-                Size = UDim2.new(0.5, -3, 1, 0),
+                Size = UDim2.new(0.5, Library.IsMobile and -1 or -2, 1, 0),
                 Parent = TabContainer,
             })
             New("UIListLayout", {
-                Padding = UDim.new(0, 8),
+                Padding = UDim.new(0, Library.IsMobile and 4 or 6),
                 Parent = TabRight,
             })
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, 6),
-                PaddingLeft = UDim.new(0, 4),
-                PaddingRight = UDim.new(0, 6),
-                PaddingTop = UDim.new(0, 6),
+                PaddingBottom = UDim.new(0, Library.IsMobile and 3 or 4),
+                PaddingLeft = UDim.new(0, Library.IsMobile and 2 or 3),
+                PaddingRight = UDim.new(0, Library.IsMobile and 3 or 4),
+                PaddingTop = UDim.new(0, Library.IsMobile and 3 or 4),
                 Parent = TabRight,
             })
             do
@@ -13340,10 +13353,10 @@ function Library:CreateWindow(WindowInfo)
         end
 
         function Tab:RefreshSides()
-            local Offset = WarningBoxHolder.Visible and WarningBox.Size.Y.Offset + 8 or 0
+            local Offset = WarningBoxHolder.Visible and WarningBox.Size.Y.Offset + (Library.IsMobile and 4 or 6) or 0
             for _, Side in Tab.Sides do
                 Side.Position = UDim2.new(Side.Position.X.Scale, 0, 0, Offset)
-                Side.Size = UDim2.new(0.5, -3, 1, -Offset)
+                Side.Size = UDim2.new(0.5, Library.IsMobile and -1 or -2, 1, -Offset)
             end
         end
 
@@ -13391,12 +13404,12 @@ function Library:CreateWindow(WindowInfo)
                 Parent = if ParentObj.Type == "Groupbox" then ParentObj.Container else (Info.Side == 1 and TabLeft or TabRight),
             })
             New("UIListLayout", {
-                Padding = UDim.new(0, 6),
+                Padding = UDim.new(0, Library.IsMobile and 3 or 5),
                 Parent = BoxHolder,
             })
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, 4),
-                PaddingTop = UDim.new(0, 4),
+                PaddingBottom = UDim.new(0, Library.IsMobile and 2 or 3),
+                PaddingTop = UDim.new(0, Library.IsMobile and 2 or 3),
                 Parent = BoxHolder,
             })
 
@@ -13736,12 +13749,12 @@ function Library:CreateWindow(WindowInfo)
                 Parent = (Info.Side == 1) and TabLeft or TabRight,
             })
             New("UIListLayout", {
-                Padding = UDim.new(0, 6),
+                Padding = UDim.new(0, Library.IsMobile and 3 or 5),
                 Parent = BoxHolder,
             })
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, 4),
-                PaddingTop = UDim.new(0, 4),
+                PaddingBottom = UDim.new(0, Library.IsMobile and 2 or 3),
+                PaddingTop = UDim.new(0, Library.IsMobile and 2 or 3),
                 Parent = BoxHolder,
             })
 
@@ -13845,15 +13858,17 @@ function Library:CreateWindow(WindowInfo)
                 })
 
                 GroupboxDescription = New("TextLabel", {
-                    AutomaticSize = Enum.AutomaticSize.Y,
+                    AutomaticSize = Enum.AutomaticSize.None,
                     BackgroundTransparency = 1,
-                    Size = UDim2.fromScale(1, 0),
+                    Size = UDim2.new(1, 0, 0, Library.IsMobile and 12 or 14),
                     Text = Info.Description or "",
                     TextColor3 = LayeredStyle.SecondaryText,
-                    TextSize = Library.IsMobile and 11 or 12,
+                    TextSize = Library.IsMobile and 10 or 11,
                     TextTransparency = 0.12,
-                    TextWrapped = true,
+                    TextWrapped = false,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Center,
                     Visible = (Info.Description ~= nil),
                     Parent = TextsFrame,
                 })
@@ -13923,14 +13938,14 @@ function Library:CreateWindow(WindowInfo)
                 })
 
                 GroupboxList = New("UIListLayout", {
-                    Padding = UDim.new(0, 7),
+                    Padding = UDim.new(0, Library.IsMobile and 5 or 7),
                     Parent = GroupboxContainer,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, 8),
-                    PaddingLeft = UDim.new(0, 8),
-                    PaddingRight = UDim.new(0, 8),
-                    PaddingTop = UDim.new(0, 8),
+                    PaddingBottom = UDim.new(0, Library.IsMobile and 6 or 8),
+                    PaddingLeft = UDim.new(0, Library.IsMobile and 7 or 8),
+                    PaddingRight = UDim.new(0, Library.IsMobile and 7 or 8),
+                    PaddingTop = UDim.new(0, Library.IsMobile and 6 or 8),
                     Parent = GroupboxContainer,
                 })
             end
