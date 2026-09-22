@@ -1,6 +1,5 @@
 local cloneref = (cloneref or clonereference or function(instance: any)
--- ZANJI V11.20.1: restored the known-good V11.19 mobile geometry after the V11.20 parity regression.
--- ZANJI V11.19: dropdown data refresh is manual-only; opening a dropdown never invokes RefreshFunc.
+-- ZANJI V11.21: restored V11.16 dropdown renderer; manual refresh only; touch-safe mobile close.
     return instance
 end)
 local CoreGui: CoreGui = cloneref(game:GetService("CoreGui"))
@@ -7562,9 +7561,6 @@ do
         })
 
         local CloseButton = New("TextButton", {
-            Active = true,
-            AutoButtonColor = false,
-            Selectable = true,
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             Text = Info.Multi and "Done" or "Close",
@@ -7768,31 +7764,7 @@ local List = New("ScrollingFrame", {
         })
 
         local Buttons = {}
-        local MenuState = {
-            Active = false,
-            Menu = Popup,
-            SnapshotValues = nil,
-            PendingValues = nil,
-            HasPendingValues = false,
-            PendingDisabledValues = nil,
-            HasPendingDisabledValues = false,
-        }
-
-        local function StableValuesSource()
-            if MenuState.Active and type(MenuState.SnapshotValues) == "table" then
-                return MenuState.SnapshotValues
-            end
-            return Dropdown.Values or {}
-        end
-
-        local function SnapshotCurrentValues()
-            local snapshot = {}
-            for i, value in ipairs(Dropdown.Values or {}) do
-                snapshot[i] = value
-            end
-            MenuState.SnapshotValues = snapshot
-            return snapshot
-        end
+        local MenuState = { Active = false, Menu = Popup }
         local PopupFixedWidth = tonumber(Info.PopupWidth) or 560
         local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
         local CurrentRowHeight = 38
@@ -7807,7 +7779,7 @@ local List = New("ScrollingFrame", {
             RowCount = 0,
             LastFirstIndex = -1,
         }
-        local VirtualDropdownThreshold = Library.IsMobile and math.huge or (tonumber(Info.VirtualDropdownThreshold) or 1000)
+        local VirtualDropdownThreshold = Library.IsMobile and (tonumber(Info.VirtualDropdownThreshold) or 600) or (tonumber(Info.VirtualDropdownThreshold) or 80)
         local VirtualDropdownBuffer = tonumber(Info.VirtualDropdownBuffer) or 8
         
         local function ClearDropdownList()
@@ -7916,11 +7888,13 @@ local List = New("ScrollingFrame", {
             -- Mobile dropdowns follow the same UI scale as the main window.
             -- Height is fixed by device/scale; width grows sideways to fit text.
             if Library.IsMobile then
-                -- Use the physical camera viewport for popup boundaries.
-                -- ScreenGui.AbsoluteSize can reflect logical UI scaling and
-                -- incorrectly cap the popup narrower than the phone screen.
+                local screenSize = Library.ScreenGui and Library.ScreenGui.AbsoluteSize
                 local rawVW = tonumber(viewport.X) or 360
                 local rawVH = tonumber(viewport.Y) or 640
+                if screenSize and screenSize.X > 1 and screenSize.Y > 1 then
+                    rawVW = math.min(rawVW, screenSize.X)
+                    rawVH = math.min(rawVH, screenSize.Y)
+                end
 
                 local vw = math.max(240, rawVW)
                 local vh = math.max(220, rawVH)
@@ -7939,10 +7913,10 @@ local List = New("ScrollingFrame", {
                 local searchH = math.max(21, math.floor(26 * scale + 0.5))
                 local actionH = math.max(20, math.floor(23 * scale + 0.5))
                 local gap = math.max(3, math.floor(4 * scale + 0.5))
-                local padX = math.max(4, math.floor(6 * scale + 0.5))
+                local padX = math.max(6, math.floor(8 * scale + 0.5))
                 local padY = math.max(4, math.floor(6 * scale + 0.5))
 
-                local sideMargin = math.clamp(math.floor(vw * 0.006), 3, 7)
+                local sideMargin = math.clamp(math.floor(vw * 0.012), 6, 12)
                 local verticalMargin = math.clamp(math.floor(vh * 0.05), 12, 24)
                 local maxAllowedW = math.max(210, vw - sideMargin * 2)
                 local minW = math.min(maxAllowedW, math.floor((landscape and 250 or 230) * scale))
@@ -7951,11 +7925,18 @@ local List = New("ScrollingFrame", {
                 -- allow the popup to grow to that safe viewport width.
                 local maxW = maxAllowedW
 
+                local function mobilePlainText(value)
+                    local text = value
+                    if typeof(value) == "table" then
+                        text = value.Text or value.Value or ""
+                    end
+                    return tostring(text or ""):gsub("<[^<>]->", "")
+                end
+
                 local longestTextWidth = 0
-                for _, value in ipairs(StableValuesSource()) do
-                    local renderedText = StripRichText(GetOptionText(value))
+                for _, value in ipairs(Dropdown.Values or {}) do
                     longestTextWidth = math.max(longestTextWidth, Library:GetTextBounds(
-                        renderedText,
+                        mobilePlainText(value),
                         Library.Scheme.Font,
                         optionText,
                         100000
@@ -7966,7 +7947,7 @@ local List = New("ScrollingFrame", {
                 -- grows horizontally to fit the longest value, then clamps only
                 -- at the physical viewport margin. Never shrink option text just
                 -- to force it inside a narrower popup.
-                local textReserve = math.max(34, math.floor(46 * scale))
+                local textReserve = math.max(48, math.floor(64 * scale))
                 local desiredW = math.max(minW, math.ceil(longestTextWidth + textReserve))
                 if Dropdown.Text and Dropdown.Text ~= "" then
                     local titleWidth = Library:GetTextBounds(
@@ -8021,7 +8002,7 @@ local List = New("ScrollingFrame", {
             local desiredWidth = PopupFixedWidth
             local measureTextSize = 14
 
-            for _, Value in ipairs(StableValuesSource()) do
+            for _, Value in pairs(Dropdown.Values or {}) do
                 local displayText = StripRichText(GetOptionText(Value))
                 local textWidth = Library:GetTextBounds(
                     displayText,
@@ -8171,7 +8152,7 @@ local List = New("ScrollingFrame", {
             PopupBody.Position = UDim2.fromOffset(M.padX, bodyTop)
             PopupBody.Size = UDim2.new(1, -M.padX * 2, 1, -(bodyTop + M.padY))
 
-            innerPadX = Library.IsMobile and math.max(4, math.floor(M.padX * 0.7)) or math.max(10, math.floor(M.padX * 0.7))
+            innerPadX = math.max(10, math.floor(M.padX * 0.7))
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
 
             listTop = innerPadY
@@ -8182,7 +8163,7 @@ local List = New("ScrollingFrame", {
             local hasSearch = SearchInput.Visible
             local showMultiActions = Info.Multi == true and Info.ShowBulkActions ~= false
             local showClearAction = (Info.Multi ~= true and Info.AllowNull == true)
-            local showRefreshAction = type(Dropdown.RefreshFunc) == "function"
+            local showRefreshAction = Dropdown.InventoryRefresh == true and type(Dropdown.RefreshFunc) == "function"
             BulkActions.Visible = showMultiActions or showClearAction or showRefreshAction
             local hasBulkActions = BulkActions.Visible
 
@@ -8259,12 +8240,21 @@ local List = New("ScrollingFrame", {
             List.Position = UDim2.fromOffset(innerPadX, listTop)
             List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
 
+            -- Mobile safety: stale first-frame measurements must never collapse the option list.
+            if Library.IsMobile then
+                local minimumListHeight = math.max(CurrentRowHeight + 10, 34)
+                local availableListHeight = math.max(minimumListHeight, M.height - listTop - innerPadY - bodyTop - M.padY)
+                if List.AbsoluteSize.Y <= 2 then
+                    List.Size = UDim2.new(1, -(innerPadX * 2), 0, availableListHeight)
+                end
+            end
+
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
             ListLayout.Padding = UDim.new(0, CurrentRowGap)
 
             for _, Entry in pairs(Buttons) do
-                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -2 or -16, 0, CurrentRowHeight)
+                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
                 pcall(function() Entry.Button:SetAttribute("ZanjiBaseTextSize", CurrentOptionTextSize) end)
                 UpdateTextTruncateForActualWidth(Entry.Button, 0)
@@ -8323,35 +8313,16 @@ local List = New("ScrollingFrame", {
                 return
             end
 
-            local pendingValues = MenuState.PendingValues
-            local hasPendingValues = MenuState.HasPendingValues == true
-            local pendingDisabledValues = MenuState.PendingDisabledValues
-            local hasPendingDisabledValues = MenuState.HasPendingDisabledValues == true
-
             MenuState.Active = false
-            MenuState.SnapshotValues = nil
-            MenuState.PendingValues = nil
-            MenuState.HasPendingValues = false
-            MenuState.PendingDisabledValues = nil
-            MenuState.HasPendingDisabledValues = false
-
             ClickBlocker.Visible = false
             Popup.Visible = false
+            
             ClearDropdownList()
 
             if UserInputService:GetFocusedTextBox() == SearchInput then
                 pcall(function()
                     SearchInput:ReleaseFocus()
                 end)
-            end
-
-            -- Apply any inventory/list updates only after the popup is closed.
-            -- This keeps row identity/order frozen for the entire scroll session.
-            if hasPendingValues then
-                Dropdown:SetValues(pendingValues)
-            end
-            if hasPendingDisabledValues then
-                Dropdown:SetDisabledValues(pendingDisabledValues)
             end
 
             Dropdown:UpdateColors()
@@ -8361,7 +8332,7 @@ local List = New("ScrollingFrame", {
             local Selected = {}
             local Unselected = {}
 
-            for _, Value in ipairs(StableValuesSource()) do
+            for _, Value in pairs(Dropdown.Values or {}) do
                 if Query ~= "" then
                     local SearchText = GetSearchText(Value)
 
@@ -8425,7 +8396,7 @@ local List = New("ScrollingFrame", {
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
-                Size = UDim2.new(1, Library.IsMobile and -2 or -16, 0, CurrentRowHeight),
+                Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight),
                 Text = "",
                 TextColor3 = LayeredStyle.MainText,
                 RichText = true,
@@ -8453,8 +8424,8 @@ local List = New("ScrollingFrame", {
             })
 
             New("UIPadding", {
-                PaddingLeft = UDim.new(0, Library.IsMobile and 5 or 12),
-                PaddingRight = UDim.new(0, Library.IsMobile and 5 or 12),
+                PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 12),
+                PaddingRight = UDim.new(0, Library.IsMobile and 8 or 12),
                 Parent = Button,
             })
 
@@ -8504,7 +8475,7 @@ local List = New("ScrollingFrame", {
                 return
             end
 
-            local firstIndex = math.floor(math.max(0, (List.CanvasPosition.Y or 0) - 8) / rowStep) + 1
+            local firstIndex = math.floor((List.CanvasPosition.Y or 0) / rowStep) + 1
             firstIndex = math.clamp(firstIndex, 1, total)
 
             if not Force and firstIndex == VirtualState.LastFirstIndex then
@@ -8555,7 +8526,6 @@ local List = New("ScrollingFrame", {
             end
 
             local query = SearchInput.Visible and (SearchInput.Text or ""):lower() or ""
-            local previousCanvasY = tonumber(List.CanvasPosition.Y) or 0
             local orderedValues = BuildOrderedValues(query, PrioritizeSelected == true)
             local disabledLookup = {}
 
@@ -8580,7 +8550,7 @@ local List = New("ScrollingFrame", {
                     0,
                     math.ceil(16 + (#orderedValues * CurrentRowHeight) + (math.max(0, #orderedValues - 1) * CurrentRowGap))
                 )
-                List.CanvasPosition = Vector2.new(0, math.max(0, previousCanvasY))
+                List.CanvasPosition = Vector2.zero
                 RenderVirtualRows(true)
                 Dropdown:Display()
                 return
@@ -8604,16 +8574,8 @@ local List = New("ScrollingFrame", {
                 UpdateEntry(Entry)
             end
 
+            List.CanvasPosition = Vector2.zero
             ApplyPopupLayout()
-            if query == "" and previousCanvasY > 0 then
-                task.defer(function()
-                    if MenuState.Active then
-                        List.CanvasPosition = Vector2.new(0, previousCanvasY)
-                    end
-                end)
-            else
-                List.CanvasPosition = Vector2.zero
-            end
             Dropdown:Display()
         end
 
@@ -8778,11 +8740,6 @@ local List = New("ScrollingFrame", {
         end
 
         function Dropdown:SetValues(Values)
-            if MenuState.Active then
-                MenuState.PendingValues = Values
-                MenuState.HasPendingValues = true
-                return
-            end
             if UseValueOptions then
                 local ValuesList, ValueOptions, OptionByValue, ValueLookup = NormalizeDropdownValues(Values)
 
@@ -8846,11 +8803,6 @@ local List = New("ScrollingFrame", {
         end
 
         function Dropdown:SetDisabledValues(DisabledValues)
-            if MenuState.Active then
-                MenuState.PendingDisabledValues = DisabledValues
-                MenuState.HasPendingDisabledValues = true
-                return
-            end
             Dropdown.DisabledValues = DisabledValues
             Dropdown:BuildDropdownList(MenuState.Active)
         end
@@ -8930,35 +8882,23 @@ local List = New("ScrollingFrame", {
         -- end
         
         function MenuState:Open()
+            -- V11.21: opening is passive; never refresh/rebuild data from RefreshFunc here.
             if MenuState.Active or Dropdown.Disabled then
                 return
             end
-
+        
             if SearchInput.Visible and SearchInput.Text ~= "" then
                 SearchInput.Text = ""
             end
-
+        
             MenuState.Active = true
-            SnapshotCurrentValues()
             ClickBlocker.Visible = true
             Popup.Visible = true
             Title.Text = Dropdown.Text or "Select"
             UpdateCloseButtonStyle()
-
-            ApplyPopupLayout()
+        
             Dropdown:BuildDropdownList(true)
             Dropdown:UpdateColors()
-
-            -- On touch devices AbsoluteSize can be stale for one render step.
-            -- Re-layout once after showing so small lists such as Stages never
-            -- open blank, while keeping the exact same snapshot/order.
-            task.defer(function()
-                if not MenuState.Active then return end
-                ApplyPopupLayout()
-                if next(Buttons) == nil and #StableValuesSource() > 0 then
-                    Dropdown:BuildDropdownList(true)
-                end
-            end)
         end
 
         function MenuState:Close()
@@ -8995,7 +8935,7 @@ local List = New("ScrollingFrame", {
                 DisabledLookup[ResolveOptionValue(DisabledValue)] = true
             end
 
-            for _, Value in ipairs(StableValuesSource()) do
+            for _, Value in pairs(Dropdown.Values or {}) do
                 if not DisabledLookup[Value] then
                     Selected[Value] = true
                 end
@@ -9029,7 +8969,7 @@ local List = New("ScrollingFrame", {
         if SearchInput.Visible then
             SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
                 RefreshSearchTypingVisual()
-                Dropdown:BuildDropdownList(false)
+                Dropdown:BuildDropdownList(true)
             end)
         end
 
@@ -9420,9 +9360,6 @@ local List = New("ScrollingFrame", {
         })
     
         local CloseButton = New("TextButton", {
-            Active = true,
-            AutoButtonColor = false,
-            Selectable = true,
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             Text = Info.Multi and "Done" or "Close",
@@ -9627,31 +9564,7 @@ local List = New("ScrollingFrame", {
         })
     
         local Buttons = {}
-        local MenuState = {
-            Active = false,
-            Menu = Popup,
-            SnapshotValues = nil,
-            PendingValues = nil,
-            HasPendingValues = false,
-            PendingDisabledValues = nil,
-            HasPendingDisabledValues = false,
-        }
-
-        local function StableValuesSource()
-            if MenuState.Active and type(MenuState.SnapshotValues) == "table" then
-                return MenuState.SnapshotValues
-            end
-            return Dropdown.Values or {}
-        end
-
-        local function SnapshotCurrentValues()
-            local snapshot = {}
-            for i, value in ipairs(Dropdown.Values or {}) do
-                snapshot[i] = value
-            end
-            MenuState.SnapshotValues = snapshot
-            return snapshot
-        end
+        local MenuState = { Active = false, Menu = Popup }
         local PopupFixedWidth = tonumber(Info.PopupWidth) or 560
         local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
         local CurrentRowHeight = 38
@@ -9666,7 +9579,7 @@ local List = New("ScrollingFrame", {
             RowCount = 0,
             LastFirstIndex = -1,
         }
-        local VirtualDropdownThreshold = Library.IsMobile and math.huge or (tonumber(Info.VirtualDropdownThreshold) or 1000)
+        local VirtualDropdownThreshold = Library.IsMobile and (tonumber(Info.VirtualDropdownThreshold) or 600) or (tonumber(Info.VirtualDropdownThreshold) or 80)
         local VirtualDropdownBuffer = tonumber(Info.VirtualDropdownBuffer) or 8
         
         local function ClearDropdownList()
@@ -9721,11 +9634,13 @@ local List = New("ScrollingFrame", {
             -- Mobile dropdowns follow the same UI scale as the main window.
             -- Height is fixed by device/scale; width grows sideways to fit text.
             if Library.IsMobile then
-                -- Use the physical camera viewport for popup boundaries.
-                -- ScreenGui.AbsoluteSize can reflect logical UI scaling and
-                -- incorrectly cap the popup narrower than the phone screen.
+                local screenSize = Library.ScreenGui and Library.ScreenGui.AbsoluteSize
                 local rawVW = tonumber(viewport.X) or 360
                 local rawVH = tonumber(viewport.Y) or 640
+                if screenSize and screenSize.X > 1 and screenSize.Y > 1 then
+                    rawVW = math.min(rawVW, screenSize.X)
+                    rawVH = math.min(rawVH, screenSize.Y)
+                end
 
                 local vw = math.max(240, rawVW)
                 local vh = math.max(220, rawVH)
@@ -9744,10 +9659,10 @@ local List = New("ScrollingFrame", {
                 local searchH = math.max(21, math.floor(26 * scale + 0.5))
                 local actionH = math.max(20, math.floor(23 * scale + 0.5))
                 local gap = math.max(3, math.floor(4 * scale + 0.5))
-                local padX = math.max(4, math.floor(6 * scale + 0.5))
+                local padX = math.max(6, math.floor(8 * scale + 0.5))
                 local padY = math.max(4, math.floor(6 * scale + 0.5))
 
-                local sideMargin = math.clamp(math.floor(vw * 0.006), 3, 7)
+                local sideMargin = math.clamp(math.floor(vw * 0.012), 6, 12)
                 local verticalMargin = math.clamp(math.floor(vh * 0.05), 12, 24)
                 local maxAllowedW = math.max(210, vw - sideMargin * 2)
                 local minW = math.min(maxAllowedW, math.floor((landscape and 250 or 230) * scale))
@@ -9756,11 +9671,18 @@ local List = New("ScrollingFrame", {
                 -- allow the popup to grow to that safe viewport width.
                 local maxW = maxAllowedW
 
+                local function mobilePlainText(value)
+                    local text = value
+                    if typeof(value) == "table" then
+                        text = value.Text or value.Value or ""
+                    end
+                    return tostring(text or ""):gsub("<[^<>]->", "")
+                end
+
                 local longestTextWidth = 0
-                for _, value in ipairs(StableValuesSource()) do
-                    local renderedText = StripRichText(GetOptionText(value))
+                for _, value in ipairs(Dropdown.Values or {}) do
                     longestTextWidth = math.max(longestTextWidth, Library:GetTextBounds(
-                        renderedText,
+                        mobilePlainText(value),
                         Library.Scheme.Font,
                         optionText,
                         100000
@@ -9771,7 +9693,7 @@ local List = New("ScrollingFrame", {
                 -- grows horizontally to fit the longest value, then clamps only
                 -- at the physical viewport margin. Never shrink option text just
                 -- to force it inside a narrower popup.
-                local textReserve = math.max(34, math.floor(46 * scale))
+                local textReserve = math.max(48, math.floor(64 * scale))
                 local desiredW = math.max(minW, math.ceil(longestTextWidth + textReserve))
                 if Dropdown.Text and Dropdown.Text ~= "" then
                     local titleWidth = Library:GetTextBounds(
@@ -9826,7 +9748,7 @@ local List = New("ScrollingFrame", {
             local desiredWidth = PopupFixedWidth
             local measureTextSize = 14
 
-            for _, Value in ipairs(StableValuesSource()) do
+            for _, Value in pairs(Dropdown.Values or {}) do
                 local displayText = tostring(FormatZanjiDropdownValue(Value) or ""):gsub("<[^<>]->", "")
                 local textWidth = Library:GetTextBounds(
                     displayText,
@@ -9975,7 +9897,7 @@ local List = New("ScrollingFrame", {
             PopupBody.Position = UDim2.fromOffset(M.padX, bodyTop)
             PopupBody.Size = UDim2.new(1, -M.padX * 2, 1, -(bodyTop + M.padY))
     
-            innerPadX = Library.IsMobile and math.max(4, math.floor(M.padX * 0.7)) or math.max(10, math.floor(M.padX * 0.7))
+            innerPadX = math.max(10, math.floor(M.padX * 0.7))
             innerPadY = math.max(10, math.floor(M.padY * 0.65))
 
             listTop = innerPadY
@@ -9986,7 +9908,7 @@ local List = New("ScrollingFrame", {
             local hasSearch = SearchInput.Visible
             local showMultiActions = Info.Multi == true and Info.ShowBulkActions ~= false
             local showClearAction = (Info.Multi ~= true and Info.AllowNull == true)
-            local showRefreshAction = type(Dropdown.RefreshFunc) == "function"
+            local showRefreshAction = Dropdown.InventoryRefresh == true and type(Dropdown.RefreshFunc) == "function"
             BulkActions.Visible = showMultiActions or showClearAction or showRefreshAction
             local hasBulkActions = BulkActions.Visible
 
@@ -10063,12 +9985,21 @@ local List = New("ScrollingFrame", {
             List.Position = UDim2.fromOffset(innerPadX, listTop)
             List.Size = UDim2.new(1, -(innerPadX * 2), 1, -(listTop + innerPadY))
 
+            -- Mobile safety: stale first-frame measurements must never collapse the option list.
+            if Library.IsMobile then
+                local minimumListHeight = math.max(CurrentRowHeight + 10, 34)
+                local availableListHeight = math.max(minimumListHeight, M.height - listTop - innerPadY - bodyTop - M.padY)
+                if List.AbsoluteSize.Y <= 2 then
+                    List.Size = UDim2.new(1, -(innerPadX * 2), 0, availableListHeight)
+                end
+            end
+
             CurrentRowHeight = M.rowH
             CurrentOptionTextSize = M.optionText
             ListLayout.Padding = UDim.new(0, CurrentRowGap)
     
             for _, Entry in pairs(Buttons) do
-                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -2 or -16, 0, CurrentRowHeight)
+                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
                 pcall(function() Entry.Button:SetAttribute("ZanjiBaseTextSize", CurrentOptionTextSize) end)
                 UpdateTextTruncateForActualWidth(Entry.Button, 0)
@@ -10126,46 +10057,27 @@ local List = New("ScrollingFrame", {
             if not MenuState.Active then
                 return
             end
-
-            local pendingValues = MenuState.PendingValues
-            local hasPendingValues = MenuState.HasPendingValues == true
-            local pendingDisabledValues = MenuState.PendingDisabledValues
-            local hasPendingDisabledValues = MenuState.HasPendingDisabledValues == true
-
+    
             MenuState.Active = false
-            MenuState.SnapshotValues = nil
-            MenuState.PendingValues = nil
-            MenuState.HasPendingValues = false
-            MenuState.PendingDisabledValues = nil
-            MenuState.HasPendingDisabledValues = false
-
             ClickBlocker.Visible = false
             Popup.Visible = false
+            
             ClearDropdownList()
-
+    
             if UserInputService:GetFocusedTextBox() == SearchInput then
                 pcall(function()
                     SearchInput:ReleaseFocus()
                 end)
             end
-
-            -- Apply any inventory/list updates only after the popup is closed.
-            -- This keeps row identity/order frozen for the entire scroll session.
-            if hasPendingValues then
-                Dropdown:SetValues(pendingValues)
-            end
-            if hasPendingDisabledValues then
-                Dropdown:SetDisabledValues(pendingDisabledValues)
-            end
-
+    
             Dropdown:UpdateColors()
         end
-
+    
         local function BuildOrderedValues(Query: string, PrioritizeSelected: boolean)
             local Selected = {}
             local Unselected = {}
     
-            for _, Value in ipairs(StableValuesSource()) do
+            for _, Value in pairs(Dropdown.Values or {}) do
                 if Query ~= "" and not tostring(Value):lower():find(Query, 1, true) then
                     continue
                 end
@@ -10221,7 +10133,7 @@ local List = New("ScrollingFrame", {
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
-                Size = UDim2.new(1, Library.IsMobile and -2 or -16, 0, CurrentRowHeight),
+                Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight),
                 Text = "",
                 TextColor3 = LayeredStyle.MainText,
                 RichText = true,
@@ -10249,8 +10161,8 @@ local List = New("ScrollingFrame", {
             })
 
             New("UIPadding", {
-                PaddingLeft = UDim.new(0, Library.IsMobile and 5 or 12),
-                PaddingRight = UDim.new(0, Library.IsMobile and 5 or 12),
+                PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 12),
+                PaddingRight = UDim.new(0, Library.IsMobile and 8 or 12),
                 Parent = Button,
             })
 
@@ -10300,7 +10212,7 @@ local List = New("ScrollingFrame", {
                 return
             end
 
-            local firstIndex = math.floor(math.max(0, (List.CanvasPosition.Y or 0) - 8) / rowStep) + 1
+            local firstIndex = math.floor((List.CanvasPosition.Y or 0) / rowStep) + 1
             firstIndex = math.clamp(firstIndex, 1, total)
 
             if not Force and firstIndex == VirtualState.LastFirstIndex then
@@ -10351,7 +10263,6 @@ local List = New("ScrollingFrame", {
             end
 
             local query = SearchInput.Visible and (SearchInput.Text or ""):lower() or ""
-            local previousCanvasY = tonumber(List.CanvasPosition.Y) or 0
             local orderedValues = BuildOrderedValues(query, PrioritizeSelected == true)
             local disabledLookup = {}
     
@@ -10376,7 +10287,7 @@ local List = New("ScrollingFrame", {
                     0,
                     math.ceil(16 + (#orderedValues * CurrentRowHeight) + (math.max(0, #orderedValues - 1) * CurrentRowGap))
                 )
-                List.CanvasPosition = Vector2.new(0, math.max(0, previousCanvasY))
+                List.CanvasPosition = Vector2.zero
                 RenderVirtualRows(true)
                 Dropdown:Display()
                 return
@@ -10400,16 +10311,8 @@ local List = New("ScrollingFrame", {
                 UpdateEntry(Entry)
             end
     
+            List.CanvasPosition = Vector2.zero
             ApplyPopupLayout()
-            if query == "" and previousCanvasY > 0 then
-                task.defer(function()
-                    if MenuState.Active then
-                        List.CanvasPosition = Vector2.new(0, previousCanvasY)
-                    end
-                end)
-            else
-                List.CanvasPosition = Vector2.zero
-            end
             Dropdown:Display()
         end
     
@@ -10561,11 +10464,6 @@ local List = New("ScrollingFrame", {
         end
     
         function Dropdown:SetValues(Values)
-            if MenuState.Active then
-                MenuState.PendingValues = Values
-                MenuState.HasPendingValues = true
-                return
-            end
             Dropdown.Values = Values
             Dropdown:BuildDropdownList(MenuState.Active)
         end
@@ -10585,11 +10483,6 @@ local List = New("ScrollingFrame", {
         end
     
         function Dropdown:SetDisabledValues(DisabledValues)
-            if MenuState.Active then
-                MenuState.PendingDisabledValues = DisabledValues
-                MenuState.HasPendingDisabledValues = true
-                return
-            end
             Dropdown.DisabledValues = DisabledValues
             Dropdown:BuildDropdownList(MenuState.Active)
         end
@@ -10667,37 +10560,25 @@ local List = New("ScrollingFrame", {
         -- end
         
         function MenuState:Open()
+            -- V11.21: opening is passive; never refresh/rebuild data from RefreshFunc here.
             if MenuState.Active or Dropdown.Disabled then
                 return
             end
-
+        
             if SearchInput.Visible and SearchInput.Text ~= "" then
                 SearchInput.Text = ""
             end
-
+        
             MenuState.Active = true
-            SnapshotCurrentValues()
             ClickBlocker.Visible = true
             Popup.Visible = true
             Title.Text = Dropdown.Text or "Select"
             UpdateCloseButtonStyle()
-
-            ApplyPopupLayout()
+        
             Dropdown:BuildDropdownList(true)
             Dropdown:UpdateColors()
-
-            -- On touch devices AbsoluteSize can be stale for one render step.
-            -- Re-layout once after showing so small lists such as Stages never
-            -- open blank, while keeping the exact same snapshot/order.
-            task.defer(function()
-                if not MenuState.Active then return end
-                ApplyPopupLayout()
-                if next(Buttons) == nil and #StableValuesSource() > 0 then
-                    Dropdown:BuildDropdownList(true)
-                end
-            end)
         end
-
+    
         function MenuState:Close()
             ClosePopup()
         end
@@ -10732,7 +10613,7 @@ local List = New("ScrollingFrame", {
                 DisabledLookup[DisabledValue] = true
             end
 
-            for _, Value in ipairs(StableValuesSource()) do
+            for _, Value in pairs(Dropdown.Values or {}) do
                 if not DisabledLookup[Value] then
                     Selected[Value] = true
                 end
@@ -10766,7 +10647,7 @@ local List = New("ScrollingFrame", {
         if SearchInput.Visible then
             SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
                 RefreshSearchTypingVisual()
-                Dropdown:BuildDropdownList(false)
+                Dropdown:BuildDropdownList(true)
             end)
         end
     
