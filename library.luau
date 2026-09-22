@@ -341,6 +341,8 @@ else
     end)
 
     Library.IsMobile = (Library.DevicePlatform == Enum.Platform.Android or Library.DevicePlatform == Enum.Platform.IOS)
+    -- V11.20 desktop-parity: phone uses the same component geometry/style as PC;
+    -- mobile-only branches are reserved for touch input and viewport-safe popups.
     Library.OriginalMinSize = Library.IsMobile and Vector2.new(480, 240) or Vector2.new(480, 360)
 end
 
@@ -5055,13 +5057,13 @@ do
 
             Data.Text = Params.Text or ""
             Data.DoesWrap = Params.DoesWrap or false
-            Data.Size = Params.Size or (Library.IsMobile and 12 or 13)
+            Data.Size = Params.Size or 13
             Data.Visible = Params.Visible ~= false
             Data.Idx = typeof(Second) == "table" and First or nil
         else
             Data.Text = First or ""
             Data.DoesWrap = Second or false
-            Data.Size = Library.IsMobile and 12 or 13
+            Data.Size = 13
             Data.Visible = true
             Data.Idx = select(3, ...) or nil
         end
@@ -5111,7 +5113,7 @@ do
             BackgroundTransparency = Label.IsDivider and 1 or 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Label.IsDivider and 10 or (Library.IsMobile and 26 or 28)),
+            Size = UDim2.new(1, 0, 0, Label.IsDivider and 10 or 28),
             Text = Label.IsDivider and "" or Label.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Data.Size,
@@ -5145,8 +5147,8 @@ do
         end
         New("UIPadding", {
             PaddingBottom = UDim.new(0, 1),
-            PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 10),
-            PaddingRight = UDim.new(0, Library.IsMobile and 8 or 10),
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
             PaddingTop = UDim.new(0, 1),
             Parent = TextLabel,
         })
@@ -5163,7 +5165,7 @@ do
             TextLabel.TextYAlignment = WrapNow and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center
 
             if not WrapNow then
-                TextLabel.Size = UDim2.new(1, 0, 0, Library.IsMobile and 24 or 28)
+                TextLabel.Size = UDim2.new(1, 0, 0, 28)
                 return
             end
 
@@ -5172,12 +5174,12 @@ do
                 -- The groupbox can report a tiny transient width while its tab
                 -- is mounting. Measuring long stock/farm text at that width
                 -- creates a huge label with the text far below the title.
-                TextLabel.Size = UDim2.new(1, 0, 0, Library.IsMobile and 26 or 28)
+                TextLabel.Size = UDim2.new(1, 0, 0, 28)
                 return
             end
 
             local _, Y = Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, Width)
-            TextLabel.Size = UDim2.new(1, 0, 0, math.max(Library.IsMobile and 26 or 28, Y + (Library.IsMobile and 8 or 10)))
+            TextLabel.Size = UDim2.new(1, 0, 0, math.max(28, Y + 10))
         end
 
         function Label:SetVisible(Visible: boolean)
@@ -5355,14 +5357,14 @@ do
 
         local Holder = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, Library.IsMobile and 25 or 29),
+            Size = UDim2.new(1, 0, 0, 29),
             Parent = Container,
         })
 
         New("UIListLayout", {
             FillDirection = Enum.FillDirection.Horizontal,
             HorizontalFlex = Enum.UIFlexAlignment.Fill,
-            Padding = UDim.new(0, Library.IsMobile and 6 or 9),
+            Padding = UDim.new(0, 9),
             Parent = Holder,
         })
 
@@ -5374,7 +5376,7 @@ do
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
                 TextColor3 = LayeredStyle.MainText,
-                TextSize = Library.IsMobile and 12 or 13,
+                TextSize = 13,
                 TextTransparency = 0.04,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 Visible = Button.Visible,
@@ -5736,7 +5738,7 @@ do
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
-            Size = UDim2.new(1, 0, 0, Library.IsMobile and 30 or 32),
+            Size = UDim2.new(1, 0, 0, 32),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
@@ -5758,7 +5760,7 @@ do
             Size = UDim2.new(1, -46, 1, 0),
             Text = Toggle.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextTransparency = 0.16,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -6051,7 +6053,7 @@ do
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Library.IsMobile and 30 or 32),
+            Size = UDim2.new(1, 0, 0, 32),
             Text = "",
             Visible = Toggle.Visible,
             Parent = Container,
@@ -6077,7 +6079,7 @@ do
             TextColor3 = function()
                 return LayeredStyle.MainText
             end,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextTransparency = 0.4,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextWrapped = false,
@@ -6369,11 +6371,11 @@ do
         }
 
         -- V11.10 unified control metrics.
-        local ControlTopPadding = Library.IsMobile and 5 or 6
-        local ControlLabelHeight = Library.IsMobile and 12 or 14
+        local ControlTopPadding = 6
+        local ControlLabelHeight = 14
         local ControlLabelGap = 3
-        local ControlFieldHeight = Library.IsMobile and 25 or 29
-        local ControlBottomPadding = Library.IsMobile and 5 or 6
+        local ControlFieldHeight = 29
+        local ControlBottomPadding = 6
         local ControlFieldTop = ControlTopPadding + ControlLabelHeight + ControlLabelGap
         local ControlHolderHeight = ControlFieldTop + ControlFieldHeight + ControlBottomPadding
 
@@ -6399,11 +6401,11 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(Library.IsMobile and 8 or 10, ControlTopPadding),
-            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, ControlLabelHeight),
+            Position = UDim2.fromOffset(10, ControlTopPadding),
+            Size = UDim2.new(1, -20, 0, ControlLabelHeight),
             Text = Input.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -6420,8 +6422,8 @@ do
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Position = UDim2.new(0, Library.IsMobile and 8 or 10, 0, ControlFieldTop),
-            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, ControlFieldHeight),
+            Position = UDim2.new(0, 10, 0, ControlFieldTop),
+            Size = UDim2.new(1, -20, 0, ControlFieldHeight),
             Parent = Holder,
         })
 
@@ -6433,7 +6435,7 @@ do
             Size = UDim2.new(1, -18, 1, 0),
             Text = tostring(Input.Value or ""),
             TextColor3 = LayeredStyle.MainText,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -6456,7 +6458,7 @@ do
             TextEditable = not Input.Disabled,
             TextScaled = false,
             TextWrapped = false,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 2,
@@ -6794,7 +6796,7 @@ do
                 Size = UDim2.new(1, -20, 0, 14),
                 Text = Slider.Text,
                 TextColor3 = LayeredStyle.MainText,
-                TextSize = Library.IsMobile and 12 or 13,
+                TextSize = 13,
                 TextTruncate = Enum.TextTruncate.AtEnd,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
@@ -6821,7 +6823,7 @@ do
             BackgroundTransparency = 1,
             Size = UDim2.fromScale(1, 1),
             Text = "",
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = Bar.ZIndex + 2,
@@ -6840,7 +6842,7 @@ do
                 BackgroundTransparency = 1,
                 Size = UDim2.fromScale(1, 1),
                 Text = "",
-                TextSize = Library.IsMobile and 12 or 13,
+                TextSize = 13,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = Bar.ZIndex + 3,
                 Visible = false,
@@ -7337,12 +7339,12 @@ do
             Type = "Dropdown",
         }
 
-        local CompactMobileDropdown = Library.IsMobile == true
-        local ControlTopPadding = CompactMobileDropdown and 5 or 6
-        local ControlLabelHeight = CompactMobileDropdown and 12 or 14
+        local CompactMobileDropdown = false
+        local ControlTopPadding = 6
+        local ControlLabelHeight = 14
         local ControlLabelGap = 3
-        local ControlFieldHeight = CompactMobileDropdown and 25 or 29
-        local ControlBottomPadding = CompactMobileDropdown and 5 or 6
+        local ControlFieldHeight = 29
+        local ControlBottomPadding = 6
         local ControlFieldTop = ControlTopPadding + ControlLabelHeight + ControlLabelGap
         local ControlHolderHeight = Dropdown.Text
             and (ControlFieldTop + ControlFieldHeight + ControlBottomPadding)
@@ -7374,7 +7376,7 @@ do
             Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, ControlLabelHeight),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextTruncate = Enum.TextTruncate.None,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -7392,7 +7394,7 @@ do
             Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, ControlFieldHeight),
             Text = "---",
             RichText = true,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextTruncate = Enum.TextTruncate.None,
             TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -9191,14 +9193,14 @@ local List = New("ScrollingFrame", {
             return tostring(Value)
         end
     
-        local CompactMobileDropdown = Library.IsMobile == true
-        -- V11.5: label and field use explicit top positions instead of bottom anchoring.
-        -- This keeps the title-to-dropdown gap identical on PC and mobile at any UI scale.
-        local DropdownTopPadding = CompactMobileDropdown and 5 or 6
-        local DropdownLabelHeight = CompactMobileDropdown and 12 or 14
+        local CompactMobileDropdown = false
+        -- V11.20: mobile uses the same closed-control geometry as desktop.
+        -- Only the popup itself remains viewport-aware for touch screens.
+        local DropdownTopPadding = 6
+        local DropdownLabelHeight = 14
         local DropdownLabelGap = 3
-        local DropdownFieldHeight = CompactMobileDropdown and 25 or 29
-        local DropdownBottomPadding = CompactMobileDropdown and 5 or 6
+        local DropdownFieldHeight = 29
+        local DropdownBottomPadding = 6
         local DropdownFieldTop = DropdownTopPadding + DropdownLabelHeight + DropdownLabelGap
         local DropdownHolderHeight = Dropdown.Text
             and (DropdownFieldTop + DropdownFieldHeight + DropdownBottomPadding)
@@ -9230,7 +9232,7 @@ local List = New("ScrollingFrame", {
             Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, DropdownLabelHeight),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextTruncate = Enum.TextTruncate.None,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -9248,7 +9250,7 @@ local List = New("ScrollingFrame", {
             Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, DropdownFieldHeight),
             Text = "---",
             RichText = true,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             -- Closed dropdowns can contain long rich pet/item names.
             -- Truncate only the compact field; the popup still shows full text.
             TextTruncate = Enum.TextTruncate.None,
@@ -12795,7 +12797,7 @@ function Library:CreateWindow(WindowInfo)
             PlaceholderColor3 = LayeredStyle.SecondaryText,
             Size = WindowInfo.SearchbarSize,
             TextScaled = false,
-            TextSize = Library.IsMobile and 12 or 13,
+            TextSize = 13,
             TextColor3 = LayeredStyle.MainText,
             TextXAlignment = Enum.TextXAlignment.Left,
             Visible = not (WindowInfo.DisableSearch or false),
@@ -13432,18 +13434,18 @@ function Library:CreateWindow(WindowInfo)
                 CanvasSize = UDim2.fromScale(0, 0),
                 ScrollBarImageTransparency = 1,
                 ScrollBarThickness = 0,
-                Size = UDim2.new(0.5, Library.IsMobile and -1 or -2, 1, 0),
+                Size = UDim2.new(0.5, -2, 1, 0),
                 Parent = TabContainer,
             })
             New("UIListLayout", {
-                Padding = UDim.new(0, Library.IsMobile and 4 or 6),
+                Padding = UDim.new(0, 6),
                 Parent = TabLeft,
             })
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, Library.IsMobile and 3 or 4),
-                PaddingLeft = UDim.new(0, Library.IsMobile and 3 or 4),
-                PaddingRight = UDim.new(0, Library.IsMobile and 2 or 3),
-                PaddingTop = UDim.new(0, Library.IsMobile and 3 or 4),
+                PaddingBottom = UDim.new(0, 4),
+                PaddingLeft = UDim.new(0, 4),
+                PaddingRight = UDim.new(0, 3),
+                PaddingTop = UDim.new(0, 4),
                 Parent = TabLeft,
             })
             do
@@ -13467,18 +13469,18 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromScale(1, 0),
                 ScrollBarImageTransparency = 1,
                 ScrollBarThickness = 0,
-                Size = UDim2.new(0.5, Library.IsMobile and -1 or -2, 1, 0),
+                Size = UDim2.new(0.5, -2, 1, 0),
                 Parent = TabContainer,
             })
             New("UIListLayout", {
-                Padding = UDim.new(0, Library.IsMobile and 4 or 6),
+                Padding = UDim.new(0, 6),
                 Parent = TabRight,
             })
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, Library.IsMobile and 3 or 4),
-                PaddingLeft = UDim.new(0, Library.IsMobile and 2 or 3),
-                PaddingRight = UDim.new(0, Library.IsMobile and 3 or 4),
-                PaddingTop = UDim.new(0, Library.IsMobile and 3 or 4),
+                PaddingBottom = UDim.new(0, 4),
+                PaddingLeft = UDim.new(0, 3),
+                PaddingRight = UDim.new(0, 4),
+                PaddingTop = UDim.new(0, 4),
                 Parent = TabRight,
             })
             do
@@ -14129,10 +14131,10 @@ function Library:CreateWindow(WindowInfo)
                     Parent = GroupboxHolder,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, Library.IsMobile and 6 or 8),
-                    PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 9),
-                    PaddingRight = UDim.new(0, Library.IsMobile and 8 or 9),
-                    PaddingTop = UDim.new(0, Library.IsMobile and 6 or 8),
+                    PaddingBottom = UDim.new(0, 8),
+                    PaddingLeft = UDim.new(0, 9),
+                    PaddingRight = UDim.new(0, 9),
+                    PaddingTop = UDim.new(0, 8),
                     Parent = GroupboxTop,
                 })
 
@@ -14145,7 +14147,7 @@ function Library:CreateWindow(WindowInfo)
                         ImageRectOffset = BoxIcon.ImageRectOffset,
                         ImageRectSize = BoxIcon.ImageRectSize,
                         Position = UDim2.fromScale(0, 0.5),
-                        Size = UDim2.fromOffset(Library.IsMobile and 16 or 18, Library.IsMobile and 16 or 18),
+                        Size = UDim2.fromOffset(18, 18),
                         Parent = GroupboxTop,
                     })
                 end
@@ -14175,7 +14177,7 @@ function Library:CreateWindow(WindowInfo)
                     Size = UDim2.fromScale(1, 0),
                     Text = Info.Name,
                     TextColor3 = LayeredStyle.MainText,
-                    TextSize = Library.IsMobile and 13 or 14,
+                    TextSize = 14,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Parent = TextsFrame,
@@ -14188,10 +14190,10 @@ function Library:CreateWindow(WindowInfo)
                 GroupboxDescription = New("TextLabel", {
                     AutomaticSize = Enum.AutomaticSize.None,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(1, 0, 0, Library.IsMobile and 12 or 14),
+                    Size = UDim2.new(1, 0, 0, 14),
                     Text = Info.Description or "",
                     TextColor3 = LayeredStyle.SecondaryText,
-                    TextSize = Library.IsMobile and 10 or 11,
+                    TextSize = 11,
                     TextTransparency = 0.12,
                     TextWrapped = false,
                     TextTruncate = Enum.TextTruncate.AtEnd,
@@ -14266,14 +14268,14 @@ function Library:CreateWindow(WindowInfo)
                 })
 
                 GroupboxList = New("UIListLayout", {
-                    Padding = UDim.new(0, Library.IsMobile and 5 or 7),
+                    Padding = UDim.new(0, 7),
                     Parent = GroupboxContainer,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, Library.IsMobile and 6 or 8),
-                    PaddingLeft = UDim.new(0, Library.IsMobile and 7 or 8),
-                    PaddingRight = UDim.new(0, Library.IsMobile and 7 or 8),
-                    PaddingTop = UDim.new(0, Library.IsMobile and 6 or 8),
+                    PaddingBottom = UDim.new(0, 8),
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8),
+                    PaddingTop = UDim.new(0, 8),
                     Parent = GroupboxContainer,
                 })
             end
