@@ -7915,9 +7915,10 @@ local List = New("ScrollingFrame", {
             -- If bulk actions are hidden (for example a single-select dropdown),
             -- the search box expands all the way to the right with no dead gap.
             local hasSearch = SearchInput.Visible
-            local showSelectionActions = Info.Multi == true and Info.ShowBulkActions ~= false
+            local showMultiActions = Info.Multi == true and Info.ShowBulkActions ~= false
+            local showClearAction = (Info.Multi ~= true and Info.AllowNull == true)
             local showRefreshAction = type(Dropdown.RefreshFunc) == "function"
-            BulkActions.Visible = showSelectionActions or showRefreshAction
+            BulkActions.Visible = showMultiActions or showClearAction or showRefreshAction
             local hasBulkActions = BulkActions.Visible
 
             if hasSearch or hasBulkActions then
@@ -7928,8 +7929,10 @@ local List = New("ScrollingFrame", {
                 local toolbarGap = Library.IsMobile and 5 or 8
                 local bulkWidth = 0
 
-                if showSelectionActions then
+                if showMultiActions then
                     bulkWidth += selectAllWidth + actionGap + clearWidth
+                elseif showClearAction then
+                    bulkWidth += clearWidth
                 end
                 if showRefreshAction then
                     if bulkWidth > 0 then bulkWidth += actionGap end
@@ -7959,16 +7962,18 @@ local List = New("ScrollingFrame", {
                     BulkActions.Size = UDim2.fromOffset(bulkWidth, M.searchH)
 
                     local x = 0
-                    SelectAllButton.Visible = showSelectionActions
-                    ClearButton.Visible = showSelectionActions
+                    SelectAllButton.Visible = showMultiActions
+                    ClearButton.Visible = showMultiActions or showClearAction
                     RefreshButton.Visible = showRefreshAction
 
-                    if showSelectionActions then
+                    if showMultiActions then
                         SelectAllButton.Size = UDim2.fromOffset(selectAllWidth, M.searchH)
                         SelectAllButton.Position = UDim2.fromOffset(x, 0)
                         SelectAllButton.TextSize = 12
                         x += selectAllWidth + actionGap
+                    end
 
+                    if showMultiActions or showClearAction then
                         ClearButton.Size = UDim2.fromOffset(clearWidth, M.searchH)
                         ClearButton.Position = UDim2.fromOffset(x, 0)
                         ClearButton.TextSize = 12
@@ -8376,6 +8381,11 @@ local List = New("ScrollingFrame", {
                 end
             end
 
+            if Info.AllowNull == true and Info.Multi ~= true
+                and (Str == "-" or Str == "---") then
+                Str = ""
+            end
+
             Display.Text = (Str == "" and "---" or Str)
         end
 
@@ -8433,6 +8443,11 @@ local List = New("ScrollingFrame", {
         end
 
         function Dropdown:SetValue(Value, suppressCallback)
+            if Info.AllowNull == true and Info.Multi ~= true
+                and (Value == "" or Value == "-" or Value == "---") then
+                Value = nil
+            end
+
             if Info.Multi then
                 local Table = {}
 
@@ -8662,11 +8677,15 @@ local List = New("ScrollingFrame", {
         end)
 
         ClearButton.MouseButton1Click:Connect(function()
-            if not Info.Multi or Dropdown.Disabled then
+            if Dropdown.Disabled then
                 return
             end
 
-            Dropdown:SetValue({})
+            if Info.Multi then
+                Dropdown:SetValue({})
+            elseif Info.AllowNull == true then
+                Dropdown:SetValue(nil)
+            end
         end)
 
         RefreshButton.MouseButton1Click:Connect(function()
@@ -9448,9 +9467,10 @@ local List = New("ScrollingFrame", {
             -- If bulk actions are hidden (for example a single-select dropdown),
             -- the search box expands all the way to the right with no dead gap.
             local hasSearch = SearchInput.Visible
-            local showSelectionActions = Info.Multi == true and Info.ShowBulkActions ~= false
+            local showMultiActions = Info.Multi == true and Info.ShowBulkActions ~= false
+            local showClearAction = (Info.Multi ~= true and Info.AllowNull == true)
             local showRefreshAction = type(Dropdown.RefreshFunc) == "function"
-            BulkActions.Visible = showSelectionActions or showRefreshAction
+            BulkActions.Visible = showMultiActions or showClearAction or showRefreshAction
             local hasBulkActions = BulkActions.Visible
 
             if hasSearch or hasBulkActions then
@@ -9461,8 +9481,10 @@ local List = New("ScrollingFrame", {
                 local toolbarGap = Library.IsMobile and 5 or 8
                 local bulkWidth = 0
 
-                if showSelectionActions then
+                if showMultiActions then
                     bulkWidth += selectAllWidth + actionGap + clearWidth
+                elseif showClearAction then
+                    bulkWidth += clearWidth
                 end
                 if showRefreshAction then
                     if bulkWidth > 0 then bulkWidth += actionGap end
@@ -9492,16 +9514,18 @@ local List = New("ScrollingFrame", {
                     BulkActions.Size = UDim2.fromOffset(bulkWidth, M.searchH)
 
                     local x = 0
-                    SelectAllButton.Visible = showSelectionActions
-                    ClearButton.Visible = showSelectionActions
+                    SelectAllButton.Visible = showMultiActions
+                    ClearButton.Visible = showMultiActions or showClearAction
                     RefreshButton.Visible = showRefreshAction
 
-                    if showSelectionActions then
+                    if showMultiActions then
                         SelectAllButton.Size = UDim2.fromOffset(selectAllWidth, M.searchH)
                         SelectAllButton.Position = UDim2.fromOffset(x, 0)
                         SelectAllButton.TextSize = 12
                         x += selectAllWidth + actionGap
+                    end
 
+                    if showMultiActions or showClearAction then
                         ClearButton.Size = UDim2.fromOffset(clearWidth, M.searchH)
                         ClearButton.Position = UDim2.fromOffset(x, 0)
                         ClearButton.TextSize = 12
@@ -9890,6 +9914,11 @@ local List = New("ScrollingFrame", {
                 Str = Dropdown.Value and FormatZanjiDropdownValue(Dropdown.Value) or ""
             end
     
+            if Info.AllowNull == true and Info.Multi ~= true
+                and (Str == "-" or Str == "---") then
+                Str = ""
+            end
+
             Display.Text = (Str == "" and "---" or Str)
         end
     
@@ -9943,6 +9972,11 @@ local List = New("ScrollingFrame", {
         end
     
         function Dropdown:SetValue(Value, suppressCallback)
+            if Info.AllowNull == true and Info.Multi ~= true
+                and (Value == "" or Value == "-" or Value == "---") then
+                Value = nil
+            end
+
             if Info.Multi then
                 local Table = {}
     
@@ -10124,11 +10158,15 @@ local List = New("ScrollingFrame", {
         end)
 
         ClearButton.MouseButton1Click:Connect(function()
-            if not Info.Multi or Dropdown.Disabled then
+            if Dropdown.Disabled then
                 return
             end
 
-            Dropdown:SetValue({})
+            if Info.Multi then
+                Dropdown:SetValue({})
+            elseif Info.AllowNull == true then
+                Dropdown:SetValue(nil)
+            end
         end)
 
         RefreshButton.MouseButton1Click:Connect(function()
