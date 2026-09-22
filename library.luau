@@ -499,6 +499,9 @@ local Templates = {
         Placeholder = "",
         AllowEmpty = true,
         EmptyReset = "---",
+        -- Show the last committed value beside the input title.
+        -- Sensitive fields such as Webhook/Web API inputs explicitly disable this.
+        ShowSavedValue = true,
 
         Callback = function() end,
         Changed = function() end,
@@ -6353,6 +6356,8 @@ do
             Placeholder = Info.Placeholder,
             AllowEmpty = Info.AllowEmpty,
             EmptyReset = Info.EmptyReset,
+            ShowSavedValue = Info.ShowSavedValue ~= false,
+            BaseText = tostring(Info.Text or "Input"),
 
             Tooltip = Info.Tooltip,
             DisabledTooltip = Info.DisabledTooltip,
@@ -6410,6 +6415,44 @@ do
             ZIndex = 2,
             Parent = Holder,
         })
+
+        -- V11.24: show the last committed/saved value in the title so users can
+        -- immediately tell whether an edit was actually accepted. The green
+        -- value changes only when Input:SetValue commits a value, not merely
+        -- while the user is typing in a Finished input.
+        local function EscapeInputRichText(Value)
+            local Text = tostring(Value == nil and "" or Value)
+            Text = Text:gsub("&", "&amp;")
+            Text = Text:gsub("<", "&lt;")
+            Text = Text:gsub(">", "&gt;")
+            Text = Text:gsub('"', "&quot;")
+            Text = Text:gsub("'", "&apos;")
+            return Text
+        end
+
+        local function SavedValueText(Value)
+            local Text = tostring(Value == nil and "" or Value)
+            if Trim(Text) == "" then
+                return "---"
+            end
+            return Text
+        end
+
+        local function RefreshSavedValueLabel()
+            if Input.ShowSavedValue ~= true then
+                Label.Text = Input.BaseText
+                return
+            end
+
+            local Base = tostring(Input.BaseText or "Input"):gsub("%s*:%s*$", "")
+            local Saved = SavedValueText(Input.Value)
+            Label.Text = EscapeInputRichText(Base)
+                .. ': <font color="#43E17D">'
+                .. EscapeInputRichText(Saved)
+                .. "</font>"
+        end
+
+        RefreshSavedValueLabel()
 
         -- ZANJI: every AddInput uses one fixed 30px single-line field.
         -- When unfocused, a clipped TextLabel preview renders long values with
@@ -6568,6 +6611,7 @@ do
             Input.Value = Text
             Box.Text = Text
             RefreshPreview()
+            RefreshSavedValueLabel()
 
             if not Input.Disabled then
                 Input:RunChanged()
@@ -6595,7 +6639,8 @@ do
 
         function Input:SetText(Text: string)
             Input.Text = Text
-            Label.Text = Text
+            Input.BaseText = tostring(Text or "")
+            RefreshSavedValueLabel()
         end
 
         if Input.Finished then
