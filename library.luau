@@ -1451,7 +1451,7 @@ do
         AnchorPoint = Vector2.new(1, 0),
         BackgroundTransparency = 1,
         Position = UDim2.new(1, -6, 0, 6),
-        Size = UDim2.new(0, 300, 1, -12),
+        Size = UDim2.new(0, 280, 1, -12),
         Parent = ScreenGui,
     })
     table.insert(
@@ -5055,7 +5055,7 @@ do
             Data.Text = Params.Text or ""
             Data.DoesWrap = Params.DoesWrap or false
             Data.Size = Params.Size or 14
-            Data.Visible = Params.Visible or true
+            Data.Visible = Params.Visible ~= false
             Data.Idx = typeof(Second) == "table" and First or nil
         else
             Data.Text = First or ""
@@ -8026,8 +8026,9 @@ local List = New("ScrollingFrame", {
 
             if rowStroke then
                 if selected then
-                    rowStroke.Color = Library.Scheme.AccentColor
-                    rowStroke.Transparency = 0
+                    -- Selected state uses fill only. No outline, so item icons stay unobstructed.
+                    rowStroke.Color = LayeredStyle.Border
+                    rowStroke.Transparency = 1
                 elseif hovered then
                     rowStroke.Color = LayeredStyle.DropdownHoverBorder
                     rowStroke.Transparency = 0.04
@@ -9558,8 +9559,9 @@ local List = New("ScrollingFrame", {
 
             if rowStroke then
                 if selected then
-                    rowStroke.Color = Library.Scheme.AccentColor
-                    rowStroke.Transparency = 0
+                    -- Selected state uses fill only. No outline, so item icons stay unobstructed.
+                    rowStroke.Color = LayeredStyle.Border
+                    rowStroke.Transparency = 1
                 elseif hovered then
                     rowStroke.Color = LayeredStyle.DropdownHoverBorder
                     rowStroke.Transparency = 0.04
@@ -11470,14 +11472,28 @@ function Library:Notify(...)
     local Data = {}
     local Info = select(1, ...)
 
+    local function CompactNotifyText(value, limit)
+        local text = tostring(value or "")
+            :gsub("<[^>]->", "")
+            :gsub("%s+", " ")
+            :gsub("^%s+", "")
+            :gsub("%s+$", "")
+        if text == "" then return nil end
+        limit = tonumber(limit) or 80
+        if #text > limit then
+            text = text:sub(1, math.max(1, limit - 3)):gsub("%s+$", "") .. "..."
+        end
+        return text
+    end
+
     if typeof(Info) == "table" then
-        Data.Title = tostring(Info.Title)
+        Data.Title = CompactNotifyText(Info.Title, 44)
         Data.TitleColor = Info.TitleColor
 
-        Data.Description = tostring(Info.Description)
+        Data.Description = CompactNotifyText(Info.Description, 82)
         Data.DescriptionColor = Info.DescriptionColor
 
-        Data.Time = Info.Time or 5
+        Data.Time = Info.Time or 3.5
         Data.SoundId = Info.SoundId
         Data.Steps = Info.Steps
         Data.Persist = Info.Persist
@@ -11488,10 +11504,13 @@ function Library:Notify(...)
 
         Data.Volume = tonumber(Info.Volume) or 3
     else
-        Data.Description = tostring(Info)
-        Data.Time = select(2, ...) or 5
+        Data.Description = CompactNotifyText(Info, 82)
+        Data.Time = select(2, ...) or 3.5
         Data.SoundId = select(3, ...)
         Data.Volume = select(4, ...) or 3
+    end
+    if Data.Title and Data.Description and Data.Title:lower() == Data.Description:lower() then
+        Data.Description = nil
     end
     Data.Destroyed = false
 
@@ -11531,14 +11550,14 @@ function Library:Notify(...)
         })
     )
     New("UIListLayout", {
-        Padding = UDim.new(0, 4),
+        Padding = UDim.new(0, 2),
         Parent = Holder,
     })
     New("UIPadding", {
-        PaddingBottom = UDim.new(0, 8),
+        PaddingBottom = UDim.new(0, 7),
         PaddingLeft = UDim.new(0, 8),
         PaddingRight = UDim.new(0, 8),
-        PaddingTop = UDim.new(0, 8),
+        PaddingTop = UDim.new(0, 7),
         Parent = Holder,
     })
     Library:AddOutline(Holder)
@@ -11582,7 +11601,7 @@ function Library:Notify(...)
         Parent = ContentContainer,
     })
     New("UIListLayout", {
-        Padding = UDim.new(0, 4),
+        Padding = UDim.new(0, 2),
         Parent = TextContainer,
     })
 
@@ -11629,10 +11648,11 @@ function Library:Notify(...)
             Size = UDim2.fromScale(0, 0),
             Text = Data.Title,
             TextColor3 = Data.TitleColor or "FontColor",
-            TextSize = 15,
+            TextSize = 13,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
-            TextWrapped = true,
+            TextWrapped = false,
+            TextTruncate = Enum.TextTruncate.AtEnd,
             Parent = TitleContainer,
         })
     end
@@ -11644,9 +11664,10 @@ function Library:Notify(...)
             Size = UDim2.fromScale(0, 0),
             Text = Data.Description,
             TextColor3 = Data.DescriptionColor or "FontColor",
-            TextSize = 14,
+            TextSize = 12,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextWrapped = true,
+            TextWrapped = false,
+            TextTruncate = Enum.TextTruncate.AtEnd,
             Parent = TextContainer,
         })
     end
@@ -11679,7 +11700,7 @@ function Library:Notify(...)
 
     function Data:ChangeTitle(Text)
         if Title then
-            Data.Title = tostring(Text)
+            Data.Title = CompactNotifyText(Text, 44) or ""
             Title.Text = Data.Title
             Data:Resize()
         end
@@ -11687,7 +11708,7 @@ function Library:Notify(...)
 
     function Data:ChangeDescription(Text)
         if Desc then
-            Data.Description = tostring(Text)
+            Data.Description = CompactNotifyText(Text, 82) or ""
             Desc.Text = Data.Description
             Data:Resize()
         end
@@ -12710,7 +12731,7 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundTransparency = 1,
                 BorderSizePixel = 0,
                 Position = UDim2.new(0, 3, 0.5, 0),
-                Size = UDim2.fromOffset(3, 18),
+                Size = UDim2.fromOffset(0, 0),
                 Parent = TabButton,
             })
             New("UICorner", {
