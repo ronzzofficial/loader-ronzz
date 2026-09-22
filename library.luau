@@ -7231,25 +7231,17 @@ do
         }
 
         local CompactMobileDropdown = Library.IsMobile == true
-        -- V11.6: value-dropdowns (pet/team lists) keep only a 1px lower inset.
-        -- Normal AddDropdown controls are intentionally untouched. This removes the
-        -- large empty strip under Target Pet / XP / Cooldown / Claim fields.
-        local DropdownTopPadding = CompactMobileDropdown and 3 or 4
-        local DropdownLabelHeight = CompactMobileDropdown and 10 or 12
-        local DropdownLabelGap = 2
-        local DropdownFieldHeight = CompactMobileDropdown and 23 or 25
-        local DropdownBottomPadding = 1
-        local DropdownFieldTop = DropdownTopPadding + DropdownLabelHeight + DropdownLabelGap
-        local DropdownHolderHeight = Dropdown.Text
-            and (DropdownFieldTop + DropdownFieldHeight + DropdownBottomPadding)
-            or (DropdownFieldHeight + DropdownTopPadding + DropdownBottomPadding)
 
         local Holder = New("Frame", {
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, DropdownHolderHeight),
+            Size = UDim2.new(1, 0, 0,
+                Dropdown.Text
+                    and (CompactMobileDropdown and 46 or 60)
+                    or (CompactMobileDropdown and 27 or 32)
+            ),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
@@ -7266,8 +7258,8 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, DropdownTopPadding),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, DropdownLabelHeight),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 4 or 7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 12 or 15),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Library.IsMobile and 12 or 13,
@@ -7281,16 +7273,14 @@ do
 
         local Display = New("TextButton", {
             Active = not Dropdown.Disabled,
-            AnchorPoint = Vector2.zero,
+            AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 0, Dropdown.Text and DropdownFieldTop or DropdownTopPadding),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, DropdownFieldHeight),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -5 or -7),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 27),
             Text = "---",
             RichText = true,
             TextSize = Library.IsMobile and 12 or 13,
-            -- Closed dropdowns can contain long rich pet/item names.
-            -- Truncate only the compact field; the popup still shows full text.
             TextTruncate = Enum.TextTruncate.None,
             TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -8720,9 +8710,15 @@ local List = New("ScrollingFrame", {
         function Dropdown:SetText(Text: string)
             Dropdown.Text = Text
 
-            -- Preserve the layered label/input spacing when titles are updated
-            -- dynamically (for example Egg Reduction Team [0/8]).
-            Holder.Size = UDim2.new(1, 0, 0, Text and 68 or 40)
+            -- Dynamic target/team titles keep the original compact dimensions.
+            Holder.Size = UDim2.new(
+                1,
+                0,
+                0,
+                Text
+                    and (CompactMobileDropdown and 46 or 60)
+                    or (CompactMobileDropdown and 27 or 32)
+            )
 
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
