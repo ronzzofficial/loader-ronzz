@@ -7742,11 +7742,14 @@ local List = New("ScrollingFrame", {
         end
 
         local function GetPopupMetrics()
-            local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
+            local camera = workspace.CurrentCamera
+            local viewport = (camera and camera.ViewportSize)
+                or (Library.ScreenGui and Library.ScreenGui.AbsoluteSize)
+                or Vector2.new(1280, 720)
 
-            -- Mobile dropdown auto-fits to the REAL phone viewport.
-            -- Landscape phones use the otherwise-empty top/bottom space and
-            -- a wider panel so pet/item names are not unnecessarily clipped.
+            -- Mobile dropdown uses the available viewport instead of a fixed
+            -- percentage cap. On landscape phones this intentionally fills most
+            -- of the free vertical space while keeping a small safe margin.
             if Library.IsMobile then
                 local vw = math.max(240, tonumber(viewport.X) or 360)
                 local vh = math.max(240, tonumber(viewport.Y) or 640)
@@ -7756,41 +7759,37 @@ local List = New("ScrollingFrame", {
                 local optionCount = math.max(1, #(Dropdown.Values or {}))
 
                 local density = math.clamp(shortSide / 430, 0.84, 1)
-                local rowH = math.max(26, math.floor((compact and 28 or 31) * density))
-                local headerH = math.max(30, math.floor((compact and 32 or 36) * density))
-                local searchH = math.max(27, math.floor((compact and 29 or 32) * density))
-                local actionH = math.max(24, math.floor((compact and 25 or 28) * density))
-                local gap = math.max(4, math.floor(6 * density))
-                local padX = math.max(7, math.floor(10 * density))
-                local padY = math.max(6, math.floor(9 * density))
+                local rowH = math.max(27, math.floor((compact and 29 or 32) * density))
+                local headerH = math.max(31, math.floor((compact and 33 or 36) * density))
+                local searchH = math.max(28, math.floor((compact and 30 or 32) * density))
+                local actionH = math.max(25, math.floor((compact and 26 or 28) * density))
+                local gap = math.max(4, math.floor(5 * density))
+                local padX = math.max(7, math.floor(9 * density))
+                local padY = math.max(6, math.floor(8 * density))
 
-                -- Width: portrait stays compact; landscape may use much more of
-                -- the available horizontal space so long option labels remain useful.
-                local sideMargin = math.clamp(math.floor(vw * 0.035), 10, 24)
-                local maxAllowedW = math.max(180, vw - sideMargin * 2)
-                local desiredW = landscape and math.floor(vw * 0.62) or math.floor(vw * 0.90)
-                local widthCap = landscape and 820 or 520
-                local width = math.min(maxAllowedW, widthCap, desiredW)
-                width = math.max(math.min(300, maxAllowedW), width)
+                local sideMargin = math.clamp(math.floor(vw * 0.025), 8, 22)
+                local verticalMargin = math.clamp(math.floor(vh * 0.025), 8, 18)
+                local maxAllowedW = math.max(210, vw - sideMargin * 2)
+                local desiredW = landscape and math.floor(vw * 0.80) or math.floor(vw * 0.92)
+                local width = math.min(maxAllowedW, desiredW)
+                width = math.max(math.min(280, maxAllowedW), width)
 
-                -- Height: use the spare vertical room on landscape phones instead
-                -- of forcing a tiny 2-row selector. Still leave a comfortable
-                -- margin around the modal so it never feels full-screen.
-                local heightRatio = landscape and 0.74 or 0.62
-                local verticalMargin = math.clamp(math.floor(vh * 0.06), 12, 28)
-                local maxH = math.min(vh - verticalMargin * 2, math.floor(vh * heightRatio))
-                maxH = math.max(190, maxH)
+                -- The maximum height is now based on real free screen space, not
+                -- 42-74% of the display. Large lists therefore occupy the useful
+                -- top/bottom area instead of showing only two rows.
+                local maxH = math.max(190, vh - verticalMargin * 2)
 
                 local hasSearch = Info.Searchable == true
                 local hasBulk = (Info.Multi == true and Info.ShowBulkActions ~= false)
+                    or (Info.Multi ~= true and Info.AllowNull == true)
                     or type(Dropdown.RefreshFunc) == "function"
                 local toolbarH = (hasSearch or hasBulk) and (math.max(searchH, actionH) + gap) or 0
                 local chrome = padY * 2 + headerH + gap + toolbarH + 22
+                local rowGap = 4
                 local roomForRows = math.max(rowH * 2, maxH - chrome)
-                local maxRows = math.max(2, math.floor(roomForRows / math.max(1, rowH + 4)))
-                local rowCap = landscape and 12 or 9
-                local visibleRows = math.clamp(optionCount, 2, math.min(maxRows, rowCap))
-                local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * 4
+                local maxRows = math.max(2, math.floor((roomForRows + rowGap) / math.max(1, rowH + rowGap)))
+                local visibleRows = math.max(1, math.min(optionCount, maxRows))
+                local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * rowGap
                 local desiredH = chrome + rowsH
                 local height = math.clamp(desiredH, 180, maxH)
 
@@ -7999,7 +7998,7 @@ local List = New("ScrollingFrame", {
             ListLayout.Padding = UDim.new(0, CurrentRowGap)
 
             for _, Entry in pairs(Buttons) do
-                Entry.Button.Size = UDim2.new(1, -16, 0, CurrentRowHeight)
+                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
             end
 
@@ -8138,7 +8137,7 @@ local List = New("ScrollingFrame", {
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
-                Size = UDim2.new(1, -16, 0, CurrentRowHeight),
+                Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight),
                 Text = "",
                 TextColor3 = LayeredStyle.MainText,
                 RichText = true,
@@ -8169,8 +8168,8 @@ local List = New("ScrollingFrame", {
             })
 
             New("UIPadding", {
-                PaddingLeft = UDim.new(0, 12),
-                PaddingRight = UDim.new(0, 12),
+                PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 12),
+                PaddingRight = UDim.new(0, Library.IsMobile and 8 or 12),
                 Parent = Button,
             })
 
@@ -9309,43 +9308,56 @@ local List = New("ScrollingFrame", {
         end
     
         local function GetPopupMetrics()
-            local viewport = Library.ScreenGui and Library.ScreenGui.AbsoluteSize or Vector2.new(1280, 720)
+            local camera = workspace.CurrentCamera
+            local viewport = (camera and camera.ViewportSize)
+                or (Library.ScreenGui and Library.ScreenGui.AbsoluteSize)
+                or Vector2.new(1280, 720)
 
-            -- Mobile popup scales from the real phone viewport AND the number
-            -- of choices. Small phones get a much smaller selector instead of a
-            -- fixed 320x340 panel that covers most of the screen.
+            -- Mobile dropdown uses the available viewport instead of a fixed
+            -- percentage cap. On landscape phones this intentionally fills most
+            -- of the free vertical space while keeping a small safe margin.
             if Library.IsMobile then
                 local vw = math.max(240, tonumber(viewport.X) or 360)
-                local vh = math.max(300, tonumber(viewport.Y) or 640)
+                local vh = math.max(240, tonumber(viewport.Y) or 640)
+                local landscape = vw > vh
                 local shortSide = math.min(vw, vh)
-                local compact = shortSide < 375 or vh < 560
+                local compact = shortSide < 360
                 local optionCount = math.max(1, #(Dropdown.Values or {}))
 
-                -- Density follows the actual device instead of using one phone
-                -- preset. Small/landscape phones stay intentionally compact.
-                local density = math.clamp(shortSide / 430, 0.82, 1)
-                local rowH = math.floor((compact and 27 or 30) * density)
-                local headerH = math.floor((compact and 31 or 34) * density)
-                local searchH = math.floor((compact and 27 or 30) * density)
-                local actionH = math.floor((compact and 23 or 25) * density)
-                local gap = math.max(3, math.floor(5 * density))
-                local padX = math.max(6, math.floor(8 * density))
-                local padY = math.max(5, math.floor(7 * density))
+                local density = math.clamp(shortSide / 430, 0.84, 1)
+                local rowH = math.max(27, math.floor((compact and 29 or 32) * density))
+                local headerH = math.max(31, math.floor((compact and 33 or 36) * density))
+                local searchH = math.max(28, math.floor((compact and 30 or 32) * density))
+                local actionH = math.max(25, math.floor((compact and 26 or 28) * density))
+                local gap = math.max(4, math.floor(5 * density))
+                local padX = math.max(7, math.floor(9 * density))
+                local padY = math.max(6, math.floor(8 * density))
 
-                -- Width is constrained by both viewport and a desktop-like max.
-                -- This keeps tablet/large-phone dropdowns from becoming huge.
-                local horizontalMargin = math.clamp(math.floor(vw * 0.055), 10, 22)
-                local width = math.min(360, vw - horizontalMargin * 2)
-                width = math.max(math.min(220, vw - 16), width)
+                local sideMargin = math.clamp(math.floor(vw * 0.025), 8, 22)
+                local verticalMargin = math.clamp(math.floor(vh * 0.025), 8, 18)
+                local maxAllowedW = math.max(210, vw - sideMargin * 2)
+                local desiredW = landscape and math.floor(vw * 0.80) or math.floor(vw * 0.92)
+                local width = math.min(maxAllowedW, desiredW)
+                width = math.max(math.min(280, maxAllowedW), width)
 
-                local chrome = padY * 2 + headerH + gap + searchH + gap + 18
-                local maxH = math.max(150, math.min(340, math.floor(vh * (compact and 0.42 or 0.48))))
+                -- The maximum height is now based on real free screen space, not
+                -- 42-74% of the display. Large lists therefore occupy the useful
+                -- top/bottom area instead of showing only two rows.
+                local maxH = math.max(190, vh - verticalMargin * 2)
+
+                local hasSearch = Info.Searchable == true
+                local hasBulk = (Info.Multi == true and Info.ShowBulkActions ~= false)
+                    or (Info.Multi ~= true and Info.AllowNull == true)
+                    or type(Dropdown.RefreshFunc) == "function"
+                local toolbarH = (hasSearch or hasBulk) and (math.max(searchH, actionH) + gap) or 0
+                local chrome = padY * 2 + headerH + gap + toolbarH + 22
+                local rowGap = 4
                 local roomForRows = math.max(rowH * 2, maxH - chrome)
-                local maxRows = math.max(2, math.floor(roomForRows / math.max(1, rowH + 4)))
-                local visibleRows = math.clamp(optionCount, 2, math.min(maxRows, compact and 5 or 7))
-                local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * 4
+                local maxRows = math.max(2, math.floor((roomForRows + rowGap) / math.max(1, rowH + rowGap)))
+                local visibleRows = math.max(1, math.min(optionCount, maxRows))
+                local rowsH = visibleRows * rowH + math.max(0, visibleRows - 1) * rowGap
                 local desiredH = chrome + rowsH
-                local height = math.clamp(desiredH, 150, maxH)
+                local height = math.clamp(desiredH, 180, maxH)
 
                 return {
                     width = width,
@@ -9356,9 +9368,9 @@ local List = New("ScrollingFrame", {
                     searchH = searchH,
                     actionH = actionH,
                     gap = gap,
-                    titleText = compact and 12 or 13,
-                    inputText = compact and 11 or 12,
-                    optionText = compact and 11 or 12,
+                    titleText = compact and 13 or 14,
+                    inputText = compact and 12 or 13,
+                    optionText = compact and 12 or 13,
                     rowH = rowH,
                 }
             end
@@ -9551,7 +9563,7 @@ local List = New("ScrollingFrame", {
             ListLayout.Padding = UDim.new(0, CurrentRowGap)
     
             for _, Entry in pairs(Buttons) do
-                Entry.Button.Size = UDim2.new(1, -16, 0, CurrentRowHeight)
+                Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
             end
 
@@ -9682,12 +9694,13 @@ local List = New("ScrollingFrame", {
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
                 LayoutOrder = LayoutOrder or 0,
-                Size = UDim2.new(1, -16, 0, CurrentRowHeight),
+                Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight),
                 Text = "",
                 TextColor3 = LayeredStyle.MainText,
                 RichText = true,
                 TextSize = CurrentOptionTextSize,
-                TextTruncate = Enum.TextTruncate.None,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextWrapped = false,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextYAlignment = Enum.TextYAlignment.Center,
                 ZIndex = 123,
@@ -9709,8 +9722,8 @@ local List = New("ScrollingFrame", {
             })
 
             New("UIPadding", {
-                PaddingLeft = UDim.new(0, 12),
-                PaddingRight = UDim.new(0, 12),
+                PaddingLeft = UDim.new(0, Library.IsMobile and 8 or 12),
+                PaddingRight = UDim.new(0, Library.IsMobile and 8 or 12),
                 Parent = Button,
             })
 
