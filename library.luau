@@ -5352,7 +5352,7 @@ do
 
         local Holder = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, Library.IsMobile and 30 or 32),
+            Size = UDim2.new(1, 0, 0, Library.IsMobile and 25 or 29),
             Parent = Container,
         })
 
@@ -6363,12 +6363,21 @@ do
             Type = "Input",
         }
 
+        -- V11.10 unified control metrics.
+        local ControlTopPadding = Library.IsMobile and 5 or 6
+        local ControlLabelHeight = Library.IsMobile and 12 or 14
+        local ControlLabelGap = 3
+        local ControlFieldHeight = Library.IsMobile and 25 or 29
+        local ControlBottomPadding = Library.IsMobile and 5 or 6
+        local ControlFieldTop = ControlTopPadding + ControlLabelHeight + ControlLabelGap
+        local ControlHolderHeight = ControlFieldTop + ControlFieldHeight + ControlBottomPadding
+
         local Holder = New("Frame", {
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0, Library.IsMobile and 47 or 58),
+            Size = UDim2.new(1, 0, 0, ControlHolderHeight),
             Visible = Input.Visible,
             Parent = Container,
         })
@@ -6385,11 +6394,11 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(Library.IsMobile and 8 or 10, Library.IsMobile and 4 or 6),
-            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, Library.IsMobile and 13 or 15),
+            Position = UDim2.fromOffset(Library.IsMobile and 8 or 10, ControlTopPadding),
+            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, ControlLabelHeight),
             Text = Input.Text,
             TextColor3 = LayeredStyle.MainText,
-            TextSize = Library.IsMobile and 11 or 12,
+            TextSize = Library.IsMobile and 12 or 13,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -6402,12 +6411,12 @@ do
         -- ... at the end. When focused, the real TextBox takes over so editing
         -- and cursor scrolling still work normally.
         local BoxClip = New("Frame", {
-            AnchorPoint = Vector2.new(0, 1),
+            AnchorPoint = Vector2.zero,
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Position = UDim2.new(0, Library.IsMobile and 8 or 10, 1, Library.IsMobile and -5 or -7),
-            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, Library.IsMobile and 25 or 29),
+            Position = UDim2.new(0, Library.IsMobile and 8 or 10, 0, ControlFieldTop),
+            Size = UDim2.new(1, Library.IsMobile and -16 or -20, 0, ControlFieldHeight),
             Parent = Holder,
         })
 
@@ -7231,17 +7240,22 @@ do
         }
 
         local CompactMobileDropdown = Library.IsMobile == true
+        local ControlTopPadding = CompactMobileDropdown and 5 or 6
+        local ControlLabelHeight = CompactMobileDropdown and 12 or 14
+        local ControlLabelGap = 3
+        local ControlFieldHeight = CompactMobileDropdown and 25 or 29
+        local ControlBottomPadding = CompactMobileDropdown and 5 or 6
+        local ControlFieldTop = ControlTopPadding + ControlLabelHeight + ControlLabelGap
+        local ControlHolderHeight = Dropdown.Text
+            and (ControlFieldTop + ControlFieldHeight + ControlBottomPadding)
+            or (ControlFieldHeight + ControlTopPadding + ControlBottomPadding)
 
         local Holder = New("Frame", {
             BackgroundColor3 = LayeredStyle.ControlRow,
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ClipsDescendants = true,
-            Size = UDim2.new(1, 0, 0,
-                Dropdown.Text
-                    and (CompactMobileDropdown and 46 or 60)
-                    or (CompactMobileDropdown and 27 or 32)
-            ),
+            Size = UDim2.new(1, 0, 0, ControlHolderHeight),
             Visible = Dropdown.Visible,
             Parent = Container,
         })
@@ -7258,8 +7272,8 @@ do
 
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, CompactMobileDropdown and 4 or 7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 12 or 15),
+            Position = UDim2.fromOffset(CompactMobileDropdown and 8 or 10, ControlTopPadding),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, ControlLabelHeight),
             Text = Dropdown.Text,
             TextColor3 = LayeredStyle.MainText,
             TextSize = Library.IsMobile and 12 or 13,
@@ -7273,11 +7287,11 @@ do
 
         local Display = New("TextButton", {
             Active = not Dropdown.Disabled,
-            AnchorPoint = Vector2.new(0, 1),
+            AnchorPoint = Vector2.zero,
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -5 or -7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 25 or 29),
+            Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 0, Dropdown.Text and ControlFieldTop or ControlTopPadding),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, ControlFieldHeight),
             Text = "---",
             RichText = true,
             TextSize = Library.IsMobile and 12 or 13,
@@ -7321,8 +7335,8 @@ do
             Position = UDim2.new(
                 1,
                 CompactMobileDropdown and -24 or -28,
-                1,
-                CompactMobileDropdown and -17 or -22
+                0,
+                (Dropdown.Text and ControlFieldTop or ControlTopPadding) + (ControlFieldHeight / 2)
             ),
             Size = UDim2.fromOffset(13, 13),
             ZIndex = 3,
@@ -8716,8 +8730,8 @@ local List = New("ScrollingFrame", {
                 0,
                 0,
                 Text
-                    and (CompactMobileDropdown and 46 or 60)
-                    or (CompactMobileDropdown and 27 or 32)
+                    and (ControlFieldTop + ControlFieldHeight + ControlBottomPadding)
+                    or (ControlFieldHeight + ControlTopPadding + ControlBottomPadding)
             )
 
             Label.Text = Text and Text or ""
@@ -8976,11 +8990,11 @@ local List = New("ScrollingFrame", {
         local CompactMobileDropdown = Library.IsMobile == true
         -- V11.5: label and field use explicit top positions instead of bottom anchoring.
         -- This keeps the title-to-dropdown gap identical on PC and mobile at any UI scale.
-        local DropdownTopPadding = CompactMobileDropdown and 3 or 4
-        local DropdownLabelHeight = CompactMobileDropdown and 10 or 12
-        local DropdownLabelGap = 2
+        local DropdownTopPadding = CompactMobileDropdown and 5 or 6
+        local DropdownLabelHeight = CompactMobileDropdown and 12 or 14
+        local DropdownLabelGap = 3
         local DropdownFieldHeight = CompactMobileDropdown and 25 or 29
-        local DropdownBottomPadding = CompactMobileDropdown and 3 or 4
+        local DropdownBottomPadding = CompactMobileDropdown and 5 or 6
         local DropdownFieldTop = DropdownTopPadding + DropdownLabelHeight + DropdownLabelGap
         local DropdownHolderHeight = Dropdown.Text
             and (DropdownFieldTop + DropdownFieldHeight + DropdownBottomPadding)
