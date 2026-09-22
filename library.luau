@@ -6345,7 +6345,9 @@ do
 
             Finished = Info.Finished,
             Numeric = Info.Numeric,
-            ClearTextOnFocus = Info.ClearTextOnFocus,
+            -- Mobile keyboards should edit the existing value, not erase it on focus.
+            -- Keep the original desktop behavior for controls that intentionally request clear-on-focus.
+            ClearTextOnFocus = Library.IsMobile and false or Info.ClearTextOnFocus,
             ClearTextOnBlur = Info.ClearTextOnBlur,
             Placeholder = Info.Placeholder,
             AllowEmpty = Info.AllowEmpty,
