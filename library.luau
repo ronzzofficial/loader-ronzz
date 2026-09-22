@@ -537,6 +537,8 @@ local Templates = {
         PopupWidth = 560,
         PopupHeight = 460,
         ShowBulkActions = true,
+        -- Refresh is opt-in. Only inventory-backed dropdowns should expose it.
+        InventoryRefresh = false,
 
         Callback = function() end,
         Changed = function() end,
@@ -7232,6 +7234,7 @@ do
             Callback = Info.Callback,
             Changed = Info.Changed,
             RefreshFunc = Info.RefreshFunc or Info.RefreshValues,
+            InventoryRefresh = Info.InventoryRefresh == true,
 
             Disabled = Info.Disabled,
             Visible = Info.Visible,
@@ -7550,7 +7553,7 @@ do
         local BulkActions = New("Frame", {
             BackgroundTransparency = 1,
             Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
-                or type(Dropdown.RefreshFunc) == "function",
+                or (Dropdown.InventoryRefresh and type(Dropdown.RefreshFunc) == "function"),
             ZIndex = 123,
             Parent = PopupBody,
         })
@@ -7594,7 +7597,7 @@ do
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
-            Visible = type(Dropdown.RefreshFunc) == "function",
+            Visible = Dropdown.InventoryRefresh and type(Dropdown.RefreshFunc) == "function",
             ZIndex = 124,
             Parent = BulkActions,
         })
@@ -8533,9 +8536,13 @@ local List = New("ScrollingFrame", {
             Dropdown.Changed = Func
         end
 
-        function Dropdown:SetRefreshFunc(Func)
+        function Dropdown:SetRefreshFunc(Func, ShowInventoryRefresh)
             Dropdown.RefreshFunc = type(Func) == "function" and Func or nil
-            RefreshButton.Visible = type(Dropdown.RefreshFunc) == "function"
+            if ShowInventoryRefresh ~= nil then
+                Dropdown.InventoryRefresh = ShowInventoryRefresh == true
+            end
+            RefreshButton.Visible = Dropdown.InventoryRefresh
+                and type(Dropdown.RefreshFunc) == "function"
             BulkActions.Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
                 or RefreshButton.Visible
             ApplyPopupLayout()
@@ -8956,6 +8963,7 @@ local List = New("ScrollingFrame", {
             Callback = Info.Callback,
             Changed = Info.Changed,
             RefreshFunc = Info.RefreshFunc or Info.RefreshValues,
+            InventoryRefresh = Info.InventoryRefresh == true,
     
             Disabled = Info.Disabled,
             Visible = Info.Visible,
@@ -9303,7 +9311,7 @@ local List = New("ScrollingFrame", {
         local BulkActions = New("Frame", {
             BackgroundTransparency = 1,
             Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
-                or type(Dropdown.RefreshFunc) == "function",
+                or (Dropdown.InventoryRefresh and type(Dropdown.RefreshFunc) == "function"),
             ZIndex = 123,
             Parent = PopupBody,
         })
@@ -9347,7 +9355,7 @@ local List = New("ScrollingFrame", {
             TextColor3 = LayeredStyle.MainText,
             TextSize = 12,
             TextYAlignment = Enum.TextYAlignment.Center,
-            Visible = type(Dropdown.RefreshFunc) == "function",
+            Visible = Dropdown.InventoryRefresh and type(Dropdown.RefreshFunc) == "function",
             ZIndex = 124,
             Parent = BulkActions,
         })
@@ -10216,9 +10224,13 @@ local List = New("ScrollingFrame", {
             Dropdown.Changed = Func
         end
 
-        function Dropdown:SetRefreshFunc(Func)
+        function Dropdown:SetRefreshFunc(Func, ShowInventoryRefresh)
             Dropdown.RefreshFunc = type(Func) == "function" and Func or nil
-            RefreshButton.Visible = type(Dropdown.RefreshFunc) == "function"
+            if ShowInventoryRefresh ~= nil then
+                Dropdown.InventoryRefresh = ShowInventoryRefresh == true
+            end
+            RefreshButton.Visible = Dropdown.InventoryRefresh
+                and type(Dropdown.RefreshFunc) == "function"
             BulkActions.Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
                 or RefreshButton.Visible
             ApplyPopupLayout()
