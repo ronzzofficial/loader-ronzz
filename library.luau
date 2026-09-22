@@ -6469,16 +6469,38 @@ do
         })
 
         local Editing = false
+
+        local function IsTextboxEditing()
+            if Editing then
+                return true
+            end
+
+            local ok, focused = pcall(function()
+                return Box:IsFocused()
+            end)
+            if ok and focused == true then
+                return true
+            end
+
+            -- Some mobile Roblox clients update CursorPosition while the
+            -- software keyboard is open before/without a reliable Focused
+            -- callback. Treat an active cursor as editing as well.
+            return tonumber(Box.CursorPosition) ~= nil and Box.CursorPosition >= 0
+        end
+
         local function RefreshPreview()
             local raw = tostring(Box.Text or "")
             local empty = raw == ""
+            local editingNow = IsTextboxEditing()
 
             Preview.Text = empty and tostring(Input.Placeholder or "") or raw
             Preview.TextTransparency = Input.Disabled and 0.8 or (empty and 0.5 or 0)
-            Preview.Visible = not Editing
+            Preview.Visible = not editingNow
 
+            -- Keep the real TextBox fully readable while the mobile keyboard
+            -- is open. The preview only owns rendering while unfocused.
             Box.TextColor3 = LayeredStyle.MainText
-            Box.TextTransparency = Editing and (Input.Disabled and 0.8 or 0) or 1
+            Box.TextTransparency = editingNow and (Input.Disabled and 0.8 or 0) or 1
         end
 
         local BoxStroke = New("UIStroke", {
@@ -6588,7 +6610,17 @@ do
 
         table.insert(Input.Connections, Box.Focused:Connect(function()
             Editing = true
+            -- Force visibility immediately; some touch keyboards repaint the
+            -- TextBox before the next property-change event.
+            Preview.Visible = false
+            Box.TextColor3 = LayeredStyle.MainText
+            Box.TextTransparency = Input.Disabled and 0.8 or 0
             RefreshPreview()
+            task.defer(function()
+                if not Input.Destroyed then
+                    RefreshPreview()
+                end
+            end)
             if Input.Disabled then
                 return
             end
@@ -6619,6 +6651,10 @@ do
         end))
 
         table.insert(Input.Connections, Box:GetPropertyChangedSignal("Text"):Connect(function()
+            RefreshPreview()
+        end))
+
+        table.insert(Input.Connections, Box:GetPropertyChangedSignal("CursorPosition"):Connect(function()
             RefreshPreview()
         end))
 
