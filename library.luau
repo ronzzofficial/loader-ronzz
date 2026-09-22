@@ -7231,13 +7231,14 @@ do
         }
 
         local CompactMobileDropdown = Library.IsMobile == true
-        -- V11.5: label and field use explicit top positions instead of bottom anchoring.
-        -- This keeps the title-to-dropdown gap identical on PC and mobile at any UI scale.
+        -- V11.6: value-dropdowns (pet/team lists) keep only a 1px lower inset.
+        -- Normal AddDropdown controls are intentionally untouched. This removes the
+        -- large empty strip under Target Pet / XP / Cooldown / Claim fields.
         local DropdownTopPadding = CompactMobileDropdown and 3 or 4
         local DropdownLabelHeight = CompactMobileDropdown and 10 or 12
         local DropdownLabelGap = 2
         local DropdownFieldHeight = CompactMobileDropdown and 23 or 25
-        local DropdownBottomPadding = CompactMobileDropdown and 3 or 4
+        local DropdownBottomPadding = 1
         local DropdownFieldTop = DropdownTopPadding + DropdownLabelHeight + DropdownLabelGap
         local DropdownHolderHeight = Dropdown.Text
             and (DropdownFieldTop + DropdownFieldHeight + DropdownBottomPadding)
