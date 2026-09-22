@@ -6419,7 +6419,7 @@ do
             Size = UDim2.new(1, -18, 1, 0),
             Text = tostring(Input.Value or ""),
             TextColor3 = LayeredStyle.MainText,
-            TextSize = tonumber(Info.InputTextSize) or (Library.IsMobile and 12 or 13),
+            TextSize = Library.IsMobile and 12 or 13,
             TextTruncate = Enum.TextTruncate.AtEnd,
             TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -6442,7 +6442,7 @@ do
             TextEditable = not Input.Disabled,
             TextScaled = false,
             TextWrapped = false,
-            TextSize = tonumber(Info.InputTextSize) or (Library.IsMobile and 12 or 13),
+            TextSize = Library.IsMobile and 12 or 13,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             ZIndex = 2,
@@ -7277,7 +7277,7 @@ do
             BackgroundColor3 = LayeredStyle.InputBox,
             BorderSizePixel = 0,
             Position = UDim2.new(0, CompactMobileDropdown and 8 or 10, 1, CompactMobileDropdown and -5 or -7),
-            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 24 or 27),
+            Size = UDim2.new(1, CompactMobileDropdown and -16 or -20, 0, CompactMobileDropdown and 25 or 29),
             Text = "---",
             RichText = true,
             TextSize = Library.IsMobile and 12 or 13,
@@ -7295,7 +7295,7 @@ do
         })
 
         New("UIPadding", {
-            PaddingLeft = UDim.new(0, CompactMobileDropdown and 7 or 8),
+            PaddingLeft = UDim.new(0, 9),
             -- Reserve only the chevron footprint; the chevron itself is parented
             -- to Holder so this padding never changes its physical position.
             PaddingRight = UDim.new(0, CompactMobileDropdown and 28 or 32),
@@ -8979,7 +8979,7 @@ local List = New("ScrollingFrame", {
         local DropdownTopPadding = CompactMobileDropdown and 3 or 4
         local DropdownLabelHeight = CompactMobileDropdown and 10 or 12
         local DropdownLabelGap = 2
-        local DropdownFieldHeight = CompactMobileDropdown and 23 or 25
+        local DropdownFieldHeight = CompactMobileDropdown and 25 or 29
         local DropdownBottomPadding = CompactMobileDropdown and 3 or 4
         local DropdownFieldTop = DropdownTopPadding + DropdownLabelHeight + DropdownLabelGap
         local DropdownHolderHeight = Dropdown.Text
@@ -9047,7 +9047,7 @@ local List = New("ScrollingFrame", {
         })
     
         New("UIPadding", {
-            PaddingLeft = UDim.new(0, CompactMobileDropdown and 7 or 8),
+            PaddingLeft = UDim.new(0, 9),
             -- Reserve only the chevron footprint; the chevron itself is parented
             -- to Holder so this padding never changes its physical position.
             PaddingRight = UDim.new(0, CompactMobileDropdown and 28 or 32),
@@ -10341,9 +10341,15 @@ local List = New("ScrollingFrame", {
         function Dropdown:SetText(Text: string)
             Dropdown.Text = Text
 
-            -- Preserve the layered label/input spacing when titles are updated
-            -- dynamically (for example Egg Reduction Team [0/8]).
-            Holder.Size = UDim2.new(1, 0, 0, Text and 68 or 40)
+            -- Keep dynamic titles on the same standardized control metrics.
+            Holder.Size = UDim2.new(
+                1,
+                0,
+                0,
+                Text
+                    and (DropdownFieldTop + DropdownFieldHeight + DropdownBottomPadding)
+                    or (DropdownFieldHeight + DropdownTopPadding + DropdownBottomPadding)
+            )
 
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
