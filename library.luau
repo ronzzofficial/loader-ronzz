@@ -7915,12 +7915,14 @@ local List = New("ScrollingFrame", {
                 local padX = math.max(6, math.floor(8 * scale + 0.5))
                 local padY = math.max(4, math.floor(6 * scale + 0.5))
 
-                local sideMargin = math.clamp(math.floor(vw * 0.018), 8, 18)
+                local sideMargin = math.clamp(math.floor(vw * 0.012), 6, 12)
                 local verticalMargin = math.clamp(math.floor(vh * 0.05), 12, 24)
                 local maxAllowedW = math.max(210, vw - sideMargin * 2)
                 local minW = math.min(maxAllowedW, math.floor((landscape and 250 or 230) * scale))
-                local maxLogicalW = math.floor((landscape and 1120 or 720) * scale)
-                local maxW = math.max(minW, math.min(maxAllowedW, maxLogicalW))
+                -- Do not cap landscape popups to an arbitrary logical width.
+                -- If a long pet/item label fits on the physical phone screen,
+                -- allow the popup to grow to that safe viewport width.
+                local maxW = maxAllowedW
 
                 local function mobilePlainText(value)
                     local text = value
@@ -7944,7 +7946,7 @@ local List = New("ScrollingFrame", {
                 -- grows horizontally to fit the longest value, then clamps only
                 -- at the physical viewport margin. Never shrink option text just
                 -- to force it inside a narrower popup.
-                local textReserve = math.max(34, math.floor(46 * scale))
+                local textReserve = math.max(48, math.floor(64 * scale))
                 local desiredW = math.max(minW, math.ceil(longestTextWidth + textReserve))
                 if Dropdown.Text and Dropdown.Text ~= "" then
                     local titleWidth = Library:GetTextBounds(
@@ -8054,7 +8056,7 @@ local List = New("ScrollingFrame", {
             }
         end
 
-        local function UpdateTextTruncateForActualWidth(TextObject, ExtraReserve)
+        local function UpdateTextTruncateForActualWidth(TextObject, ExtraReserve, ForceEllipsisOnMobile)
             if not TextObject or not TextObject.Parent then return end
 
             local function apply()
@@ -8092,11 +8094,18 @@ local List = New("ScrollingFrame", {
                 )
 
                 if Library.IsMobile then
-                    -- Keep the exact UI-scaled font size on mobile. Popup width
-                    -- is responsible for accommodating long labels; do not shrink
-                    -- text or add an ellipsis just because the row is long.
+                    -- Popup rows stay full-width because the popup itself expands.
+                    -- Closed dropdown fields are different: they are fixed-width
+                    -- controls, so overflow must end in an ellipsis instead of
+                    -- drawing outside the field.
                     TextObject.TextSize = baseSize
-                    TextObject.TextTruncate = Enum.TextTruncate.None
+                    if ForceEllipsisOnMobile == true then
+                        TextObject.TextTruncate = textWidth > (available + 2)
+                            and Enum.TextTruncate.AtEnd
+                            or Enum.TextTruncate.None
+                    else
+                        TextObject.TextTruncate = Enum.TextTruncate.None
+                    end
                     return
                 end
 
@@ -8623,7 +8632,7 @@ local List = New("ScrollingFrame", {
             end
 
             Display.Text = (Str == "" and "---" or Str)
-            UpdateTextTruncateForActualWidth(Display, 0)
+            UpdateTextTruncateForActualWidth(Display, 0, true)
         end
 
         function Dropdown:OnChanged(Func)
@@ -9641,12 +9650,14 @@ local List = New("ScrollingFrame", {
                 local padX = math.max(6, math.floor(8 * scale + 0.5))
                 local padY = math.max(4, math.floor(6 * scale + 0.5))
 
-                local sideMargin = math.clamp(math.floor(vw * 0.018), 8, 18)
+                local sideMargin = math.clamp(math.floor(vw * 0.012), 6, 12)
                 local verticalMargin = math.clamp(math.floor(vh * 0.05), 12, 24)
                 local maxAllowedW = math.max(210, vw - sideMargin * 2)
                 local minW = math.min(maxAllowedW, math.floor((landscape and 250 or 230) * scale))
-                local maxLogicalW = math.floor((landscape and 1120 or 720) * scale)
-                local maxW = math.max(minW, math.min(maxAllowedW, maxLogicalW))
+                -- Do not cap landscape popups to an arbitrary logical width.
+                -- If a long pet/item label fits on the physical phone screen,
+                -- allow the popup to grow to that safe viewport width.
+                local maxW = maxAllowedW
 
                 local function mobilePlainText(value)
                     local text = value
@@ -9670,7 +9681,7 @@ local List = New("ScrollingFrame", {
                 -- grows horizontally to fit the longest value, then clamps only
                 -- at the physical viewport margin. Never shrink option text just
                 -- to force it inside a narrower popup.
-                local textReserve = math.max(34, math.floor(46 * scale))
+                local textReserve = math.max(48, math.floor(64 * scale))
                 local desiredW = math.max(minW, math.ceil(longestTextWidth + textReserve))
                 if Dropdown.Text and Dropdown.Text ~= "" then
                     local titleWidth = Library:GetTextBounds(
@@ -9781,7 +9792,7 @@ local List = New("ScrollingFrame", {
             }
         end
 
-        local function UpdateTextTruncateForActualWidth(TextObject, ExtraReserve)
+        local function UpdateTextTruncateForActualWidth(TextObject, ExtraReserve, ForceEllipsisOnMobile)
             if not TextObject or not TextObject.Parent then return end
 
             local function apply()
@@ -9819,11 +9830,18 @@ local List = New("ScrollingFrame", {
                 )
 
                 if Library.IsMobile then
-                    -- Keep the exact UI-scaled font size on mobile. Popup width
-                    -- is responsible for accommodating long labels; do not shrink
-                    -- text or add an ellipsis just because the row is long.
+                    -- Popup rows stay full-width because the popup itself expands.
+                    -- Closed dropdown fields are different: they are fixed-width
+                    -- controls, so overflow must end in an ellipsis instead of
+                    -- drawing outside the field.
                     TextObject.TextSize = baseSize
-                    TextObject.TextTruncate = Enum.TextTruncate.None
+                    if ForceEllipsisOnMobile == true then
+                        TextObject.TextTruncate = textWidth > (available + 2)
+                            and Enum.TextTruncate.AtEnd
+                            or Enum.TextTruncate.None
+                    else
+                        TextObject.TextTruncate = Enum.TextTruncate.None
+                    end
                     return
                 end
 
@@ -10333,7 +10351,7 @@ local List = New("ScrollingFrame", {
             end
 
             Display.Text = (Str == "" and "---" or Str)
-            UpdateTextTruncateForActualWidth(Display, 0)
+            UpdateTextTruncateForActualWidth(Display, 0, true)
         end
     
         function Dropdown:OnChanged(Func)
