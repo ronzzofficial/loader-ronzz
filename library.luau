@@ -1,4 +1,5 @@
 local cloneref = (cloneref or clonereference or function(instance: any)
+-- ZANJI V11.26: rectangular cards/fields use the configured corner radius consistently.
 -- ZANJI V11.21: restored V11.16 dropdown renderer; manual refresh only; touch-safe mobile close.
     return instance
 end)
@@ -5125,7 +5126,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 7),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = TextLabel,
         })
         local LabelStroke = New("UIStroke", {
@@ -5394,7 +5395,7 @@ do
             table.insert(
                 Library.Corners,
                 New("UICorner", {
-                    CornerRadius = UDim.new(0, 7),
+                    CornerRadius = UDim.new(0, Library.CornerRadius),
                     Parent = Base,
                 })
             )
@@ -5745,7 +5746,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 7),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = Button,
         })
         New("UIStroke", {
@@ -6060,7 +6061,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 7),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = Button,
         })
         New("UIStroke", {
@@ -6392,7 +6393,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 7),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -6566,7 +6567,7 @@ do
         table.insert(
             Library.Corners,
             New("UICorner", {
-                CornerRadius = UDim.new(0, 7),
+                CornerRadius = UDim.new(0, Library.CornerRadius),
                 Parent = BoxClip,
             })
         )
@@ -6821,7 +6822,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 7),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -6910,7 +6911,7 @@ do
         table.insert(
             Library.Corners,
             New("UICorner", {
-                CornerRadius = UDim.new(0, 7),
+                CornerRadius = UDim.new(0, Library.CornerRadius),
                 Parent = Bar,
             })
         )
@@ -7403,7 +7404,7 @@ do
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 7),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -7447,7 +7448,7 @@ do
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(0, 7),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = Display,
         })
 
@@ -9200,7 +9201,7 @@ local List = New("ScrollingFrame", {
             Parent = Container,
         })
         New("UICorner", {
-            CornerRadius = UDim.new(0, 7),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = Holder,
         })
         New("UIStroke", {
@@ -9246,7 +9247,7 @@ local List = New("ScrollingFrame", {
         })
     
         New("UICorner", {
-            CornerRadius = UDim.new(0, 7),
+            CornerRadius = UDim.new(0, Library.CornerRadius),
             Parent = Display,
         })
     
@@ -11513,7 +11514,7 @@ local List = New("ScrollingFrame", {
                 table.insert(
                     Library.Corners,
                     New("UICorner", {
-                        CornerRadius = UDim.new(0, Anchored and 3 or Library.CornerRadius),
+                        CornerRadius = UDim.new(0, Library.CornerRadius),
                         Parent = DepboxContainer,
                     })
                 )
@@ -14035,7 +14036,7 @@ function Library:CreateWindow(WindowInfo)
                 table.insert(
                     Library.Corners,
                     New("UICorner", {
-                        CornerRadius = UDim.new(0, 7),
+                        CornerRadius = UDim.new(0, Library.CornerRadius),
                         Parent = GroupboxHolder,
                     })
                 )
