@@ -7376,6 +7376,8 @@ do
             Changed = Info.Changed,
             RefreshFunc = Info.RefreshFunc or Info.RefreshValues,
             InventoryRefresh = Info.InventoryRefresh == true,
+            EquipFunc = type(Info.EquipFunc) == "function" and Info.EquipFunc or nil,
+            ShowEquipAction = Info.ShowEquipAction == true or type(Info.EquipFunc) == "function",
 
             Disabled = Info.Disabled,
             Visible = Info.Visible,
@@ -7694,7 +7696,8 @@ do
         local BulkActions = New("Frame", {
             BackgroundTransparency = 1,
             Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
-                or (Dropdown.InventoryRefresh and type(Dropdown.RefreshFunc) == "function"),
+                or (Dropdown.InventoryRefresh and type(Dropdown.RefreshFunc) == "function")
+                or (Dropdown.ShowEquipAction and type(Dropdown.EquipFunc) == "function"),
             ZIndex = 123,
             Parent = PopupBody,
         })
@@ -7746,6 +7749,23 @@ do
         New("UICorner", {
             CornerRadius = UDim.new(0, math.max(1, Library.CornerRadius)),
             Parent = RefreshButton,
+        })
+
+        local EquipButton = New("TextButton", {
+            BackgroundColor3 = LayeredStyle.InputBox,
+            BorderSizePixel = 0,
+            Text = tostring(Info.EquipText or "Equip"),
+            TextColor3 = LayeredStyle.MainText,
+            TextSize = 12,
+            TextYAlignment = Enum.TextYAlignment.Center,
+            Visible = Dropdown.ShowEquipAction and type(Dropdown.EquipFunc) == "function",
+            ZIndex = 124,
+            Parent = BulkActions,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(0, math.max(1, Library.CornerRadius)),
+            Parent = EquipButton,
         })
 
 local List = New("ScrollingFrame", {
@@ -8009,6 +8029,7 @@ local List = New("ScrollingFrame", {
                 local hasBulk = (Info.Multi == true and Info.ShowBulkActions ~= false)
                     or (Info.Multi ~= true and Info.AllowNull == true)
                     or type(Dropdown.RefreshFunc) == "function"
+                    or type(Dropdown.EquipFunc) == "function"
                 if hasSearch and hasBulk then
                     desiredW = math.max(desiredW, math.floor(340 * scale))
                 elseif hasSearch then
@@ -8210,13 +8231,15 @@ local List = New("ScrollingFrame", {
             local showMultiActions = Info.Multi == true and Info.ShowBulkActions ~= false
             local showClearAction = (Info.Multi ~= true and Info.AllowNull == true)
             local showRefreshAction = Dropdown.InventoryRefresh == true and type(Dropdown.RefreshFunc) == "function"
-            BulkActions.Visible = showMultiActions or showClearAction or showRefreshAction
+            local showEquipAction = Dropdown.ShowEquipAction == true and type(Dropdown.EquipFunc) == "function"
+            BulkActions.Visible = showMultiActions or showClearAction or showRefreshAction or showEquipAction
             local hasBulkActions = BulkActions.Visible
 
             if hasSearch or hasBulkActions then
                 local selectAllWidth = Library.IsMobile and math.max(48, math.floor(M.actionH * 2.05)) or 78
                 local clearWidth = Library.IsMobile and math.max(36, math.floor(M.actionH * 1.50)) or 52
                 local refreshWidth = Library.IsMobile and math.max(48, math.floor(M.actionH * 2.00)) or 76
+                local equipWidth = Library.IsMobile and math.max(44, math.floor(M.actionH * 1.80)) or 54
                 local actionGap = Library.IsMobile and math.max(3, math.floor(M.gap * 0.8)) or 6
                 local toolbarGap = Library.IsMobile and math.max(4, M.gap) or 8
                 local bulkWidth = 0
@@ -8229,6 +8252,10 @@ local List = New("ScrollingFrame", {
                 if showRefreshAction then
                     if bulkWidth > 0 then bulkWidth += actionGap end
                     bulkWidth += refreshWidth
+                end
+                if showEquipAction then
+                    if bulkWidth > 0 then bulkWidth += actionGap end
+                    bulkWidth += equipWidth
                 end
 
                 local toolbarHeight = math.max(M.searchH, M.actionH)
@@ -8257,6 +8284,7 @@ local List = New("ScrollingFrame", {
                     SelectAllButton.Visible = showMultiActions
                     ClearButton.Visible = showMultiActions or showClearAction
                     RefreshButton.Visible = showRefreshAction
+                    EquipButton.Visible = showEquipAction
 
                     if showMultiActions then
                         SelectAllButton.Size = UDim2.fromOffset(selectAllWidth, M.searchH)
@@ -8277,6 +8305,14 @@ local List = New("ScrollingFrame", {
                         RefreshButton.Size = UDim2.fromOffset(refreshWidth, M.searchH)
                         RefreshButton.Position = UDim2.fromOffset(x, 0)
                         RefreshButton.TextSize = Library.IsMobile and math.max(10, M.inputText - 1) or 12
+                        x += refreshWidth
+                    end
+
+                    if showEquipAction then
+                        if x > 0 then x += actionGap end
+                        EquipButton.Size = UDim2.fromOffset(equipWidth, M.searchH)
+                        EquipButton.Position = UDim2.fromOffset(x, 0)
+                        EquipButton.TextSize = Library.IsMobile and math.max(10, M.inputText - 1) or 12
                     end
                 end
 
@@ -8704,6 +8740,23 @@ local List = New("ScrollingFrame", {
                 and type(Dropdown.RefreshFunc) == "function"
             BulkActions.Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
                 or RefreshButton.Visible
+                or EquipButton.Visible
+            ApplyPopupLayout()
+        end
+
+        function Dropdown:SetEquipFunc(Func, ShowEquipAction, Text)
+            Dropdown.EquipFunc = type(Func) == "function" and Func or nil
+            if ShowEquipAction ~= nil then
+                Dropdown.ShowEquipAction = ShowEquipAction == true
+            end
+            if type(Text) == "string" and Text ~= "" then
+                EquipButton.Text = Text
+            end
+            EquipButton.Visible = Dropdown.ShowEquipAction
+                and type(Dropdown.EquipFunc) == "function"
+            BulkActions.Visible = (Info.Multi == true and Info.ShowBulkActions ~= false)
+                or RefreshButton.Visible
+                or EquipButton.Visible
             ApplyPopupLayout()
         end
 
@@ -9004,6 +9057,17 @@ local List = New("ScrollingFrame", {
 
         RefreshButton.MouseButton1Click:Connect(function()
             Dropdown:RefreshValues()
+        end)
+
+        EquipButton.MouseButton1Click:Connect(function()
+            if Dropdown.Disabled or type(Dropdown.EquipFunc) ~= "function" then
+                return
+            end
+
+            local ok, err = pcall(Dropdown.EquipFunc, Dropdown)
+            if not ok then
+                warn("[Dropdown Equip] " .. tostring(err))
+            end
         end)
 
         Library:GiveSignal(List:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
