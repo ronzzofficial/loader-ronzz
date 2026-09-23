@@ -11478,6 +11478,10 @@ local List = New("ScrollingFrame", {
         local Boxed = Params.Boxed == true
         local AnchorElement = typeof(Params.AnchorElement) == "table" and Params.AnchorElement or nil
         local Anchored = AnchorElement ~= nil and typeof(AnchorElement.Holder) == "Instance"
+        local HideWhenInactive = Anchored and Params.HideWhenInactive == true
+        local FullWidthChildren = Anchored and Params.FullWidthChildren == true
+        local AnchoredSpacing = math.max(0, tonumber(Params.Spacing) or 8)
+        local AnchoredBottomPadding = math.max(0, tonumber(Params.BottomPadding) or 10)
 
         local Groupbox = self
         local Container = Groupbox.Container
@@ -11494,7 +11498,7 @@ local List = New("ScrollingFrame", {
                 BorderSizePixel = 0,
                 ClipsDescendants = Anchored,
                 Size = UDim2.fromScale(1, 1),
-                Visible = Anchored,
+                Visible = Anchored and not HideWhenInactive,
                 Parent = Container,
             }
 
@@ -11556,7 +11560,7 @@ local List = New("ScrollingFrame", {
             Connections = {},
             Destroyed = false,
 
-            Visible = Anchored,
+            Visible = Anchored and not HideWhenInactive,
             Active = false,
             Dependencies = {},
 
@@ -11577,23 +11581,45 @@ local List = New("ScrollingFrame", {
                 anchorHolder.Size = UDim2.new(1, 0, y.Scale, y.Offset)
             end
 
+            local childOffset = FullWidthChildren and 0 or -20
             for _, Element in Depbox.Elements do
                 if Element and Element.Holder then
                     local y = Element.Holder.Size.Y
-                    Element.Holder.Size = UDim2.new(1, -20, y.Scale, y.Offset)
+                    Element.Holder.Size = UDim2.new(1, childOffset, y.Scale, y.Offset)
                 end
             end
 
             for _, SubDepbox in Depbox.DependencyBoxes do
                 if SubDepbox and SubDepbox.Holder then
                     local y = SubDepbox.Holder.Size.Y
-                    SubDepbox.Holder.Size = UDim2.new(1, -20, y.Scale, y.Offset)
+                    SubDepbox.Holder.Size = UDim2.new(1, childOffset, y.Scale, y.Offset)
                 end
             end
         end
 
         local function SetAnchoredExpanded(Expanded)
-            Depbox.Active = Expanded == true
+            Expanded = Expanded == true
+            Depbox.Active = Expanded
+
+            if HideWhenInactive and not Expanded then
+                Depbox.Visible = false
+                DepboxContainer.Visible = false
+                if AnchorElement and AnchorElement.Holder then
+                    AnchorElement.Holder.Visible = false
+                end
+                for _, Element in Depbox.Elements do
+                    if Element and Element.Holder then
+                        Element.Holder.Visible = false
+                    end
+                end
+                for _, SubDepbox in Depbox.DependencyBoxes do
+                    if SubDepbox and SubDepbox.Holder then
+                        SubDepbox.Holder.Visible = false
+                    end
+                end
+                return
+            end
+
             Depbox.Visible = true
             DepboxContainer.Visible = true
 
@@ -11610,7 +11636,7 @@ local List = New("ScrollingFrame", {
                 AnchorStroke.Enabled = false
             end
 
-            DepboxList.Padding = UDim.new(0, Expanded and 8 or 0)
+            DepboxList.Padding = UDim.new(0, Expanded and AnchoredSpacing or 0)
 
             -- Only child controls collapse. The original parent control always
             -- remains visible at the top of the same expandable box.
@@ -11638,8 +11664,13 @@ local List = New("ScrollingFrame", {
 
         function Depbox:Resize()
             if Anchored then
+                if HideWhenInactive and not Depbox.Visible then
+                    DepboxContainer.Size = UDim2.new(1, 0, 0, 0)
+                    Groupbox:Resize()
+                    return
+                end
                 SizeAnchoredChildren()
-                local bottomPadding = Depbox.Active and 10 or 0
+                local bottomPadding = Depbox.Active and AnchoredBottomPadding or 0
                 DepboxContainer.Size = UDim2.new(
                     1,
                     0,
