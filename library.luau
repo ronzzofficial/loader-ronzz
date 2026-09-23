@@ -11592,14 +11592,23 @@ local List = New("ScrollingFrame", {
 
             local childOffset = FullWidthChildren and 0 or -20
             for _, Element in Depbox.Elements do
-                if Element and Element.Holder then
+                -- Only size direct children of this dependency box. When an
+                -- element becomes the AnchorElement of a nested dependency box,
+                -- AddDependencyBox reparents its Holder into that nested box.
+                -- Resizing it here as well would incorrectly inset the nested
+                -- anchor row twice (for example Override Weight).
+                if Element
+                and Element.Holder
+                and Element.Holder.Parent == DepboxContainer then
                     local y = Element.Holder.Size.Y
                     Element.Holder.Size = UDim2.new(1, childOffset, y.Scale, y.Offset)
                 end
             end
 
             for _, SubDepbox in Depbox.DependencyBoxes do
-                if SubDepbox and SubDepbox.Holder then
+                if SubDepbox
+                and SubDepbox.Holder
+                and SubDepbox.Holder.Parent == DepboxContainer then
                     local y = SubDepbox.Holder.Size.Y
                     SubDepbox.Holder.Size = UDim2.new(1, childOffset, y.Scale, y.Offset)
                 end
