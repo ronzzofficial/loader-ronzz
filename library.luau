@@ -11480,6 +11480,10 @@ local List = New("ScrollingFrame", {
         local Anchored = AnchorElement ~= nil and typeof(AnchorElement.Holder) == "Instance"
         local HideWhenInactive = Anchored and Params.HideWhenInactive == true
         local FullWidthChildren = Anchored and Params.FullWidthChildren == true
+        -- FlatWrapper keeps the anchor row and child cards visually separate.
+        -- The wrapper still handles expansion/layout, but draws no extra outer
+        -- background or border around the whole expanded group.
+        local FlatWrapper = Anchored and Params.FlatWrapper == true
         local AnchoredSpacing = math.max(0, tonumber(Params.Spacing) or 8)
         local AnchoredBottomPadding = math.max(0, tonumber(Params.BottomPadding) or 10)
 
@@ -11502,19 +11506,16 @@ local List = New("ScrollingFrame", {
                 Parent = Container,
             }
 
-            if Anchored then
-                -- Expanded dependencies should look like the original parent
-                -- row itself grew downward. The wrapper therefore uses the same
-                -- background/border as a normal control row and the anchor's own
-                -- border is disabled only while expanded.
+            if Anchored and not FlatWrapper then
+                -- Expanded dependencies normally look like one continuous card.
                 ContainerProps.BackgroundColor3 = LayeredStyle.ControlRow
-            elseif Boxed then
+            elseif Boxed and not Anchored then
                 ContainerProps.BackgroundColor3 = LayeredStyle.InnerBox
             end
 
             DepboxContainer = New("Frame", ContainerProps)
 
-            if Anchored or Boxed then
+            if (Anchored and not FlatWrapper) or (Boxed and not Anchored) then
                 table.insert(
                     Library.Corners,
                     New("UICorner", {
@@ -11623,17 +11624,15 @@ local List = New("ScrollingFrame", {
             Depbox.Visible = true
             DepboxContainer.Visible = true
 
-            DepboxContainer.BackgroundTransparency = Expanded and 0 or 1
-            -- The expandable wrapper owns the one continuous outer border in
-            -- both states. Collapsed: it is the same size as the parent row.
-            -- Expanded: that exact border grows downward around the children.
-            -- Keep the anchor's own stroke disabled to avoid a second inner
-            -- outline around the parent control.
+            DepboxContainer.BackgroundTransparency = FlatWrapper and 1 or (Expanded and 0 or 1)
+            -- Normal anchored groups use one continuous wrapper border. A flat
+            -- wrapper leaves the parent row's own border visible and draws no
+            -- additional outline around the expanded children.
             if DepboxStroke then
-                DepboxStroke.Enabled = true
+                DepboxStroke.Enabled = not FlatWrapper
             end
             if AnchorStroke then
-                AnchorStroke.Enabled = false
+                AnchorStroke.Enabled = FlatWrapper
             end
 
             DepboxList.Padding = UDim.new(0, Expanded and AnchoredSpacing or 0)
