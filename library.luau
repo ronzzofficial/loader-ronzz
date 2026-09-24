@@ -1,4 +1,5 @@
 local cloneref = (cloneref or clonereference or function(instance: any)
+-- ZANJI V11.28: exact ZANJIHUB brand colors; InlineInput saved label updates only on commit.
 -- ZANJI V11.27: dropdowns support a native inline input using the same field style as AddInput.
 -- ZANJI V11.26: rectangular cards/fields use the configured corner radius consistently.
 -- ZANJI V11.21: restored V11.16 dropdown renderer; manual refresh only; touch-safe mobile close.
@@ -9859,10 +9860,9 @@ local List = New("ScrollingFrame", {
                 GetPropertyChangedSignal("Text"):
                 Connect(function()
 
-                    RefreshInlineLabel(
-                        InlineBox.Text
-                    )
-
+                    -- Match AddInput behavior:
+                    -- Finished=true keeps the green title value as the last
+                    -- committed/saved value while the user is still typing.
                     if not InlineInput.Finished then
                         InlineInput:SetValue(
                             InlineBox.Text
@@ -13258,38 +13258,49 @@ function Library:CreateWindow(WindowInfo)
             })
         end
 
-        local X = Library:GetTextBounds(WindowInfo.Title, Library.Scheme.Font, BrandTextSize, 2000)
+        local IsZanjiBrandTitle =
+            tostring(WindowInfo.Title or "")
+                :gsub("%s+", "")
+                :upper()
+            == "ZANJIHUB"
+
+        local BrandTitleText =
+            IsZanjiBrandTitle
+            and (
+                '<b><font color="#FAFBFD">ZANJI</font>'
+                .. '<font color="#9781FF">HUB</font></b>'
+            )
+            or tostring(WindowInfo.Title or "")
+
+        local X =
+            Library:GetTextBounds(
+                BrandTitleText,
+                Library.Scheme.Font,
+                BrandTextSize,
+                2000
+            )
+
         WindowTitle = New("TextLabel", {
             BackgroundTransparency = 1,
             AnchorPoint = Vector2.new(0, 0.5),
             Position = UDim2.new(0.5, 0, 0.5, 0),
             Size = UDim2.new(0, X, 1, 0),
-            Text = WindowInfo.Title,
-            -- Keep a white base so the premium UIGradient remains visible even
-            -- after ThemeManager reapplies the active theme.
-            TextColor3 = "WhiteColor",
+            RichText = true,
+            Text = BrandTitleText,
+            TextColor3 = Color3.fromRGB(250, 251, 253),
             TextSize = BrandTextSize,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = TitleHolder,
         })
 
-        local ZanjiTitleGradient = New("UIGradient", {
-            Name = "ZanjiPremiumGradient",
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
-                ColorSequenceKeypoint.new(0.28, Color3.fromRGB(226, 216, 255)),
-                ColorSequenceKeypoint.new(0.58, Color3.fromRGB(177, 150, 255)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(124, 101, 255)),
-            }),
-            Transparency = NumberSequence.new(0),
-            Rotation = 0,
-            Enabled = true,
-            Parent = WindowTitle,
-        })
-        -- Brand title is intentionally not theme-registered. ThemeManager may
-        -- recolor registered text after startup, which flattens the gradient.
-        WindowTitle.TextColor3 = Color3.new(1, 1, 1)
-        WindowTitle.FontFace = Font.fromEnum(Enum.Font.Code)
+        -- Exact brand colors: ZANJI = white, HUB = the same AccentColor used
+        -- by icons (#9781FF). No UIGradient is attached because it would tint
+        -- the per-word RichText colors.
+        WindowTitle.FontFace =
+            IsZanjiBrandTitle
+            and Font.fromEnum(Enum.Font.GothamBold)
+            or Library.Scheme.Font
+
         Library.Registry[WindowTitle] = nil
 
         UpdateBrandLayout = function()
