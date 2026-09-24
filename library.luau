@@ -1,4 +1,5 @@
 local cloneref = (cloneref or clonereference or function(instance: any)
+-- ZANJI V11.27: dropdowns support a native inline input using the same field style as AddInput.
 -- ZANJI V11.26: rectangular cards/fields use the configured corner radius consistently.
 -- ZANJI V11.21: restored V11.16 dropdown renderer; manual refresh only; touch-safe mobile close.
     return instance
@@ -9348,6 +9349,544 @@ local List = New("ScrollingFrame", {
             ZIndex = 3,
             Parent = Holder,
         })
+
+
+        -- ZANJI V11.27: optional native input rendered INSIDE this dropdown card.
+        local InlineInputInfo =
+            typeof(Info.InlineInput) == "table"
+            and Info.InlineInput
+            or nil
+
+        local InlineInput = nil
+        local InlineRoot = nil
+        local InlineBox = nil
+        local InlineBoxClip = nil
+        local InlineLabel = nil
+
+        local InlineGap = CompactMobileDropdown and 4 or 5
+        local InlineLabelHeight = CompactMobileDropdown and 12 or 14
+        local InlineLabelGap = 3
+        local InlineFieldHeight = CompactMobileDropdown and 25 or 29
+        local InlineBottomPadding = CompactMobileDropdown and 5 or 6
+        local InlineRootHeight =
+            InlineLabelHeight
+            + InlineLabelGap
+            + InlineFieldHeight
+            + InlineBottomPadding
+
+        local function EscapeInlineInputRichText(Value)
+            local Text = tostring(Value == nil and "" or Value)
+            Text = Text:gsub("&", "&amp;")
+            Text = Text:gsub("<", "&lt;")
+            Text = Text:gsub(">", "&gt;")
+            Text = Text:gsub('"', "&quot;")
+            Text = Text:gsub("'", "&apos;")
+            return Text
+        end
+
+        local function InlineInputShouldBeVisible()
+            if not InlineInputInfo
+                or InlineInputInfo.Visible == false
+            then
+                return false
+            end
+
+            local VisibleWhen =
+                InlineInputInfo.VisibleWhen
+
+            if typeof(VisibleWhen) == "function" then
+                local ok, result =
+                    pcall(
+                        VisibleWhen,
+                        Dropdown.Value,
+                        Dropdown
+                    )
+
+                return ok
+                    and result == true
+            end
+
+            if VisibleWhen ~= nil then
+                return Dropdown.Value
+                    == VisibleWhen
+            end
+
+            return true
+        end
+
+        local function RefreshDropdownHolderHeight()
+            local ShowInline =
+                InlineInput ~= nil
+                and InlineInputShouldBeVisible()
+
+            if InlineRoot then
+                InlineRoot.Visible =
+                    ShowInline
+            end
+
+            local BaseHeight =
+                Dropdown.Text
+                and (
+                    DropdownFieldTop
+                    + DropdownFieldHeight
+                    + DropdownBottomPadding
+                )
+                or (
+                    DropdownFieldHeight
+                    + DropdownTopPadding
+                    + DropdownBottomPadding
+                )
+
+            Holder.Size = UDim2.new(
+                1,
+                0,
+                0,
+                BaseHeight
+                + (
+                    ShowInline
+                    and (
+                        InlineGap
+                        + InlineRootHeight
+                    )
+                    or 0
+                )
+            )
+
+            Groupbox:Resize()
+        end
+
+        if InlineInputInfo then
+
+            InlineInput = {
+                Text =
+                    tostring(
+                        InlineInputInfo.Text
+                        or "Input"
+                    ),
+
+                Value =
+                    InlineInputInfo.Default
+                    ~= nil
+                    and InlineInputInfo.Default
+                    or "",
+
+                Numeric =
+                    InlineInputInfo.Numeric
+                    == true,
+
+                Min =
+                    tonumber(
+                        InlineInputInfo.Min
+                    ),
+
+                Max =
+                    tonumber(
+                        InlineInputInfo.Max
+                    ),
+
+                Finished =
+                    InlineInputInfo.Finished
+                    ~= false,
+
+                Disabled =
+                    InlineInputInfo.Disabled
+                    == true,
+
+                Callback =
+                    InlineInputInfo.Callback,
+
+                Changed =
+                    InlineInputInfo.Changed,
+
+                Type = "InlineInput",
+            }
+
+            InlineRoot = New("Frame", {
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                Position = UDim2.new(
+                    0,
+                    CompactMobileDropdown
+                        and 8
+                        or 10,
+                    0,
+                    DropdownHolderHeight
+                        + InlineGap
+                ),
+                Size = UDim2.new(
+                    1,
+                    CompactMobileDropdown
+                        and -16
+                        or -20,
+                    0,
+                    InlineRootHeight
+                ),
+                Visible = false,
+                ZIndex = 2,
+                Parent = Holder,
+            })
+
+            InlineLabel = New("TextLabel", {
+                BackgroundTransparency = 1,
+                Position = UDim2.fromOffset(0, 0),
+                Size = UDim2.new(
+                    1,
+                    0,
+                    0,
+                    InlineLabelHeight
+                ),
+                RichText = true,
+                TextColor3 = LayeredStyle.MainText,
+                TextSize =
+                    Library.IsMobile
+                    and 12
+                    or 13,
+                TextTruncate =
+                    Enum.TextTruncate.AtEnd,
+                TextXAlignment =
+                    Enum.TextXAlignment.Left,
+                TextYAlignment =
+                    Enum.TextYAlignment.Center,
+                ZIndex = 3,
+                Parent = InlineRoot,
+            })
+
+            InlineBoxClip = New("Frame", {
+                BackgroundColor3 =
+                    LayeredStyle.InputBox,
+                BorderSizePixel = 0,
+                ClipsDescendants = true,
+                Position = UDim2.new(
+                    0,
+                    0,
+                    0,
+                    InlineLabelHeight
+                        + InlineLabelGap
+                ),
+                Size = UDim2.new(
+                    1,
+                    0,
+                    0,
+                    InlineFieldHeight
+                ),
+                ZIndex = 2,
+                Parent = InlineRoot,
+            })
+
+            table.insert(
+                Library.Corners,
+                New("UICorner", {
+                    CornerRadius =
+                        UDim.new(
+                            0,
+                            Library.CornerRadius
+                        ),
+                    Parent = InlineBoxClip,
+                })
+            )
+
+            local InlineStroke =
+                New("UIStroke", {
+                    ApplyStrokeMode =
+                        Enum.ApplyStrokeMode.Border,
+                    Color =
+                        LayeredStyle.Border,
+                    Thickness = 1,
+                    Parent = InlineBoxClip,
+                })
+
+            Library.Registry[InlineStroke] =
+                Library.Registry[InlineStroke]
+                or {}
+
+            InlineBox = New("TextBox", {
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                ClearTextOnFocus = false,
+                ClipsDescendants = true,
+                MultiLine = false,
+                PlaceholderText =
+                    tostring(
+                        InlineInputInfo.Placeholder
+                        or ""
+                    ),
+                Position =
+                    UDim2.fromScale(0, 0),
+                Size =
+                    UDim2.fromScale(1, 1),
+                Text =
+                    tostring(
+                        InlineInput.Value
+                    ),
+                TextColor3 =
+                    LayeredStyle.MainText,
+                TextEditable =
+                    not InlineInput.Disabled,
+                TextScaled = false,
+                TextWrapped = false,
+                TextSize =
+                    Library.IsMobile
+                    and 12
+                    or 13,
+                TextXAlignment =
+                    Enum.TextXAlignment.Left,
+                TextYAlignment =
+                    Enum.TextYAlignment.Center,
+                ZIndex = 3,
+                Parent = InlineBoxClip,
+            })
+
+            New("UIPadding", {
+                PaddingLeft =
+                    UDim.new(0, 9),
+                PaddingRight =
+                    UDim.new(0, 9),
+                Parent = InlineBox,
+            })
+
+            local function RefreshInlineLabel(
+                PreviewValue
+            )
+                local Value =
+                    PreviewValue ~= nil
+                    and PreviewValue
+                    or InlineInput.Value
+
+                InlineLabel.Text =
+                    EscapeInlineInputRichText(
+                        InlineInput.Text
+                    )
+                    .. ': <font color="#43E17D">'
+                    .. EscapeInlineInputRichText(
+                        Value
+                    )
+                    .. "</font>"
+            end
+
+            local function NormalizeInlineValue(
+                Value
+            )
+                local Text =
+                    tostring(
+                        Value == nil
+                        and ""
+                        or Value
+                    )
+
+                if InlineInput.Numeric then
+                    local Number =
+                        tonumber(Text)
+
+                    if not Number then
+                        return InlineInput.Value
+                    end
+
+                    if InlineInput.Min then
+                        Number =
+                            math.max(
+                                InlineInput.Min,
+                                Number
+                            )
+                    end
+
+                    if InlineInput.Max then
+                        Number =
+                            math.min(
+                                InlineInput.Max,
+                                Number
+                            )
+                    end
+
+                    if Number % 1 == 0 then
+                        return tostring(
+                            math.floor(Number)
+                        )
+                    end
+
+                    return tostring(Number)
+                end
+
+                return Text
+            end
+
+            function InlineInput:OnChanged(Func)
+                InlineInput.Changed = Func
+                return InlineInput
+            end
+
+            function InlineInput:RunChanged()
+                Library:SafeCallback(
+                    InlineInput.Callback,
+                    InlineInput.Value
+                )
+
+                Library:SafeCallback(
+                    InlineInput.Changed,
+                    InlineInput.Value
+                )
+            end
+
+            function InlineInput:SetValue(
+                Value,
+                SuppressCallback
+            )
+                local NewValue =
+                    NormalizeInlineValue(
+                        Value
+                    )
+
+                InlineInput.Value =
+                    NewValue
+
+                if InlineBox
+                    and InlineBox.Text
+                        ~= tostring(NewValue)
+                then
+                    InlineBox.Text =
+                        tostring(NewValue)
+                end
+
+                RefreshInlineLabel()
+
+                if not InlineInput.Disabled
+                    and SuppressCallback
+                        ~= true
+                then
+                    InlineInput:RunChanged()
+                end
+
+                return InlineInput.Value
+            end
+
+            function InlineInput:SetDisabled(
+                Disabled
+            )
+                InlineInput.Disabled =
+                    Disabled == true
+
+                InlineBox.TextEditable =
+                    not InlineInput.Disabled
+
+                InlineBox.TextTransparency =
+                    InlineInput.Disabled
+                    and 0.8
+                    or 0
+
+                InlineLabel.TextTransparency =
+                    InlineInput.Disabled
+                    and 0.8
+                    or 0
+            end
+
+            function InlineInput:SetText(Text)
+                InlineInput.Text =
+                    tostring(
+                        Text
+                        or "Input"
+                    )
+
+                RefreshInlineLabel()
+            end
+
+            InlineBox.Focused:
+                Connect(function()
+
+                    if InlineInput.Disabled then
+                        return
+                    end
+
+                    Library.Registry[
+                        InlineStroke
+                    ].Color = "AccentColor"
+
+                    TweenService:Create(
+                        InlineBoxClip,
+                        Library.TweenInfo,
+                        {
+                            BackgroundColor3 =
+                                LayeredStyle.InputHover,
+                        }
+                    ):Play()
+
+                    TweenService:Create(
+                        InlineStroke,
+                        Library.TweenInfo,
+                        {
+                            Color =
+                                Library.Scheme.AccentColor,
+                            Thickness = 1.15,
+                        }
+                    ):Play()
+
+                end)
+
+            InlineBox.FocusLost:
+                Connect(function()
+
+                    Library.Registry[
+                        InlineStroke
+                    ].Color =
+                        function()
+                            return LayeredStyle.Border
+                        end
+
+                    TweenService:Create(
+                        InlineBoxClip,
+                        Library.TweenInfo,
+                        {
+                            BackgroundColor3 =
+                                LayeredStyle.InputBox,
+                        }
+                    ):Play()
+
+                    TweenService:Create(
+                        InlineStroke,
+                        Library.TweenInfo,
+                        {
+                            Color =
+                                LayeredStyle.Border,
+                            Thickness = 1,
+                        }
+                    ):Play()
+
+                    InlineInput:SetValue(
+                        InlineBox.Text
+                    )
+
+                end)
+
+            InlineBox:
+                GetPropertyChangedSignal("Text"):
+                Connect(function()
+
+                    RefreshInlineLabel(
+                        InlineBox.Text
+                    )
+
+                    if not InlineInput.Finished then
+                        InlineInput:SetValue(
+                            InlineBox.Text
+                        )
+                    end
+
+                end)
+
+            InlineInput.TextBox =
+                InlineBox
+
+            InlineInput.Holder =
+                InlineRoot
+
+            Dropdown.InlineInput =
+                InlineInput
+
+            InlineInput:SetValue(
+                InlineInput.Value,
+                true
+            )
+
+        end
+
     
         Display.MouseEnter:Connect(function()
             if Dropdown.Disabled then return end
@@ -10226,6 +10765,7 @@ local List = New("ScrollingFrame", {
     
             Dropdown:Display()
             RefreshButtons()
+            RefreshDropdownHolderHeight()
     
             Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
             Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
@@ -10620,6 +11160,13 @@ local List = New("ScrollingFrame", {
     
             ClosePopup()
             Display.Active = not Dropdown.Disabled
+
+            if InlineInput then
+                InlineInput:SetDisabled(
+                    Dropdown.Disabled
+                )
+            end
+
             Dropdown:UpdateColors()
         end
     
@@ -10632,22 +11179,12 @@ local List = New("ScrollingFrame", {
         function Dropdown:SetText(Text: string)
             Dropdown.Text = Text
 
-            -- Keep dynamic titles on the same standardized control metrics.
-            Holder.Size = UDim2.new(
-                1,
-                0,
-                0,
-                Text
-                    and (DropdownFieldTop + DropdownFieldHeight + DropdownBottomPadding)
-                    or (DropdownFieldHeight + DropdownTopPadding + DropdownBottomPadding)
-            )
-
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
             Label.TextYAlignment = Enum.TextYAlignment.Center
             Title.Text = Text or "Select"
 
-            Groupbox:Resize()
+            RefreshDropdownHolderHeight()
         end
     
         -- function MenuState:Open_old()
@@ -10817,6 +11354,8 @@ local List = New("ScrollingFrame", {
         ApplyPopupLayout()
         Groupbox:Resize()
     
+        RefreshDropdownHolderHeight()
+
         Dropdown.Holder = Holder
         table.insert(Groupbox.Elements, Dropdown)
     
