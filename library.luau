@@ -1,4 +1,5 @@
 local cloneref = (cloneref or clonereference or function(instance: any)
+-- ZANJI V11.29: value-dropdown rows support per-option inline inputs with virtualization-safe commit.
 -- ZANJI V11.28: exact ZANJIHUB brand colors; InlineInput saved label updates only on commit.
 -- ZANJI V11.27: dropdowns support a native inline input using the same field style as AddInput.
 -- ZANJI V11.26: rectangular cards/fields use the configured corner radius consistently.
@@ -7301,6 +7302,11 @@ do
                     Text = Text,
                     Value = Value,
                     Raw = Raw,
+                    RowInput =
+                        typeof(Raw) == "table"
+                        and typeof(Raw.RowInput) == "table"
+                        and Raw.RowInput
+                        or nil,
                 }
 
                 table.insert(NormalizedOptions, Option)
@@ -7835,10 +7841,11 @@ local List = New("ScrollingFrame", {
         local MenuState = { Active = false, Menu = Popup }
         local PopupFixedWidth = tonumber(Info.PopupWidth) or 560
         local PopupFixedHeight = tonumber(Info.PopupHeight) or 460
-        local CurrentRowHeight = 38
+        local CurrentRowHeight = Info.RowInputRows == true and 44 or 38
         local CurrentRowGap = 4
         local CurrentOptionTextSize = 13
         local RenderVirtualRows
+        local LayoutRowInputControls
         local VirtualState = {
             Active = false,
             Values = {},
@@ -7901,6 +7908,102 @@ local List = New("ScrollingFrame", {
             end
 
             return Value
+        end
+
+        local function GetRowInputInfo(Value)
+            if not UseValueOptions then
+                return nil
+            end
+
+            local Option =
+                Dropdown.OptionByValue
+                and Dropdown.OptionByValue[Value]
+
+            local RowInput =
+                Option
+                and Option.RowInput
+                or nil
+
+            return typeof(RowInput) == "table"
+                and RowInput
+                or nil
+        end
+
+        local function EscapeRowInputRichText(Value)
+            local Text = tostring(Value == nil and "" or Value)
+            Text = Text:gsub("&", "&amp;")
+            Text = Text:gsub("<", "&lt;")
+            Text = Text:gsub(">", "&gt;")
+            Text = Text:gsub('"', "&quot;")
+            Text = Text:gsub("'", "&apos;")
+            return Text
+        end
+
+        local function ResolveRowInputValue(RowInfo, Value)
+            if typeof(RowInfo) ~= "table" then
+                return ""
+            end
+
+            local Source =
+                RowInfo.GetValue
+                or RowInfo.Value
+                or RowInfo.Default
+
+            if typeof(Source) == "function" then
+                local ok, result =
+                    pcall(
+                        Source,
+                        Value,
+                        Dropdown,
+                        RowInfo
+                    )
+
+                Source =
+                    ok
+                    and result
+                    or RowInfo.Default
+            end
+
+            return tostring(Source == nil and "" or Source)
+        end
+
+        local function NormalizeRowInputValue(RowInfo, RawValue, Fallback)
+            local Text = tostring(RawValue == nil and "" or RawValue)
+
+            if RowInfo.Numeric == true then
+                local Number = tonumber(Text)
+
+                if not Number
+                    or Number ~= Number
+                    or Number == math.huge
+                    or Number == -math.huge
+                then
+                    return tostring(Fallback or "")
+                end
+
+                if tonumber(RowInfo.Min) then
+                    Number = math.max(tonumber(RowInfo.Min), Number)
+                end
+                if tonumber(RowInfo.Max) then
+                    Number = math.min(tonumber(RowInfo.Max), Number)
+                end
+
+                local Decimals = tonumber(RowInfo.Decimals)
+                if Decimals then
+                    Decimals = math.clamp(math.floor(Decimals), 0, 6)
+                    Text = string.format("%." .. tostring(Decimals) .. "f", Number)
+                    if RowInfo.TrimZeros ~= false then
+                        Text = Text:gsub("(%..-)0+$", "%1")
+                        Text = Text:gsub("%.$", "")
+                    end
+                else
+                    Text = tostring(Number)
+                end
+            elseif RowInfo.AllowEmpty ~= true and Text == "" then
+                Text = tostring(Fallback or "")
+            end
+
+            return Text
         end
 
         local function GetDisplayText(Value)
@@ -7977,6 +8080,9 @@ local List = New("ScrollingFrame", {
                 local titleText = math.clamp(math.floor(13 * scale + 0.5), 11, 13)
                 local inputText = math.clamp(math.floor(12 * scale + 0.5), 10, 12)
                 local rowH = math.max(21, math.floor(27 * scale + 0.5))
+                if Info.RowInputRows == true then
+                    rowH = math.max(30, rowH, math.floor(38 * scale + 0.5))
+                end
                 local headerH = math.max(23, math.floor(29 * scale + 0.5))
                 local searchH = math.max(21, math.floor(26 * scale + 0.5))
                 local actionH = math.max(20, math.floor(23 * scale + 0.5))
@@ -8017,6 +8123,12 @@ local List = New("ScrollingFrame", {
                 -- to force it inside a narrower popup.
                 local textReserve = math.max(48, math.floor(64 * scale))
                 local desiredW = math.max(minW, math.ceil(longestTextWidth + textReserve))
+                if Info.RowInputRows == true then
+                    desiredW = math.max(
+                        desiredW,
+                        math.min(maxAllowedW, math.floor(760 * scale))
+                    )
+                end
                 if Dropdown.Text and Dropdown.Text ~= "" then
                     local titleWidth = Library:GetTextBounds(
                         tostring(Dropdown.Text):gsub("<[^<>]->", ""),
@@ -8108,7 +8220,7 @@ local List = New("ScrollingFrame", {
             local titleText = 16
             local inputText = 13
             local optionText = 13
-            local rowH = 34
+            local rowH = Info.RowInputRows == true and 44 or 34
 
             return {
                 width = width,
@@ -8341,6 +8453,9 @@ local List = New("ScrollingFrame", {
                 Entry.Button.Size = UDim2.new(1, Library.IsMobile and -8 or -16, 0, CurrentRowHeight)
                 Entry.Button.TextSize = CurrentOptionTextSize
                 pcall(function() Entry.Button:SetAttribute("ZanjiBaseTextSize", CurrentOptionTextSize) end)
+                if Entry.RowInputRoot then
+                    LayoutRowInputControls(Entry)
+                end
                 UpdateTextTruncateForActualWidth(Entry.Button, 0)
             end
 
@@ -8349,14 +8464,220 @@ local List = New("ScrollingFrame", {
             end
         end
 
-        local function UpdateEntry(Entry)
+        local UpdateEntry
+
+        local function EnsureRowInputControls(Entry)
+            if Entry.RowInputRoot and Entry.RowInputRoot.Parent then
+                return
+            end
+
+            local Button = Entry.Button
+
+            local NameLabel = New("TextLabel", {
+                BackgroundTransparency = 1,
+                Position = UDim2.fromOffset(0, 0),
+                Size = UDim2.new(0.36, -6, 1, 0),
+                RichText = true,
+                Text = "",
+                TextColor3 = LayeredStyle.MainText,
+                TextSize = CurrentOptionTextSize,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextWrapped = false,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextYAlignment = Enum.TextYAlignment.Center,
+                Visible = false,
+                ZIndex = 124,
+                Parent = Button,
+            })
+
+            local SavedLabel = New("TextLabel", {
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0.36, 2, 0, 0),
+                Size = UDim2.new(0.39, -8, 1, 0),
+                RichText = true,
+                Text = "",
+                TextColor3 = LayeredStyle.MainText,
+                TextSize = math.max(10, CurrentOptionTextSize - 1),
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextWrapped = false,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextYAlignment = Enum.TextYAlignment.Center,
+                Visible = false,
+                ZIndex = 124,
+                Parent = Button,
+            })
+
+            local InputClip = New("Frame", {
+                BackgroundColor3 = LayeredStyle.InputBox,
+                BorderSizePixel = 0,
+                ClipsDescendants = true,
+                Position = UDim2.new(0.75, 4, 0.5, -14),
+                Size = UDim2.new(0.25, -4, 0, 28),
+                Visible = false,
+                ZIndex = 124,
+                Parent = Button,
+            })
+
+            New("UICorner", {
+                CornerRadius = UDim.new(0, math.max(1, Library.CornerRadius)),
+                Parent = InputClip,
+            })
+
+            local InputStroke = New("UIStroke", {
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                Color = LayeredStyle.Border,
+                Thickness = 1,
+                Transparency = 0.06,
+                Parent = InputClip,
+            })
+
+            local TextBox = New("TextBox", {
+                BackgroundTransparency = 1,
+                ClearTextOnFocus = false,
+                MultiLine = false,
+                PlaceholderColor3 = LayeredStyle.MutedText,
+                PlaceholderText = "",
+                Position = UDim2.fromOffset(8, 0),
+                Size = UDim2.new(1, -16, 1, 0),
+                Text = "",
+                TextColor3 = LayeredStyle.MainText,
+                TextSize = CurrentOptionTextSize,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextWrapped = false,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextYAlignment = Enum.TextYAlignment.Center,
+                ZIndex = 125,
+                Parent = InputClip,
+            })
+
+            TextBox.Focused:Connect(function()
+                Entry.RowEditingValue = Entry.Value
+                Entry.RowInputCommitted = TextBox.Text
+
+                TweenService:Create(InputClip, Library.TweenInfo, {
+                    BackgroundColor3 = LayeredStyle.InputHover,
+                }):Play()
+                TweenService:Create(InputStroke, Library.TweenInfo, {
+                    Color = Library.Scheme.AccentColor,
+                    Transparency = 0.12,
+                }):Play()
+            end)
+
+            TextBox.FocusLost:Connect(function(EnterPressed)
+                local EditingValue = Entry.RowEditingValue or Entry.Value
+                local RowInfo = GetRowInputInfo(EditingValue)
+
+                if RowInfo then
+                    local Fallback =
+                        Entry.RowInputCommitted
+                        or ResolveRowInputValue(RowInfo, EditingValue)
+
+                    local NextValue =
+                        NormalizeRowInputValue(
+                            RowInfo,
+                            TextBox.Text,
+                            Fallback
+                        )
+
+                    local CallbackResult =
+                        Library:SafeCallback(
+                            RowInfo.Callback,
+                            NextValue,
+                            EditingValue,
+                            Dropdown,
+                            TextBox,
+                            EnterPressed == true
+                        )
+
+                    if CallbackResult ~= nil then
+                        NextValue =
+                            NormalizeRowInputValue(
+                                RowInfo,
+                                CallbackResult,
+                                NextValue
+                            )
+                    end
+
+                    TextBox.Text = NextValue
+                    Entry.RowInputCommitted = NextValue
+
+                    Library:SafeCallback(
+                        RowInfo.Changed,
+                        NextValue,
+                        EditingValue,
+                        Dropdown,
+                        TextBox,
+                        EnterPressed == true
+                    )
+                end
+
+                Entry.RowEditingValue = nil
+
+                TweenService:Create(InputClip, Library.TweenInfo, {
+                    BackgroundColor3 = LayeredStyle.InputBox,
+                }):Play()
+                TweenService:Create(InputStroke, Library.TweenInfo, {
+                    Color = LayeredStyle.Border,
+                    Transparency = 0.06,
+                }):Play()
+
+                if UpdateEntry and Entry.Value then
+                    UpdateEntry(Entry)
+                end
+            end)
+
+            Entry.RowInputRoot = InputClip
+            Entry.RowInputName = NameLabel
+            Entry.RowInputSaved = SavedLabel
+            Entry.RowInputBox = TextBox
+            Entry.RowInputStroke = InputStroke
+        end
+
+        LayoutRowInputControls = function(Entry)
+            if not Entry.RowInputRoot then return end
+
+            local NameRatio = Library.IsMobile and 0.31 or 0.36
+            local SavedRatio = Library.IsMobile and 0.41 or 0.39
+            local InputStart = NameRatio + SavedRatio
+
+            Entry.RowInputName.Position = UDim2.fromOffset(0, 0)
+            Entry.RowInputName.Size = UDim2.new(NameRatio, -6, 1, 0)
+            Entry.RowInputSaved.Position = UDim2.new(NameRatio, 2, 0, 0)
+            Entry.RowInputSaved.Size = UDim2.new(SavedRatio, -8, 1, 0)
+
+            local InputHeight =
+                math.min(
+                    math.max(24, CurrentRowHeight - 10),
+                    31
+                )
+
+            Entry.RowInputRoot.Position =
+                UDim2.new(
+                    InputStart,
+                    4,
+                    0.5,
+                    -math.floor(InputHeight / 2)
+                )
+            Entry.RowInputRoot.Size =
+                UDim2.new(
+                    1 - InputStart,
+                    -4,
+                    0,
+                    InputHeight
+                )
+
+            Entry.RowInputName.TextSize = CurrentOptionTextSize
+            Entry.RowInputSaved.TextSize = math.max(10, CurrentOptionTextSize - 1)
+            Entry.RowInputBox.TextSize = CurrentOptionTextSize
+        end
+
+        UpdateEntry = function(Entry)
             local selected = IsSelected(Entry.Value)
             local rowStroke = Entry.Button:FindFirstChild("ZanjiDropdownRowStroke")
+            local RowInfo = GetRowInputInfo(Entry.Value)
 
             local hovered = Entry.Hovered == true and not Entry.Disabled and not Dropdown.Disabled
 
-            -- Reference behavior:
-            -- normal = dark row, hover = lighter row, selected = subtle accent fill.
             if selected then
                 Entry.Button.BackgroundColor3 = LayeredStyle.DropdownSelected
             elseif hovered then
@@ -8368,12 +8689,72 @@ local List = New("ScrollingFrame", {
             Entry.Button.BackgroundTransparency = 0
             Entry.Button.TextColor3 = LayeredStyle.MainText
             Entry.Button.TextTransparency = Entry.Disabled and 0.65 or 0
-            Entry.Button.Text = tostring(GetOptionText(Entry.Value))
-            UpdateTextTruncateForActualWidth(Entry.Button, 0)
+
+            if RowInfo then
+                EnsureRowInputControls(Entry)
+                LayoutRowInputControls(Entry)
+
+                Entry.Button.Text = ""
+                Entry.RowInputName.Visible = true
+                Entry.RowInputSaved.Visible = true
+                Entry.RowInputRoot.Visible = true
+                Entry.RowInputName.Text = tostring(GetOptionText(Entry.Value))
+
+                local currentValue = ResolveRowInputValue(RowInfo, Entry.Value)
+                Entry.RowInputCommitted = currentValue
+
+                if UserInputService:GetFocusedTextBox() ~= Entry.RowInputBox then
+                    Entry.RowInputBox.Text = currentValue
+                end
+
+                local LabelText =
+                    tostring(
+                        (Library.IsMobile and RowInfo.MobileText)
+                        or RowInfo.Text
+                        or "Value"
+                    )
+                local SavedColor = RowInfo.SavedColor or "#52D68A"
+                local SavedText =
+                    RowInfo.ShowSavedValue == false
+                    and ""
+                    or (
+                        " <font color=\""
+                        .. tostring(SavedColor)
+                        .. "\"><b>"
+                        .. EscapeRowInputRichText(currentValue)
+                        .. "</b></font>"
+                    )
+
+                Entry.RowInputSaved.Text =
+                    EscapeRowInputRichText(LabelText)
+                    .. (LabelText:sub(-1) == ":" and "" or ":")
+                    .. SavedText
+
+                Entry.RowInputBox.PlaceholderText =
+                    tostring(RowInfo.Placeholder or currentValue or "")
+
+                local RowDisabled =
+                    Entry.Disabled
+                    or Dropdown.Disabled
+                    or RowInfo.Disabled == true
+
+                Entry.RowInputBox.TextEditable = not RowDisabled
+                Entry.RowInputBox.Active = not RowDisabled
+                Entry.RowInputBox.TextTransparency = RowDisabled and 0.55 or 0
+                Entry.RowInputName.TextTransparency = Entry.Disabled and 0.65 or 0
+                Entry.RowInputSaved.TextTransparency = Entry.Disabled and 0.65 or 0
+            else
+                Entry.Button.Text = tostring(GetOptionText(Entry.Value))
+                if Entry.RowInputRoot then
+                    Entry.RowInputName.Visible = false
+                    Entry.RowInputSaved.Visible = false
+                    Entry.RowInputRoot.Visible = false
+                end
+                UpdateTextTruncateForActualWidth(Entry.Button, 0)
+            end
 
             if rowStroke then
                 if selected then
-                    -- Selected state uses fill only. No outline, so item icons stay unobstructed.
                     rowStroke.Color = LayeredStyle.Border
                     rowStroke.Transparency = 1
                 elseif hovered then
@@ -8400,7 +8781,17 @@ local List = New("ScrollingFrame", {
             MenuState.Active = false
             ClickBlocker.Visible = false
             Popup.Visible = false
-            
+
+            local FocusedTextBox = UserInputService:GetFocusedTextBox()
+            if FocusedTextBox
+                and FocusedTextBox ~= SearchInput
+                and FocusedTextBox:IsDescendantOf(List)
+            then
+                pcall(function()
+                    FocusedTextBox:ReleaseFocus(true)
+                end)
+            end
+
             ClearDropdownList()
 
             if UserInputService:GetFocusedTextBox() == SearchInput then
@@ -8536,6 +8927,11 @@ local List = New("ScrollingFrame", {
             Button.MouseButton1Click:Connect(function()
                 local Entry = Buttons[Button]
                 if not Entry or Entry.Disabled or Dropdown.Disabled then
+                    return
+                end
+
+                local FocusedTextBox = UserInputService:GetFocusedTextBox()
+                if FocusedTextBox and FocusedTextBox:IsDescendantOf(Button) then
                     return
                 end
 
@@ -9074,6 +9470,12 @@ local List = New("ScrollingFrame", {
 
         Library:GiveSignal(List:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
             if VirtualState.Active and RenderVirtualRows then
+                local FocusedTextBox = UserInputService:GetFocusedTextBox()
+                if FocusedTextBox and FocusedTextBox:IsDescendantOf(List) then
+                    pcall(function()
+                        FocusedTextBox:ReleaseFocus(true)
+                    end)
+                end
                 RenderVirtualRows(false)
             end
         end))
