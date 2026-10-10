@@ -410,6 +410,10 @@ local Templates = {
 
         SearchbarSize = UDim2.fromScale(1, 1),
         GlobalSearch = false,
+        -- Opt-in CloverHub-like search header. Other windows retain defaults.
+        HideTabHeader = false,
+        SearchIconOnLeft = false,
+        CenterSearchText = false,
 
         CornerRadius = 2,
         NotifySide = "Right",
@@ -13816,7 +13820,9 @@ function Library:CreateWindow(WindowInfo)
             TextScaled = false,
             TextSize = Library.IsMobile and 12 or 13,
             TextColor3 = LayeredStyle.MainText,
-            TextXAlignment = Enum.TextXAlignment.Left,
+            TextXAlignment = WindowInfo.CenterSearchText
+                and Enum.TextXAlignment.Center
+                or Enum.TextXAlignment.Left,
             Visible = not (WindowInfo.DisableSearch or false),
             Parent = RightWrapper,
         })
@@ -13833,8 +13839,9 @@ function Library:CreateWindow(WindowInfo)
         )
         New("UIPadding", {
             PaddingBottom = UDim.new(0, 6),
-            PaddingLeft = UDim.new(0, 11),
-            PaddingRight = UDim.new(0, 30),
+            -- Equal padding keeps the placeholder and typed search centered.
+            PaddingLeft = UDim.new(0, WindowInfo.SearchIconOnLeft and 32 or 11),
+            PaddingRight = UDim.new(0, WindowInfo.SearchIconOnLeft and 32 or 30),
             PaddingTop = UDim.new(0, 6),
             Parent = SearchBox,
         })
@@ -13866,14 +13873,18 @@ function Library:CreateWindow(WindowInfo)
         local SearchIcon = Library:GetIcon("search")
         if SearchIcon then
             New("ImageLabel", {
-                AnchorPoint = Vector2.new(1, 0.5),
+                AnchorPoint = WindowInfo.SearchIconOnLeft
+                    and Vector2.new(0, 0.5)
+                    or Vector2.new(1, 0.5),
                 BackgroundTransparency = 1,
                 Image = SearchIcon.Url,
                 ImageColor3 = "AccentColor",
                 ImageRectOffset = SearchIcon.ImageRectOffset,
                 ImageRectSize = SearchIcon.ImageRectSize,
                 ImageTransparency = 0.18,
-                Position = UDim2.new(1, -9, 0.5, 0),
+                Position = WindowInfo.SearchIconOnLeft
+                    and UDim2.new(0, 11, 0.5, 0)
+                    or UDim2.new(1, -9, 0.5, 0),
                 Size = UDim2.fromOffset(15, 15),
                 Parent = SearchBox,
             })
@@ -14224,6 +14235,13 @@ function Library:CreateWindow(WindowInfo)
     end
 
     function Window:ShowTabInfo(Name, Description)
+        -- Hide only the TOP-BAR tab name/description, not the sidebar tabs.
+        if WindowInfo.HideTabHeader then
+            CurrentTabInfo.Visible = false
+            SearchBox.Size = UDim2.fromScale(1, 1)
+            return
+        end
+
         CurrentTabLabel.Text = Name
         CurrentTabDescription.Text = Description
 
@@ -14235,7 +14253,7 @@ function Library:CreateWindow(WindowInfo)
 
     function Window:HideTabInfo()
         CurrentTabInfo.Visible = false
-        if IsDefaultSearchbarSize then
+        if WindowInfo.HideTabHeader or IsDefaultSearchbarSize then
             SearchBox.Size = UDim2.fromScale(1, 1)
         end
     end
